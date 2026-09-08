@@ -1,10 +1,18 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TestAssemblyLoader } from '@/modules/candidate/components/TestAssemblyLoader';
 
 export function ExecutionSkeleton() {
+  const searchParams = useSearchParams();
+  const isResume = searchParams?.get('resume') === 'true';
+
   return (
-    <div className='min-h-screen bg-background flex flex-col'>
+    <div className='min-h-screen bg-background flex flex-col relative overflow-hidden'>
+      {/* Centered Loading Overlay with Progress Bar in the Middle */}
+      <TestAssemblyLoader isResume={isResume} />
+
       {/* Header Skeleton */}
       <header className='border-b h-16 w-full flex items-center justify-between px-4 md:px-8'>
         <div className='flex flex-col gap-2'>

@@ -36,15 +36,24 @@ export function useExecution(testId: string) {
 
         if (data.status === 'CREATED' || data.status === 'IN_PROGRESS') {
           console.log(`[CLIENT-EXECUTION 🎯] Initializing execution store and starting test timer...`);
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('intervu_assembly_progress');
+          }
           initializeTest(data);
         } else {
           // E.g., EXPIRED or CANCELLED
           console.warn(`[CLIENT-EXECUTION ⚠️] Assessment status is ${data.status}. Redirecting to dashboard.`);
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('intervu_assembly_progress');
+          }
           clearAssessmentSandboxStorage(testId);
           router.replace('/candidate/dashboard');
         }
       } catch (err: any) {
         console.error(`[CLIENT-EXECUTION ❌] Error loading assessment in ${Date.now() - t0}ms:`, err);
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('intervu_assembly_progress');
+        }
         if (mounted) {
           if (err.status === 401) setError('UNAUTHORIZED');
           else if (err.status === 403) setError('FORBIDDEN');
