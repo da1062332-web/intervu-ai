@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { PlanCard } from '@/components/billing/plan-card';
 import { useSubscriptionStore } from '@/store/subscription.store';
@@ -12,6 +13,7 @@ import type { PlanDto } from '@intervu-ai/contracts';
 
 export default function PlansPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const currentPlan = useSubscriptionStore((state) => state.plan);
   const loadEntitlements = useSubscriptionStore((state) => state.loadEntitlements);
   const setHasActivePlan = useSubscriptionStore((state) => state.setHasActivePlan);
@@ -45,6 +47,9 @@ export default function PlansPage() {
       await billingApi.subscribeFree(planSlug);
       setHasActivePlan(true);
       await loadEntitlements();
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+      queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
       notifySuccess('Plan activated successfully! Welcome to InterVu.');
       router.push('/candidate/dashboard');
     } catch (err: any) {
@@ -71,6 +76,9 @@ export default function PlansPage() {
       if (order.amount === 0 || (order as any).isFree) {
         setHasActivePlan(true);
         await loadEntitlements();
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+        queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
         notifySuccess('Plan activated successfully! Welcome to InterVu.');
         router.push('/candidate/dashboard');
         setLoadingPlan(null);
@@ -143,6 +151,9 @@ export default function PlansPage() {
             if (verifyRes.success) {
               setHasActivePlan(true);
               await loadEntitlements();
+              queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+              queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+              queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
               notifySuccess(`Payment verified successfully! Welcome to ${planSlug.toUpperCase()}.`);
               router.push('/candidate/dashboard');
             }

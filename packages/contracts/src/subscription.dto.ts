@@ -53,6 +53,7 @@ export const PLAN_ENTITLEMENT_DEFINITIONS: Record<string, PlanFeatures> = {
     cohortDashboard: false,
     detailedAnalytics: false,
     supportTier: 'community',
+    allowedAssessments: ['TCS_NQT_SHORT_ASSESSMENT'],
   },
   STARTER: {
     monthlyRoundsLimit: 10,
@@ -70,7 +71,7 @@ export const PLAN_ENTITLEMENT_DEFINITIONS: Record<string, PlanFeatures> = {
     cohortDashboard: false,
     detailedAnalytics: true,
     supportTier: 'email_1bd',
-    allowedAssessments: ['all'],
+    allowedAssessments: ['TCS_NQT_SHORT_ASSESSMENT'],
   },
   PRO: {
     monthlyRoundsLimit: 20,

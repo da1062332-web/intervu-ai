@@ -46,10 +46,18 @@ export class CandidateDashboardService {
       }
     }
 
-    const isVip = entitlements?.plan === 'VIP_UNLIMITED' || entitlements?.planSlug === 'vip-unlimited';
-    const isPaidSubscriber = hasActivePlan || isVip || ['STARTER', 'PRO', 'TEAMS'].includes(String(entitlements?.plan).toUpperCase());
-    if (isPaidSubscriber && (!allowedList || allowedList.length === 0)) {
-      allowedList = ['all'];
+    const planUpper = String(entitlements?.plan || "FREE").toUpperCase();
+    const isVip =
+      planUpper === "VIP_UNLIMITED" ||
+      entitlements?.planSlug === "vip-unlimited";
+    const isAllAccessPaid =
+      isVip ||
+      ["PRO", "TEAMS", "ALL-COMPANIES"].includes(planUpper) ||
+      entitlements?.planSlug === "all-companies" ||
+      entitlements?.planSlug === "vip-unlimited";
+
+    if (!allowedList || allowedList.length === 0) {
+      allowedList = isAllAccessPaid ? ["all"] : ["TCS_NQT_SHORT_ASSESSMENT"];
     }
 
     // Active / in-progress tests
@@ -147,13 +155,11 @@ export class CandidateDashboardService {
             (t.name && allowedList.includes(t.name))
           );
         }
-        // If user does not have an active allowedList, exclude referral-exclusive reward assessments
-        if (!allowedList) {
-          if (
-            t.code === "ASM_TCS_NQT_SHORT_001"
-          ) {
-            return false;
-          }
+        if (!allowedList || allowedList.length === 0) {
+          return (
+            t.code === "TCS_NQT_SHORT_ASSESSMENT" ||
+            t.name === "TCS NQT Short Assessment"
+          );
         }
         return true;
       })

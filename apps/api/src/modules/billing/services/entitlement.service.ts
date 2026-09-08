@@ -267,6 +267,9 @@ export class EntitlementService {
           OR: [
             { slug: String(planTier).toLowerCase() },
             { id: String(subscription.razorpayPlanId || "") },
+            ...(String(planTier).toUpperCase() === "FREE"
+              ? [{ slug: "starter" }, { priceMonthly: 0 }]
+              : []),
           ],
         },
         include: { features: true },

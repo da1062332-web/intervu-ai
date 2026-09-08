@@ -59,7 +59,10 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       : '0%';
 
   const attempts = metrics?.attemptCount ?? dashboard?.completedAttempts?.length ?? 0;
-  const totalAssessments = pagination?.total || dashboard?.availableTests?.length || 0;
+  const totalAssessments =
+    dashboard?.availableTests !== undefined
+      ? dashboard.availableTests.length
+      : (pagination?.total ?? 0);
 
   const cards = [
     {

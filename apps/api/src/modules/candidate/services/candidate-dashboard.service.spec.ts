@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { CandidateDashboardService } from "./candidate-dashboard.service";
 import { CandidateDashboardRepository } from "../repositories/candidate-dashboard.repository";
+import { EntitlementService } from "../../billing/services/entitlement.service";
 
 describe("CandidateDashboardService", () => {
   let service: CandidateDashboardService;
@@ -10,11 +11,19 @@ describe("CandidateDashboardService", () => {
     const mockRepository = {
       getDashboardData: jest.fn(),
     };
+    const mockEntitlementService = {
+      getUserEntitlements: jest.fn().mockResolvedValue({
+        plan: "VIP_UNLIMITED",
+        hasActivePlan: true,
+        features: { allowedAssessments: ["all"] },
+      }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CandidateDashboardService,
         { provide: CandidateDashboardRepository, useValue: mockRepository },
+        { provide: EntitlementService, useValue: mockEntitlementService },
       ],
     }).compile();
 

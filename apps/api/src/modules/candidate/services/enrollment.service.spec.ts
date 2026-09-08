@@ -45,17 +45,26 @@ describe("EnrollmentService", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should throw Conflict if already enrolled", async () => {
+    it("should return existing enrollment if already enrolled", async () => {
       jest
         .spyOn(eligibilityService, "validateEligibility")
         .mockResolvedValue({ eligible: true });
       jest
         .spyOn(repository, "findByUserAndTest")
         .mockResolvedValue({ id: "enroll1" } as any);
+      jest
+        .spyOn(repository, "findAllByUser")
+        .mockResolvedValue([
+          {
+            id: "enroll1",
+            status: "ENROLLED",
+            createdAt: new Date(),
+            testConfig: { displayName: "React Test" },
+          } as any,
+        ]);
 
-      await expect(
-        service.enroll("user1", { testId: "test1" }),
-      ).rejects.toThrow(ConflictException);
+      const result = await service.enroll("user1", { testId: "test1" });
+      expect(result.enrollment.id).toBe("enroll1");
     });
 
     it("should create enrollment and return it", async () => {

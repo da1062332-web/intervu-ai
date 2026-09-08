@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles,
   Calendar,
@@ -22,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import type { PlanDto } from '@intervu-ai/contracts';
 
 export function CandidateSubscriptionSection() {
+  const queryClient = useQueryClient();
   const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
   const currentPlan = useSubscriptionStore((state) => state.plan);
   const planName = useSubscriptionStore((state) => state.planName);
@@ -80,6 +82,9 @@ export function CandidateSubscriptionSection() {
       await billingApi.subscribeFree(selectedSlug);
       setHasActivePlan(true);
       await loadEntitlements();
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+      queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
       notifySuccess('Plan activated successfully!');
     } catch (err: any) {
       notifyApiError(err, 'Failed to activate plan');
@@ -106,6 +111,9 @@ export function CandidateSubscriptionSection() {
       if (order.amount === 0 || (order as any).isFree) {
         setHasActivePlan(true);
         await loadEntitlements();
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+        queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
         notifySuccess('Plan activated successfully!');
         setLoadingPlan(null);
         return;
@@ -179,6 +187,9 @@ export function CandidateSubscriptionSection() {
             if (verifyRes.success) {
               setHasActivePlan(true);
               await loadEntitlements();
+              queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+              queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+              queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
               notifySuccess(`Payment verified successfully! Welcome to InterVu ${selectedSlug.toUpperCase()}.`);
             }
           } catch (err: any) {

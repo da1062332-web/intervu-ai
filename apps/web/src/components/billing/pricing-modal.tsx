@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { X, Sparkles, ShieldCheck } from 'lucide-react';
 import { PlanCard } from './plan-card';
 import { useSubscriptionStore } from '@/store/subscription.store';
@@ -10,6 +11,7 @@ import { notifySuccess, notifyApiError } from '@/services/notifications/toast';
 import type { PlanDto } from '@intervu-ai/contracts';
 
 export function PricingModal() {
+  const queryClient = useQueryClient();
   const isPricingModalOpen = useSubscriptionStore((state) => state.isPricingModalOpen);
   const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
   const currentPlan = useSubscriptionStore((state) => state.plan);
@@ -64,6 +66,9 @@ export function PricingModal() {
       await billingApi.subscribeFree(planSlug);
       setHasActivePlan(true);
       await loadEntitlements();
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+      queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
       notifySuccess('Plan activated successfully! Welcome to InterVu.');
       handleClose();
     } catch (err: any) {
@@ -91,6 +96,9 @@ export function PricingModal() {
       if (order.amount === 0 || (order as any).isFree) {
         setHasActivePlan(true);
         await loadEntitlements();
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+        queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+        queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
         notifySuccess('Plan activated successfully! Welcome to InterVu.');
         handleClose();
         setLoadingPlan(null);
@@ -166,6 +174,9 @@ export function PricingModal() {
             if (verifyRes.success) {
               setHasActivePlan(true);
               await loadEntitlements();
+              queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-modular'] });
+              queryClient.invalidateQueries({ queryKey: ['public-tests'] });
+              queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-metrics'] });
               notifySuccess(`Payment verified successfully! Welcome to InterVu ${planSlug.toUpperCase()}.`);
               closePricingModal();
             }
