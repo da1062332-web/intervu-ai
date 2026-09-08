@@ -80,8 +80,12 @@ export class BillingController {
   @Post("subscribe-free")
   @ApiOperation({ summary: "Select and activate the Free tier for a candidate" })
   @ApiOkResponse({ description: "Free subscription activated successfully" })
-  async subscribeFree(@CurrentUser() user: AuthUser) {
-    const subscription = await this.subscriptionService.subscribeFree(user.id);
+  async subscribeFree(
+    @CurrentUser() user: AuthUser,
+    @Body() body?: { planSlug?: string; plan?: string },
+  ) {
+    const planSlug = body?.planSlug || body?.plan || "FREE";
+    const subscription = await this.subscriptionService.subscribeFree(user.id, planSlug);
     const entitlements = await this.entitlementService.getUserEntitlements(user.id);
     return {
       success: true,
@@ -107,6 +111,15 @@ export class BillingController {
       currency: dto.currency,
       receipt: dto.receipt,
     });
+
+    if (order.amount === 0 || (order as any).isFree) {
+      // Free plan selected via createOrder: auto-activate without payment transaction
+      await this.subscriptionService.subscribeFree(user.id, planType);
+      return {
+        ...order,
+        isFree: true,
+      };
+    }
 
     // Record local pending order transaction for strict DB ownership validation
     await this.subscriptionService.recordPendingOrder({

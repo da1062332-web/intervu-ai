@@ -117,7 +117,7 @@ export class PlanManagementService {
       );
     }
 
-    if (typeof dbPlan.priceMonthly !== "number" || dbPlan.priceMonthly < 100) {
+    if (typeof dbPlan.priceMonthly !== "number" || dbPlan.priceMonthly < 0 || (dbPlan.priceMonthly > 0 && dbPlan.priceMonthly < 100)) {
       throw new BadRequestException(
         `Plan '${slug}' does not have a valid price configured. Please contact support.`,
       );

@@ -74,21 +74,25 @@ export function CandidateSubscriptionSection() {
 
   const formattedExpiry = formatExpirationDate(currentPeriodEnd || entitlements?.currentPeriodEnd);
 
-  const handleSelectFree = async () => {
+  const handleSelectFree = async (selectedSlug: string = 'free') => {
     try {
-      setLoadingPlan('free');
-      await billingApi.subscribeFree();
+      setLoadingPlan(selectedSlug);
+      await billingApi.subscribeFree(selectedSlug);
       setHasActivePlan(true);
       await loadEntitlements();
-      notifySuccess('Free plan activated successfully!');
+      notifySuccess('Plan activated successfully!');
     } catch (err: any) {
-      notifyApiError(err, 'Failed to activate Free plan');
+      notifyApiError(err, 'Failed to activate plan');
     } finally {
       setLoadingPlan(null);
     }
   };
 
   const handleSelectPaid = async (selectedSlug: string, amountPaise: number) => {
+    if (amountPaise === 0 || selectedSlug === 'free' || selectedSlug === 'starter') {
+      return handleSelectFree(selectedSlug);
+    }
+
     try {
       setLoadingPlan(selectedSlug);
       
@@ -98,6 +102,14 @@ export function CandidateSubscriptionSection() {
         amount: amountPaise,
         currency: 'INR',
       });
+
+      if (order.amount === 0 || (order as any).isFree) {
+        setHasActivePlan(true);
+        await loadEntitlements();
+        notifySuccess('Plan activated successfully!');
+        setLoadingPlan(null);
+        return;
+      }
 
       // Step 2: Load Razorpay Checkout Script
       const loadScript = () => {
@@ -425,8 +437,8 @@ export function CandidateSubscriptionSection() {
                   : `₹${(plan.priceMonthly / 100).toLocaleString('en-IN')}`;
 
               const handlePlanSelect = () => {
-                if (plan.slug === 'free') {
-                  handleSelectFree();
+                if (plan.priceMonthly === 0 || plan.slug === 'free' || plan.slug === 'starter') {
+                  handleSelectFree(plan.slug);
                 } else if (plan.slug === 'teams') {
                   window.open('mailto:sales@skillitrix.com?subject=InterVu%20Enterprise%20Inquiry', '_blank');
                 } else {

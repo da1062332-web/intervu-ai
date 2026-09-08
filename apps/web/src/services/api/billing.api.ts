@@ -67,11 +67,12 @@ export const billingApi = {
     });
   },
 
-  async subscribeFree(): Promise<{ success: boolean; subscription: any; entitlements: UserEntitlements }> {
+  async subscribeFree(planSlug?: string): Promise<{ success: boolean; subscription: any; entitlements: UserEntitlements }> {
     return apiClient.request<{ success: boolean; subscription: any; entitlements: UserEntitlements }>(
       `${BILLING_BASE_PATH}/subscribe-free`,
       {
         method: 'POST',
+        body: planSlug ? { planSlug } : undefined,
       },
     );
   },

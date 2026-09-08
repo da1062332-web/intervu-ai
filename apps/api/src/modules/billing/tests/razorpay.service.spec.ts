@@ -66,6 +66,25 @@ describe("RazorpayService", () => {
     expect(order.order_id).toBe("order_mock_123456");
   });
 
+  it("should create free mock order when plan price is 0", async () => {
+    const planMgmt = (service as any).planManagementService;
+    planMgmt.resolvePlanPricing = jest.fn().mockResolvedValue({
+      plan: { slug: "starter", priceMonthly: 0 },
+      amount: 0,
+    });
+
+    const order = await service.createOrder({
+      userId: "user-123456",
+      email: "candidate@example.com",
+      plan: "STARTER",
+    });
+
+    expect(order.amount).toBe(0);
+    expect(order.plan).toBe("STARTER");
+    expect(order.isFree).toBe(true);
+    expect(order.order_id).toMatch(/^free_/);
+  });
+
   it("should verify valid payment signature", () => {
     const orderId = "order_9A33XWu170gUtm";
     const paymentId = "pay_29AeHIaeQErwhh";
