@@ -1,0 +1,288 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { PlanCard } from '@/components/billing/plan-card';
+import { useSubscriptionStore } from '@/store/subscription.store';
+import { useAuthStore } from '@/store/auth.store';
+import { billingApi } from '@/services/api/billing.api';
+import { notifySuccess, notifyApiError } from '@/services/notifications/toast';
+import type { PlanDto } from '@intervu-ai/contracts';
+
+export default function PlansPage() {
+  const router = useRouter();
+  const currentPlan = useSubscriptionStore((state) => state.plan);
+  const loadEntitlements = useSubscriptionStore((state) => state.loadEntitlements);
+  const setHasActivePlan = useSubscriptionStore((state) => state.setHasActivePlan);
+  const user = useAuthStore((state) => state.user);
+
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [dynamicPlans, setDynamicPlans] = useState<PlanDto[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
+
+  useEffect(() => {
+    loadDynamicPlans();
+  }, []);
+
+  const loadDynamicPlans = async () => {
+    try {
+      setIsLoadingPlans(true);
+      const plans = await billingApi.getPublicPlans();
+      if (plans && plans.length > 0) {
+        setDynamicPlans(plans);
+      }
+    } catch (err) {
+      console.error('Failed to load plans:', err);
+    } finally {
+      setIsLoadingPlans(false);
+    }
+  };
+
+  const handleSelectFree = async () => {
+    try {
+      setLoadingPlan('free');
+      await billingApi.subscribeFree();
+      setHasActivePlan(true);
+      await loadEntitlements();
+      notifySuccess('Free plan activated successfully! Welcome to InterVu.');
+      router.push('/candidate/dashboard');
+    } catch (err: any) {
+      notifyApiError(err, 'Failed to activate Free plan');
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
+  const handleSelectPaid = async (planSlug: string, amountPaise: number) => {
+    try {
+      setLoadingPlan(planSlug);
+      
+      const order = await billingApi.createOrder({
+        plan: planSlug,
+        amount: amountPaise,
+        currency: 'INR',
+      });
+
+      const loadScript = () => {
+        return new Promise<boolean>((resolve) => {
+          if ((window as any).Razorpay) {
+            resolve(true);
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.async = true;
+          script.onload = () => resolve(true);
+          script.onerror = () => resolve(false);
+          document.body.appendChild(script);
+        });
+      };
+
+      const loaded = await loadScript();
+      if (!loaded) {
+        notifyApiError('Failed to load payment gateway. Please check your internet connection.');
+        setLoadingPlan(null);
+        return;
+      }
+
+      const razorpayKey =
+        order.keyId ||
+        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
+        'rzp_live_TX7JsRywgX7pvg';
+
+      const orderId = order.order_id || order.orderId;
+      if (!orderId) {
+        notifyApiError('Failed to generate a valid checkout order. Please try again.');
+        setLoadingPlan(null);
+        return;
+      }
+
+      const options = {
+        key: razorpayKey,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'SkillitriX InterVu AI',
+        description: `${planSlug.toUpperCase()} Assessment Plan`,
+        order_id: orderId,
+        prefill: {
+          name: user?.fullName || 'Candidate',
+          email: user?.email || '',
+        },
+        theme: {
+          color: '#4F46E5',
+        },
+        handler: async (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) => {
+          setLoadingPlan(planSlug);
+          notifySuccess('Payment received! Activating your assessment quota...');
+          try {
+            const verifyRes = await billingApi.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              plan: planSlug,
+            });
+
+            if (verifyRes.success) {
+              setHasActivePlan(true);
+              await loadEntitlements();
+              notifySuccess(`Payment verified successfully! Welcome to ${planSlug.toUpperCase()}.`);
+              router.push('/candidate/dashboard');
+            }
+          } catch (err: any) {
+            notifyApiError(err, 'Payment verification failed. Please contact support.');
+          } finally {
+            setLoadingPlan(null);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setLoadingPlan(null);
+          },
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+
+      rzp.on('payment.failed', (response: any) => {
+        notifyApiError(
+          response.error?.description || 'Payment was declined or failed. Please try again.',
+          'Payment Failed',
+        );
+        setLoadingPlan(null);
+      });
+
+      rzp.open();
+    } catch (err: any) {
+      notifyApiError(err, 'Failed to initiate checkout');
+      setLoadingPlan(null);
+    }
+  };
+
+  return (
+    <div className='min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8'>
+      <div className='max-w-6xl mx-auto'>
+        {/* Back Link */}
+        <button
+          onClick={() => router.back()}
+          className='inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors mb-8'
+        >
+          <ArrowLeft className='size-4' />
+          <span>Back to Dashboard</span>
+        </button>
+
+        {/* Header */}
+        <div className='text-center max-w-2xl mx-auto mb-10'>
+          <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-3'>
+            <Sparkles className='size-3.5' />
+            Assessment Plans & Quotas
+          </div>
+          <h1 className='text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900'>
+            Choose Your Assessment Plan
+          </h1>
+          <p className='text-slate-600 mt-2 text-sm sm:text-base leading-relaxed'>
+            Select an assessment package to unlock AI mock evaluations, TCS NQT preparation tracks, and detailed scorecards.
+          </p>
+        </div>
+
+        {/* Plans Grid */}
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch'>
+          {dynamicPlans.length > 0 ? (
+            dynamicPlans.map((plan) => {
+              const isCurrent = currentPlan?.toUpperCase() === plan.slug.toUpperCase();
+              const priceFormatted =
+                plan.priceMonthly === 0
+                  ? 'Free'
+                  : `₹${(plan.priceMonthly / 100).toLocaleString('en-IN')}`;
+
+              const handlePlanSelect = () => {
+                if (plan.slug === 'free') {
+                  handleSelectFree();
+                } else if (plan.slug === 'teams') {
+                  window.open('mailto:sales@skillitrix.com?subject=InterVu%20Teams%20Inquiry', '_blank');
+                } else {
+                  handleSelectPaid(plan.slug, plan.priceMonthly);
+                }
+              };
+
+              const hasDiscount = plan.priceMonthly > 0 && plan.originalPrice && plan.originalPrice > plan.priceMonthly;
+              const originalPriceFormatted = hasDiscount
+                ? `₹${(plan.originalPrice! / 100).toLocaleString('en-IN')}`
+                : undefined;
+              const discountPercentFormatted = hasDiscount
+                ? `${Math.round(((plan.originalPrice! - plan.priceMonthly) / plan.originalPrice!) * 100)}%`
+                : undefined;
+
+              const displayFeatures = plan.features.map((f) => {
+                if (f.featureKey === 'allowed_assessments' && typeof f.valueJson === 'object' && f.valueJson !== null) {
+                  const list = f.valueJson.assessments;
+                  const attempts = f.valueJson.overallAttempts ?? f.valueJson.attemptsPerExam;
+                  const attemptsSuffix = attempts ? ` (${attempts} Attempts Overall)` : ' (Unlimited Attempts)';
+                  if (Array.isArray(list)) {
+                    if (list.includes('all')) return `All System Assessments Access${attemptsSuffix}`;
+                    return `${list.length} Specific Assigned Assessment${list.length > 1 ? 's' : ''}${attemptsSuffix}`;
+                  }
+                }
+                if (f.featureKey === 'monthly_rounds_limit' || f.featureKey === 'rounds_limit') {
+                  if (typeof f.valueJson === 'number') {
+                    return `${f.valueJson} Assessment Practice Tests`;
+                  }
+                  if (f.valueJson === null) {
+                    return 'Unlimited Assessment Practice Tests';
+                  }
+                }
+                return f.featureName.replace(/^Monthly\s+/i, '');
+              });
+
+              return (
+                <PlanCard
+                  key={plan.id}
+                  title={plan.name}
+                  price={priceFormatted}
+                  originalPrice={originalPriceFormatted}
+                  discountPercent={discountPercentFormatted}
+                  badge={plan.badge || undefined}
+                  highlighted={plan.isHighlighted}
+                  description={plan.description || ''}
+                  features={displayFeatures}
+                  buttonText={isCurrent ? 'Current Plan' : plan.buttonText}
+                  disabled={isCurrent}
+                  isLoading={loadingPlan === plan.slug}
+                  onSelect={handlePlanSelect}
+                />
+              );
+            })
+          ) : isLoadingPlans ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div
+                key={idx}
+                className='h-96 w-full rounded-2xl border border-slate-200 bg-white p-6 animate-pulse flex flex-col justify-between'
+              >
+                <div className='space-y-3'>
+                  <div className='h-5 w-24 bg-slate-200 rounded' />
+                  <div className='h-8 w-32 bg-slate-200 rounded' />
+                  <div className='h-4 w-full bg-slate-200 rounded' />
+                </div>
+                <div className='h-11 w-full bg-slate-200 rounded-xl' />
+              </div>
+            ))
+          ) : (
+            <div className='col-span-full py-16 text-center text-slate-500 font-medium text-sm'>
+              No active assessment packages available at the moment.
+            </div>
+          )}
+        </div>
+
+        {/* Footer Guarantee */}
+        <div className='mt-12 pt-6 border-t border-slate-200 flex items-center justify-center gap-2 text-xs sm:text-sm text-slate-500 font-medium text-center'>
+          <ShieldCheck className='size-4 text-emerald-600' />
+          <span>Encrypted Razorpay Checkout • Lifetime Quota • Completed results remain accessible</span>
+        </div>
+      </div>
+    </div>
+  );
+}

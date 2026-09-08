@@ -54,8 +54,8 @@ export class EligibilityService {
       if (!entitlements || !entitlements.hasActivePlan) {
         return {
           eligible: false,
-          errorCode: "NO_ACTIVE_PLAN",
-          reason: "An active subscription plan is required to start this assessment. Please choose a plan to continue.",
+          errorCode: "QUOTA_EXHAUSTED",
+          reason: "Your assessment quota has been exhausted. Purchase a new plan to continue.",
         };
       }
     }

@@ -1,20 +1,21 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { dashboardService } from './dashboard.service';
 import { apiClient } from '@/services/api/client';
 
-jest.mock('@/services/api/client', () => ({
+vi.mock('@/services/api/client', () => ({
   apiClient: {
-    request: jest.fn(),
+    request: vi.fn(),
   },
 }));
 
 describe('DashboardService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getDashboard', () => {
     it('should format dashboard data correctly', async () => {
-      (apiClient.request as jest.Mock).mockResolvedValue({
+      vi.mocked(apiClient.request).mockResolvedValue({
         upcomingTests: [
           { configId: 't1', name: 'Test 1', durationSeconds: 3600, enrollmentStatus: 'ENROLLED' },
         ],
@@ -33,7 +34,7 @@ describe('DashboardService', () => {
 
   describe('enroll', () => {
     it('should call enrollment API', async () => {
-      (apiClient.request as jest.Mock).mockResolvedValue({ success: true });
+      vi.mocked(apiClient.request).mockResolvedValue({ success: true });
 
       await dashboardService.enroll('t1');
 
@@ -46,11 +47,34 @@ describe('DashboardService', () => {
 
   describe('getPublicTests', () => {
     it('should encode parameters correctly', async () => {
-      (apiClient.request as jest.Mock).mockResolvedValue({});
+      vi.mocked(apiClient.request).mockResolvedValue({});
 
       await dashboardService.getPublicTests({ search: 'React', limit: 10 });
 
-      expect(apiClient.request).toHaveBeenCalledWith('/tests/public?search=React&limit=10');
+      expect(apiClient.request).toHaveBeenCalledWith('/candidate/tests?search=React&limit=10');
+    });
+  });
+
+  describe('getDashboardMetrics', () => {
+    it('should return metrics when API call succeeds', async () => {
+      const mockMetrics = { bestScore: 90, averageAccuracy: 85, attemptCount: 2 };
+      vi.mocked(apiClient.request).mockResolvedValue(mockMetrics);
+
+      const result = await dashboardService.getDashboardMetrics();
+
+      expect(apiClient.request).toHaveBeenCalledWith('/candidate/dashboard/metrics', {
+        skipErrorToast: true,
+      });
+      expect(result).toEqual(mockMetrics);
+    });
+
+    it('should return null when API call fails without throwing', async () => {
+      vi.mocked(apiClient.request).mockRejectedValue(new Error('Network error'));
+
+      const result = await dashboardService.getDashboardMetrics();
+
+      expect(result).toBeNull();
     });
   });
 });
+

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/admin/layout/navbar';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { PricingModal } from '@/components/billing/pricing-modal';
+import { QuotaExhaustedModal } from '@/components/billing/quota-exhausted-modal';
 import { useSubscriptionStore } from '@/store/subscription.store';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +39,7 @@ export default function CandidateDashboardLayout({ children }: { children: React
         <div className='min-h-screen bg-background'>
           {children}
           <PricingModal />
+          <QuotaExhaustedModal />
         </div>
       </ProtectedRoute>
     );
@@ -57,6 +59,7 @@ export default function CandidateDashboardLayout({ children }: { children: React
           {children}
         </main>
         <PricingModal />
+        <QuotaExhaustedModal />
       </div>
     </ProtectedRoute>
   );

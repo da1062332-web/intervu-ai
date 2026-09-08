@@ -70,8 +70,7 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   const handleStartAssessment = async () => {
     const hasActivePlan = useSubscriptionStore.getState().hasActivePlan;
     if (!hasActivePlan) {
-      toast.error('An active subscription plan is required to start this assessment.');
-      useSubscriptionStore.getState().openPricingModal();
+      useSubscriptionStore.getState().openQuotaExhaustedModal();
       return;
     }
 
@@ -89,11 +88,13 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
       const elapsed = Date.now() - t0;
       console.log(`[CLIENT-LAUNCH ⚡✅] Received testInstanceId (${testInstanceId}) in ${elapsed}ms! Navigating to execution UI...`);
       router.push(`/candidate/tests/${testInstanceId}/execution`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(`[CLIENT-LAUNCH ❌] Failed to start assessment:`, err);
-      // The API client automatically shows a toast for this error.
-      // We just need to reset the loading state.
       setIsStarting(false);
+      const errCode = err?.code || err?.response?.data?.code || err?.error?.code;
+      if (errCode === 'QUOTA_EXHAUSTED' || errCode === 'NO_ACTIVE_PLAN' || errCode === 'MONTHLY_QUOTA_EXCEEDED') {
+        useSubscriptionStore.getState().openQuotaExhaustedModal();
+      }
     }
   };
 

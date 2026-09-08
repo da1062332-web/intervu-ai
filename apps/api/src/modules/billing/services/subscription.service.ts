@@ -1,7 +1,7 @@
 import { Injectable, Logger, ConflictException, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { SubscriptionStatus, PaymentStatus } from "@prisma/client";
-import { SubscriptionStatusResponse, PlanTier } from "@intervu-ai/contracts";
+import { SubscriptionStatusResponse, PlanTier, PLAN_ENTITLEMENT_DEFINITIONS } from "@intervu-ai/contracts";
 import { PlanManagementService } from "./plan-management.service";
 
 @Injectable()
@@ -199,24 +199,20 @@ export class SubscriptionService {
       subscription.currentPeriodEnd &&
       subscription.currentPeriodEnd < now;
 
-    // For paid subscribers: active if status is ACTIVE and period not expired.
-    // For FREE plan tier: active only while referral reward quota is remaining.
-    const isActive = isPaid
-      ? subscription.status === SubscriptionStatus.ACTIVE && !isExpired
-      : hasRemainingReferralReward;
-
     // Resolve dynamic plan details from database
     let planSlug = String(subscription.plan).toLowerCase();
     let planDisplayName = `${subscription.plan} Plan`;
+    let dbPlan: any = null;
 
     try {
-      let dbPlan = await this.prisma.plan.findFirst({
+      dbPlan = await this.prisma.plan.findFirst({
         where: {
           OR: [
             { slug: planSlug },
             { id: String(subscription.razorpayPlanId || "") },
           ],
         },
+        include: { features: true },
       });
 
       if (!dbPlan) {
@@ -235,6 +231,7 @@ export class SubscriptionService {
                 { name: { equals: paymentPlanVal, mode: "insensitive" } },
               ],
             },
+            include: { features: true },
           });
         }
       }
@@ -242,6 +239,7 @@ export class SubscriptionService {
       if (!dbPlan && isPaid) {
         const activePlans = await this.prisma.plan.findMany({
           where: { isActive: true },
+          include: { features: true },
         });
         if (activePlans.length === 1) {
           dbPlan = activePlans[0];
@@ -262,11 +260,50 @@ export class SubscriptionService {
       }
     } catch {}
 
-    const effectiveStatus = isExpired
-      ? ("EXPIRED" as any)
+    // Check remaining rounds quota for quota-driven plan lifecycle
+    let isQuotaAvailable = true;
+    try {
+      const quota = await this.prisma.usageQuota.findFirst({
+        where: {
+          userId,
+          OR: [
+            { periodKey: `sub_${subscription.id}` },
+            { subscriptionId: subscription.id },
+            { periodKey: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}` },
+          ],
+        },
+      });
+      const roundsUsed = quota?.roundsUsed || 0;
+
+      let roundsLimit: number | null = null;
+      if (dbPlan?.features?.length) {
+        const feat = dbPlan.features.find((f: any) =>
+          ['monthly_rounds_limit', 'rounds_limit', 'total_rounds_limit', 'attempts_limit'].includes(f.featureKey),
+        );
+        if (feat && feat.valueJson !== undefined) {
+          roundsLimit = typeof feat.valueJson === 'number' ? feat.valueJson : null;
+        }
+      }
+      if (roundsLimit === null && !dbPlan) {
+        roundsLimit = PLAN_ENTITLEMENT_DEFINITIONS[String(subscription.plan)]?.monthlyRoundsLimit ?? (isPaid ? 20 : 3);
+      }
+
+      if (roundsLimit !== null && roundsUsed >= roundsLimit) {
+        isQuotaAvailable = false;
+      }
+    } catch {}
+
+    // For paid subscribers: active if status is ACTIVE, period not expired, and quota remaining.
+    // For FREE plan tier: active if status is ACTIVE and quota remaining, or referral reward active.
+    const isActive = isPaid
+      ? subscription.status === SubscriptionStatus.ACTIVE && !isExpired && isQuotaAvailable
+      : (subscription.status === SubscriptionStatus.ACTIVE && isQuotaAvailable) || hasRemainingReferralReward;
+
+    const effectiveStatus: SubscriptionStatus = isExpired || !isQuotaAvailable
+      ? SubscriptionStatus.EXPIRED
       : isPaid
         ? (subscription.status as any)
-        : hasRemainingReferralReward
+        : (subscription.status === SubscriptionStatus.ACTIVE || hasRemainingReferralReward)
           ? SubscriptionStatus.ACTIVE
           : SubscriptionStatus.INCOMPLETE;
 
