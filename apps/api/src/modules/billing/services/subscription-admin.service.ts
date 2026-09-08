@@ -114,13 +114,13 @@ export class SubscriptionAdminService {
       where: { userId },
       create: {
         userId,
-        plan: normalizedPlan,
+        plan: normalizedPlan as any,
         status: "ACTIVE",
         currentPeriodStart,
         currentPeriodEnd: isFree ? null : currentPeriodEnd,
       },
       update: {
-        plan: normalizedPlan,
+        plan: normalizedPlan as any,
         status: "ACTIVE",
         currentPeriodStart,
         currentPeriodEnd: isFree ? null : currentPeriodEnd,

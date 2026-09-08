@@ -471,7 +471,7 @@ export class SubscriptionService {
         where: { userId },
         create: {
           userId,
-          plan,
+          plan: plan as any,
           status: SubscriptionStatus.ACTIVE,
           billingCycle: "monthly",
           razorpaySubscriptionId: razorpayOrderId,
@@ -481,7 +481,7 @@ export class SubscriptionService {
           cancelAtPeriodEnd: false,
         },
         update: {
-          plan,
+          plan: plan as any,
           status: SubscriptionStatus.ACTIVE,
           razorpaySubscriptionId: razorpayOrderId || undefined,
           razorpayCustomerId: razorpayCustomerId || undefined,
