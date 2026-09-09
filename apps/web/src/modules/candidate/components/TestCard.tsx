@@ -141,7 +141,7 @@ export function TestCard({ test }: TestCardProps) {
       </CardContent>
 
       <CardFooter className='p-4 bg-card/40 border-t border-border/40'>
-        {test.canReattempt === false ? (
+        {test.canReattempt === false || (test.maxAttempts != null && (test.attemptCount ?? 0) >= test.maxAttempts) ? (
           <Button
             disabled
             variant='secondary'

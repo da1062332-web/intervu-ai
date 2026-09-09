@@ -14,7 +14,7 @@ import type { PlanDto } from '@intervu-ai/contracts';
 export default function PlansPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const currentPlan = useSubscriptionStore((state) => state.plan);
+  const currentPlanSlug = useSubscriptionStore((state) => state.planSlug);
   const loadEntitlements = useSubscriptionStore((state) => state.loadEntitlements);
   const setHasActivePlan = useSubscriptionStore((state) => state.setHasActivePlan);
   const user = useAuthStore((state) => state.user);
@@ -223,7 +223,8 @@ export default function PlansPage() {
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch'>
           {dynamicPlans.length > 0 ? (
             dynamicPlans.map((plan) => {
-              const isCurrent = currentPlan?.toUpperCase() === plan.slug.toUpperCase();
+              // FIX-05: Normalize plan identifiers before comparison using the canonical dbSlug
+              const isCurrent = currentPlanSlug?.toLowerCase() === plan.slug.toLowerCase();
               const priceFormatted =
                 plan.priceMonthly === 0
                   ? 'Free'

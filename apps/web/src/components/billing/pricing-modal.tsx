@@ -14,7 +14,7 @@ export function PricingModal() {
   const queryClient = useQueryClient();
   const isPricingModalOpen = useSubscriptionStore((state) => state.isPricingModalOpen);
   const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
-  const currentPlan = useSubscriptionStore((state) => state.plan);
+  const currentPlanSlug = useSubscriptionStore((state) => state.planSlug);
   const closePricingModal = useSubscriptionStore((state) => state.closePricingModal);
   const loadEntitlements = useSubscriptionStore((state) => state.loadEntitlements);
   const setHasActivePlan = useSubscriptionStore((state) => state.setHasActivePlan);
@@ -254,7 +254,8 @@ export function PricingModal() {
           <div className='grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch'>
             {dynamicPlans.length > 0 ? (
               dynamicPlans.map((plan) => {
-                const isCurrent = currentPlan?.toUpperCase() === plan.slug.toUpperCase();
+                // FIX-05: Normalize plan identifiers before comparison using the canonical dbSlug
+                const isCurrent = currentPlanSlug?.toLowerCase() === plan.slug.toLowerCase();
                 const priceFormatted =
                   plan.priceMonthly === 0
                     ? 'Free'

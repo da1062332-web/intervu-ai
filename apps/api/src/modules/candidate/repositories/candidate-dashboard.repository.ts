@@ -13,6 +13,10 @@ export class CandidateDashboardRepository {
     private readonly cacheService: RedisCacheService,
   ) {}
 
+  static invalidateCache(userId: string) {
+    CandidateDashboardRepository.dashboardMemCache.delete(userId);
+  }
+
   async getDashboardData(userId: string) {
     const now = Date.now();
     const cached = CandidateDashboardRepository.dashboardMemCache.get(userId);

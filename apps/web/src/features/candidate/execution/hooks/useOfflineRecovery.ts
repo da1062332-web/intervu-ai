@@ -1,9 +1,11 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
+import { useAuthStore } from '@/store/auth.store';
 
 interface QueuedOperation {
   id: string;
+  userId: string;
   type: 'SAVE_ANSWER';
   payload: {
     testId: string;
@@ -20,6 +22,7 @@ const STORE_NAME = 'syncQueue';
 
 export function useOfflineRecovery() {
   const { connectionStatus, setConnectionStatus } = useExecutionStore();
+  const userId = useAuthStore((state) => state.user?.id);
   // DATA-001 / CON-004: Prevent concurrent replay loops
   const isReplayingRef = useRef(false);
 
@@ -43,6 +46,10 @@ export function useOfflineRecovery() {
    */
   const queueOperation = useCallback(
     async (type: 'SAVE_ANSWER', payload: QueuedOperation['payload']) => {
+      if (!userId) {
+        console.error('[OfflineRecovery] No authenticated user, cannot queue operation');
+        return;
+      }
       try {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -50,6 +57,7 @@ export function useOfflineRecovery() {
 
         const op: QueuedOperation = {
           id: crypto.randomUUID(),
+          userId,
           type,
           payload,
           timestamp: Date.now(),
@@ -65,7 +73,7 @@ export function useOfflineRecovery() {
         console.error('[OfflineRecovery] Failed to queue offline operation', e);
       }
     },
-    [],
+    [userId],
   );
 
   /**
@@ -97,10 +105,22 @@ export function useOfflineRecovery() {
 
       if (operations.length === 0) return;
 
-      console.log(`[OfflineRecovery] Replaying ${operations.length} offline operation(s)...`);
+      if (!userId) {
+        console.log('[OfflineRecovery] Cannot replay queue, no authenticated user');
+        return;
+      }
+
+      // Filter operations belonging to the current user
+      const userOperations = operations.filter(op => op.userId === userId);
+
+      if (userOperations.length === 0) {
+        return;
+      }
+
+      console.log(`[OfflineRecovery] Replaying ${userOperations.length} offline operation(s)...`);
 
       // Process operations sequentially in timestamp order
-      const sorted = operations.sort((a, b) => a.timestamp - b.timestamp);
+      const sorted = userOperations.sort((a, b) => a.timestamp - b.timestamp);
 
       for (const op of sorted) {
         try {
@@ -133,12 +153,18 @@ export function useOfflineRecovery() {
               .toLowerCase()
               .includes('already');
 
-          if ((status && status >= 400 && status < 500) || isConflictOrSubmitted) {
+          // FIX-03: DO NOT endlessly retry on permanent auth/identity/conflict errors.
+          // We consider 400, 401, 403, 404, 409 as permanent.
+          // We keep 408 (Timeout), 429 (Too Many Requests), and 5xx as transient.
+          const isPermanentError = isConflictOrSubmitted || 
+            (status && [400, 401, 403, 404].includes(status));
+
+          if (isPermanentError) {
             console.warn(
               `[OfflineRecovery] Permanent error for operation ${op.id} (status ${status}), removing from queue`,
               err,
             );
-            // Permanent 4xx / 409 — remove from IndexedDB to avoid endless replay
+            // Permanent error — remove from IndexedDB to avoid endless replay
             await new Promise<void>((resolve) => {
               const deleteTx = db.transaction(STORE_NAME, 'readwrite');
               deleteTx.objectStore(STORE_NAME).delete(op.id);
@@ -160,14 +186,14 @@ export function useOfflineRecovery() {
     } finally {
       isReplayingRef.current = false;
     }
-  }, []);
+  }, [userId]);
 
   // Listen to connectionStatus changes from the store (which is driven by useConnectionMonitor)
   useEffect(() => {
-    if (connectionStatus === 'ONLINE') {
+    if (connectionStatus === 'ONLINE' && userId) {
       replayQueue();
     }
-  }, [connectionStatus, replayQueue]);
+  }, [connectionStatus, userId, replayQueue]);
 
   // Keep native event listeners as a fallback
   useEffect(() => {

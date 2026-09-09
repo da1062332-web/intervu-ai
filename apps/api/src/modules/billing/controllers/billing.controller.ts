@@ -36,6 +36,7 @@ import { RolesGuard } from "../../auth/guards/roles.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
 import { Public } from "../../auth/decorators/public.decorator";
 import { UserRole } from "@prisma/client";
+import { CandidateDashboardRepository } from "../../candidate/repositories/candidate-dashboard.repository";
 
 @ApiTags("billing")
 @Controller("billing")
@@ -88,6 +89,10 @@ export class BillingController {
     const subscription = await this.subscriptionService.subscribeFree(user.id, planSlug);
     this.entitlementService.invalidateCache(user.id);
     const entitlements = await this.entitlementService.getUserEntitlements(user.id);
+    
+    // FIX-04: Invalidate dashboard cache immediately after subscription to prevent stale refetches
+    CandidateDashboardRepository.invalidateCache(user.id);
+
     return {
       success: true,
       subscription,
@@ -116,6 +121,10 @@ export class BillingController {
     if (order.amount === 0 || (order as any).isFree) {
       // Free plan selected via createOrder: auto-activate without payment transaction
       await this.subscriptionService.subscribeFree(user.id, planType);
+      
+      // FIX-04: Invalidate dashboard cache immediately
+      CandidateDashboardRepository.invalidateCache(user.id);
+
       return {
         ...order,
         isFree: true,
@@ -216,6 +225,9 @@ export class BillingController {
       });
 
       const entitlements = await this.entitlementService.getUserEntitlements(user.id);
+
+      // FIX-04: Invalidate dashboard cache immediately after paid subscription verification
+      CandidateDashboardRepository.invalidateCache(user.id);
 
       return {
         success: true,
