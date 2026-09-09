@@ -18,6 +18,7 @@ import { testService } from '@/services/candidate/test.service';
 import { useSubscriptionStore } from '@/store/subscription.store';
 import { toast } from 'sonner';
 import { TestAssemblyLoader } from '../components/TestAssemblyLoader';
+import { isFaceDetectionDisabledForAssessment } from '@/lib/proctoring';
 
 interface TestLaunchPageProps {
   testId: string;
@@ -30,6 +31,14 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
   const { data: test, isLoading, error, refetch } = useTestDetails(testId);
   const [isSystemReady, setIsSystemReady] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+
+  const isFaceDetectionDisabled = isFaceDetectionDisabledForAssessment({
+    id: test?.id || testId,
+    testId,
+    testConfigId: (test as any)?.testConfigId,
+    title: test?.title,
+    company: (test as any)?.company,
+  });
 
   if (isLoading) {
     return (
@@ -152,8 +161,12 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
               </h3>
               <p className='text-sm font-medium text-amber-700/90 dark:text-amber-400/90'>
                 {isResume
-                  ? 'Please verify system readiness before resuming your assessment session. Ensure camera face detection and active microphone are operational.'
-                  : 'Please ensure all system checks pass (including camera face detection and active microphone) before starting.'}
+                  ? isFaceDetectionDisabled
+                    ? 'Please verify system readiness before resuming your assessment session.'
+                    : 'Please verify system readiness before resuming your assessment session. Ensure camera face detection and active microphone are operational.'
+                  : isFaceDetectionDisabled
+                    ? 'Please ensure all required system checks pass before starting.'
+                    : 'Please ensure all system checks pass (including camera face detection and active microphone) before starting.'}
               </p>
             </div>
           </div>
@@ -169,8 +182,8 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
               </h3>
               <p className='text-sm font-medium text-green-700/90 dark:text-green-400/90'>
                 {isResume
-                  ? 'Your hardware is verified and ready. You may resume your assessment session whenever you are ready.'
-                  : "Your hardware is verified. You may begin the assessment whenever you're ready."}
+                  ? 'Your setup is verified and ready. You may resume your assessment session whenever you are ready.'
+                  : "Your setup is verified. You may begin the assessment whenever you're ready."}
               </p>
             </div>
           </div>
@@ -179,7 +192,10 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative'>
           {/* Main system check panel */}
           <div className='lg:col-span-7 xl:col-span-8 flex flex-col'>
-            <SystemCheck onStatusChange={setIsSystemReady} />
+            <SystemCheck
+              onStatusChange={setIsSystemReady}
+              isFaceDetectionDisabled={isFaceDetectionDisabled}
+            />
           </div>
 
           {/* Sidebar parameters summary */}
@@ -213,7 +229,9 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
               ) : (
                 <span className='flex items-center gap-3'>
                   {!isSystemReady
-                    ? 'Hardware Checks Pending'
+                    ? isFaceDetectionDisabled
+                      ? 'System Checks Pending'
+                      : 'Hardware Checks Pending'
                     : isResume
                       ? 'Resume Assessment'
                       : 'Start Assessment'}

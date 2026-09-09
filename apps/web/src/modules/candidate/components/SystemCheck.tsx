@@ -116,30 +116,38 @@ export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = false }:
       }
 
       // 4. Media Hardware Permissions Check
-      updateCheckStatus('media', 'checking');
-      try {
-        if (
-          typeof navigator !== 'undefined' &&
-          navigator.mediaDevices &&
-          navigator.mediaDevices.getUserMedia
-        ) {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          if (stream.getAudioTracks().length > 0) {
-            setHasMicPassed(true);
-          }
-          // Immediately release probe tracks
-          stream.getTracks().forEach((track) => track.stop());
-        } else {
-          throw new Error('Media capture APIs not supported in this environment.');
-        }
-      } catch (err) {
+      if (isFaceDetectionDisabled) {
         if (active) {
-          const errorMsg = err instanceof Error ? err.message : String(err);
-          updateCheckStatus(
-            'media',
-            'failed',
-            `Permissions denied or hardware missing: ${errorMsg}`,
-          );
+          updateCheckStatus('media', 'success');
+          setHasMicPassed(true);
+          setHasFacePassed(true);
+        }
+      } else {
+        updateCheckStatus('media', 'checking');
+        try {
+          if (
+            typeof navigator !== 'undefined' &&
+            navigator.mediaDevices &&
+            navigator.mediaDevices.getUserMedia
+          ) {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            if (stream.getAudioTracks().length > 0) {
+              setHasMicPassed(true);
+            }
+            // Immediately release probe tracks
+            stream.getTracks().forEach((track) => track.stop());
+          } else {
+            throw new Error('Media capture APIs not supported in this environment.');
+          }
+        } catch (err) {
+          if (active) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            updateCheckStatus(
+              'media',
+              'failed',
+              `Permissions denied or hardware missing: ${errorMsg}`,
+            );
+          }
         }
       }
     }
@@ -149,7 +157,7 @@ export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = false }:
     return () => {
       active = false;
     };
-  }, [triggerCount]);
+  }, [triggerCount, isFaceDetectionDisabled]);
 
   // Sync readiness to parent
   useEffect(() => {
@@ -159,13 +167,14 @@ export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = false }:
 
   // Monitor Face and Mic to complete media check
   useEffect(() => {
+    if (isFaceDetectionDisabled) return;
     const mediaCheck = checks.find((c) => c.id === 'media');
     if (mediaCheck?.status === 'checking') {
       if (hasFacePassed && hasMicPassed) {
         updateCheckStatus('media', 'success');
       }
     }
-  }, [hasFacePassed, hasMicPassed, checks]);
+  }, [hasFacePassed, hasMicPassed, checks, isFaceDetectionDisabled]);
 
   function updateCheckStatus(id: string, status: CheckItem['status'], errorDetails?: string) {
     setChecks((prev) =>
@@ -178,12 +187,17 @@ export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = false }:
   }
 
   function handleRetry() {
-    setFaceDetected(false);
-    setMicActive(false);
-    setHasFacePassed(false);
-    setHasMicPassed(false);
+    setFaceDetected(isFaceDetectionDisabled);
+    setMicActive(isFaceDetectionDisabled);
+    setHasFacePassed(isFaceDetectionDisabled);
+    setHasMicPassed(isFaceDetectionDisabled);
     setChecks((prev) =>
-      prev.map((item) => ({ ...item, status: 'pending', errorDetails: undefined })),
+      prev.map((item) => {
+        if (item.id === 'media' && isFaceDetectionDisabled) {
+          return { ...item, status: 'success', errorDetails: undefined };
+        }
+        return { ...item, status: 'pending', errorDetails: undefined };
+      }),
     );
     setTriggerCount((c) => c + 1);
   }
@@ -242,7 +256,21 @@ export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = false }:
         ))}
 
         <div className='pt-4 mt-2 border-t border-border/40'>
-          <MediaPreview onFaceDetected={setFaceDetected} onMicActive={setMicActive} />
+          {isFaceDetectionDisabled ? (
+            <div className='p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex items-center gap-3'>
+              <CheckCircle2 className='size-5 text-emerald-500 shrink-0' />
+              <div>
+                <p className='text-xs font-semibold text-foreground'>
+                  Webcam &amp; Face Detection Not Required
+                </p>
+                <p className='text-xs text-muted-foreground mt-0.5'>
+                  This assessment does not require webcam hardware or facial verification.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <MediaPreview onFaceDetected={setFaceDetected} onMicActive={setMicActive} />
+          )}
         </div>
       </CardContent>
     </Card>

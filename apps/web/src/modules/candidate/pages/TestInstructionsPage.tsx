@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useInstructions } from '../hooks/useInstructions';
+import { useTestDetails } from '../hooks/useTestDetails';
 import { useDashboardStore } from '../stores/dashboard.store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { InstructionsSkeleton } from '@/features/candidate/tests/components/Test
 import { TestDiscoveryError } from '@/features/candidate/tests/components/TestDiscoveryError';
 import { useSubscriptionStore } from '@/store/subscription.store';
 import { toast } from 'sonner';
+import { isFaceDetectionDisabledForAssessment } from '@/lib/proctoring';
 
 interface TestInstructionsPageProps {
   testId: string;
@@ -23,9 +25,17 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
   const hasActivePlan = useSubscriptionStore((state) => state.hasActivePlan);
   const openQuotaExhaustedModal = useSubscriptionStore((state) => state.openQuotaExhaustedModal);
   const { data: config, isLoading, error, refetch } = useInstructions(testId);
+  const { data: testDetails } = useTestDetails(testId);
   const { acceptedInstructions, acceptInstructions } = useDashboardStore();
 
   const [hasHydrated, setHasHydrated] = useState(false);
+
+  const isFaceDetectionDisabled = isFaceDetectionDisabledForAssessment({
+    id: testDetails?.id || testId,
+    testId,
+    title: testDetails?.title,
+    company: testDetails?.company,
+  });
 
   // Sync hydration for store
   useEffect(() => {
@@ -176,8 +186,10 @@ export function TestInstructionsPage({ testId }: TestInstructionsPageProps) {
               className='text-sm font-medium leading-relaxed text-muted-foreground cursor-pointer select-none'
             >
               I have read and understood all the instructions listed above. I agree that I will
-              abide by the rules during the assessment, and I consent to screen sharing, camera
-              recording, and focus tracking monitoring.
+              abide by the rules during the assessment, and I consent to{' '}
+              {isFaceDetectionDisabled
+                ? 'fullscreen security and focus tracking monitoring.'
+                : 'screen sharing, camera recording, and focus tracking monitoring.'}
             </label>
           </div>
 

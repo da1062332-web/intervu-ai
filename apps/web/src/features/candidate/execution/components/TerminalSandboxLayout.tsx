@@ -43,6 +43,7 @@ import { useCalculator } from '@/components/candidate/sandbox/useCalculator';
 import { useSandboxZIndex } from '@/components/candidate/sandbox/useSandboxZIndex';
 import { FaceTracker } from './FaceTracker';
 import { TimerWidget } from './TimerWidget';
+import { isFaceDetectionDisabledForAssessment } from '@/lib/proctoring';
 import { TerminalQuestionRenderer } from './TerminalQuestionRenderer';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { cn } from '@/lib/utils';
@@ -89,6 +90,12 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+
+  const isFaceDetectionDisabled = isFaceDetectionDisabledForAssessment({
+    id: testInstance?.id,
+    testConfigId: testInstance?.testConfigId,
+    assessmentName: testInstance?.assessmentName,
+  });
 
   // ScratchPad and Calculator hooks
   const { initialize: initScratchPad, toggleOpen: toggleScratchPad, isOpen: isScratchOpen } = useScratchPad();
@@ -390,7 +397,10 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
 
           {/* Camera Proctoring */}
           <div className='w-10 h-10 rounded-lg bg-[#161b22] border border-slate-700/80 flex items-center justify-center overflow-hidden shrink-0 shadow-inner'>
-            <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+            <FaceTracker
+              onSubmit={() => submitAssessment({ autoSubmit: true })}
+              disabled={isFaceDetectionDisabled}
+            />
           </div>
 
           {/* Timer Widget */}

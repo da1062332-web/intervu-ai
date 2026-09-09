@@ -26,6 +26,7 @@ import { TimerWidget } from './TimerWidget';
 import { StreamlinedQuestionRenderer } from './StreamlinedQuestionRenderer';
 import { SectionTabs } from './SectionTabs';
 import { BrandLogo } from '@/components/ui/brand-logo';
+import { isFaceDetectionDisabledForAssessment } from '@/lib/proctoring';
 
 export interface SandboxLayoutProps {
   onSubmit?: () => void;
@@ -54,6 +55,12 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+
+  const isFaceDetectionDisabled = isFaceDetectionDisabledForAssessment({
+    id: testInstance?.id,
+    testConfigId: testInstance?.testConfigId,
+    assessmentName: testInstance?.assessmentName,
+  });
 
   const handleClearResponse = () => {
     if (!currentQuestion) return;
@@ -273,7 +280,10 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
 
         <div className='flex items-center gap-4'>
           <div className='w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden shrink-0'>
-            <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+            <FaceTracker
+              onSubmit={() => submitAssessment({ autoSubmit: true })}
+              disabled={isFaceDetectionDisabled}
+            />
           </div>
           <div className='flex flex-col items-center justify-center bg-amber-100 border border-amber-200 px-4 py-1.5 rounded-xl min-w-[120px]'>
             <span className='text-[10px] font-bold text-amber-800 uppercase tracking-widest'>Time Left</span>

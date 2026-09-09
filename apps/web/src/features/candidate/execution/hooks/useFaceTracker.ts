@@ -6,10 +6,16 @@ interface UseFaceTrackerProps {
   videoRef: React.RefObject<HTMLVideoElement>;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   onSubmit: () => void;
+  disabled?: boolean;
 }
 
-export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTrackerProps) {
-  const [isModelLoaded, setIsModelLoaded] = useState(false);
+export function useFaceTracker({
+  videoRef,
+  canvasRef,
+  onSubmit,
+  disabled = false,
+}: UseFaceTrackerProps) {
+  const [isModelLoaded, setIsModelLoaded] = useState(disabled);
   const [violations, setViolations] = useState(0);
   const [isFaceDetected, setIsFaceDetected] = useState(true);
   const [isMultipleFaces, setIsMultipleFaces] = useState(false);
@@ -38,6 +44,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
 
   // ─── Phase 1: Start camera immediately ────────────────────────────────────
   useEffect(() => {
+    if (disabled) return;
     let stream: MediaStream | null = null;
     let mounted = true;
 
@@ -122,6 +129,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
 
   // ─── Phase 2: Load models (SSD MobileNet V1 & TinyFaceDetector) ───────────
   useEffect(() => {
+    if (disabled) return;
     let cancelled = false;
     import('@vladmandic/face-api').then(async (faceapi) => {
       if (cancelled) return;
@@ -141,11 +149,11 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [disabled]);
 
   // ─── Phase 3: Ultra-responsive detection loop (~200ms cadence) ────────────
   useEffect(() => {
-    if (!isModelLoaded) return;
+    if (!isModelLoaded || disabled) return;
 
     let isRunning = true;
     let isProcessing = false;
@@ -373,7 +381,7 @@ export function useFaceTracker({ videoRef, canvasRef, onSubmit }: UseFaceTracker
       isRunning = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [isModelLoaded, videoRef, canvasRef]);
+  }, [isModelLoaded, videoRef, canvasRef, disabled]);
 
   return {
     isModelLoaded,

@@ -26,11 +26,18 @@ import { LayoutGrid } from 'lucide-react';
 import { FloatingToolbar } from '@/components/candidate/sandbox/FloatingToolbar';
 import { FloatingScratchPad } from '@/components/candidate/sandbox/FloatingScratchPad';
 import { FloatingCalculator } from '@/components/candidate/sandbox/FloatingCalculator';
+import { isFaceDetectionDisabledForAssessment } from '@/lib/proctoring';
 
 export function ExecutionLayout() {
   const { testInstance, isInteractionBlocked, submissionStatus } = useExecutionStore();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+
+  const isFaceDetectionDisabled = isFaceDetectionDisabledForAssessment({
+    id: testInstance?.id,
+    testConfigId: testInstance?.testConfigId,
+    assessmentName: testInstance?.assessmentName,
+  });
 
   // Force light mode on sandbox/execution viewport to ensure readability
   useEffect(() => {
@@ -148,7 +155,10 @@ export function ExecutionLayout() {
                   <div className='flex flex-col items-center w-24 shrink-0'>
                     <div className='w-20 h-20 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>
                       {isMobileSheetOpen && (
-                        <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+                        <FaceTracker
+                          onSubmit={() => submitAssessment({ autoSubmit: true })}
+                          disabled={isFaceDetectionDisabled}
+                        />
                       )}
                     </div>
                     <span className='text-[9px] text-gray-700 font-bold mt-1 truncate max-w-full text-center'>
@@ -174,7 +184,10 @@ export function ExecutionLayout() {
               {/* Candidate Photo / Camera Box */}
               <div className='flex flex-col items-center w-28 shrink-0'>
                 <div className='w-24 h-24 border border-gray-300 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center shadow-2xs'>
-                  <FaceTracker onSubmit={() => submitAssessment({ autoSubmit: true })} />
+                  <FaceTracker
+                    onSubmit={() => submitAssessment({ autoSubmit: true })}
+                    disabled={isFaceDetectionDisabled}
+                  />
                 </div>
                 <span className='text-[10px] text-gray-700 font-bold mt-1.5 text-center truncate w-full tracking-tight'>
                   {testInstance?.candidateName || 'Your photo appears here'}
