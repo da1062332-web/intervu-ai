@@ -65,6 +65,14 @@ export class AnswerController {
       };
     }
 
+    if (result.status === "locked") {
+      return {
+        status: "LOCKED",
+        saved: false,
+        message: "Section is locked and no longer accepts answers.",
+      };
+    }
+
     return result;
   }
 }

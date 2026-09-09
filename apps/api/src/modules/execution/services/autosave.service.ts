@@ -24,7 +24,7 @@ export class AutosaveService {
     testInstanceId: string,
     userId: string,
     dto: CandidateAnswerDto,
-  ): Promise<{ status: string }> {
+  ): Promise<{ status: string; saved?: boolean; message?: string }> {
     const startTime = Date.now();
     this.logger.debug("Executing optimized autosave", {
       testInstanceId,
@@ -101,10 +101,11 @@ export class AutosaveService {
         questionId: dto.questionId,
         sectionStatus: questionSection?.section?.status,
       });
-      throw new BadRequestException({
-        code: "SECTION_LOCKED",
+      return {
+        status: "locked",
+        saved: false,
         message: "This section is locked and no longer accepts answers.",
-      });
+      };
     }
 
     // 5. Validate question

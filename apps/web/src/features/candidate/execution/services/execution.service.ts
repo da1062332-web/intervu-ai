@@ -141,6 +141,7 @@ export const executionService = {
     return apiClient.request(`/tests/${testId}/answer`, {
       method: 'POST',
       body: payload,
+      skipErrorToast: true,
     });
   },
 

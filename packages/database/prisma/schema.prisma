@@ -119,6 +119,7 @@ model Template {
   @@index([difficulty])
   @@index([isSystem])
   @@index([deletedAt])
+  @@index([deletedAt, isActive, conceptKey, difficultyLevel])
 }
 
 model Test {
@@ -632,6 +633,7 @@ model Concept {
 
   @@unique([topicId, code])
   @@index([topicId])
+  @@index([code])
 }
 
 model StyleProfile {
@@ -921,6 +923,7 @@ model Question {
   @@index([templateId])
   @@index([status])
   @@index([conceptId])
+  @@index([status, topicId, difficulty])
   @@map("questions")
 }
 
@@ -958,6 +961,7 @@ model QuestionReservation {
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@index([assemblyId])
+  @@index([expiresAt])
   @@map("question_reservations")
 }
 

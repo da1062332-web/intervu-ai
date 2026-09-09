@@ -98,4 +98,30 @@ describe("AutosaveService", () => {
     expect(cacheService.set).toHaveBeenCalledTimes(2); // once for answer, once for state
     expect(prisma.$transaction).toHaveBeenCalled();
   });
+
+  it("should return locked status if question section is locked", async () => {
+    cacheService.get.mockResolvedValueOnce({
+      id: "test-123",
+      expiresAt: new Date(Date.now() + 10000),
+    });
+    cacheService.get.mockResolvedValueOnce({ remainingTimeSeconds: 50 });
+
+    validator.validateTimer.mockReturnValue({
+      isExpired: false,
+      actualRemainingTime: 40,
+    });
+
+    prisma.testInstanceQuestion.findFirst.mockResolvedValueOnce({
+      section: { status: "LOCKED" },
+    });
+
+    const result = await service.saveAnswer("test-123", "user-1", {
+      questionId: "q1",
+      answer: "A",
+      timeSpentSeconds: 10,
+    });
+
+    expect(result.status).toBe("locked");
+    expect(result.saved).toBe(false);
+  });
 });

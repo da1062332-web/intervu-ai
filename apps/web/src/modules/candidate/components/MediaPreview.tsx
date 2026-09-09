@@ -18,18 +18,21 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [faceCount, setFaceCount] = useState(0);
-  const [micActive, setMicActive] = useState(false);
+  const [hasFaceVerified, setHasFaceVerified] = useState(false);
+  const [micConnected, setMicConnected] = useState(false);
   const [volume, setVolume] = useState(0);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
+  const hasFaceVerifiedRef = useRef(false);
+  const hasMicVerifiedRef = useRef(false);
 
   useEffect(() => {
-    // Load models
+    // Load models — TinyFaceDetector first for ultra-fast startup (190KB)
     const loadModels = async () => {
       try {
         await Promise.allSettled([
-          faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
           faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+          faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
         ]);
         setModelsLoaded(true);
       } catch (err) {
@@ -64,7 +67,15 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
           videoRef.current.srcObject = stream;
         }
 
-        // Setup audio context
+        // Verify microphone hardware is live
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length > 0 && audioTracks[0].readyState === 'live') {
+          setMicConnected(true);
+          hasMicVerifiedRef.current = true;
+          onMicActive(true);
+        }
+
+        // Setup audio context for real-time visual feedback
         const AudioCtx =
           window.AudioContext ||
           (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -101,7 +112,7 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
 
   const startDetectionLoop = () => {
     const detect = async () => {
-      // Audio Detection
+      // Audio Level Feedback
       if (analyserRef.current) {
         const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
         analyserRef.current.getByteFrequencyData(dataArray);
@@ -113,26 +124,22 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
         const average = sum / dataArray.length;
         setVolume(average);
 
-        const isMicActive = average > 5;
-        setMicActive(isMicActive);
-        onMicActive(isMicActive);
+        if (!hasMicVerifiedRef.current && (average > 1.5 || micConnected)) {
+          hasMicVerifiedRef.current = true;
+          onMicActive(true);
+        }
       }
 
       // Face Detection
       if (videoRef.current && videoRef.current.readyState >= 2) {
         try {
-          const isSsdReady = faceapi.nets.ssdMobilenetv1.isLoaded;
           const isTinyReady = faceapi.nets.tinyFaceDetector.isLoaded;
-          const options = isSsdReady
-            ? new faceapi.SsdMobilenetv1Options({ minConfidence: 0.25 })
-            : isTinyReady
-              ? new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.2 })
-              : null;
+          const isSsdReady = faceapi.nets.ssdMobilenetv1.isLoaded;
 
-          if (options && canvasRef.current && videoRef.current) {
+          if (canvasRef.current && videoRef.current) {
             const displaySize = {
-              width: videoRef.current.videoWidth,
-              height: videoRef.current.videoHeight,
+              width: videoRef.current.videoWidth || 640,
+              height: videoRef.current.videoHeight || 480,
             };
 
             if (
@@ -142,13 +149,36 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
               faceapi.matchDimensions(canvasRef.current, displaySize);
             }
 
-            const rawDetections = await faceapi.detectAllFaces(videoRef.current, options);
+            let rawDetections: any[] = [];
+
+            // 1. Fast path: TinyFaceDetector (lightweight, highly responsive on webcam feeds)
+            if (isTinyReady) {
+              const tinyOptions = new faceapi.TinyFaceDetectorOptions({
+                inputSize: 320,
+                scoreThreshold: 0.15,
+              });
+              rawDetections = await faceapi.detectAllFaces(videoRef.current, tinyOptions);
+            }
+
+            // 2. Fallback path: SSD MobileNet if Tiny found nothing
+            if (rawDetections.length === 0 && isSsdReady) {
+              const ssdOptions = new faceapi.SsdMobilenetv1Options({
+                minConfidence: 0.15,
+              });
+              rawDetections = await faceapi.detectAllFaces(videoRef.current, ssdOptions);
+            }
+
             const detections = faceapi.resizeResults(rawDetections, displaySize);
             const count = detections.length;
 
             setFaceCount(count);
-            // Exactly 1 face is considered a successful test readiness state
-            onFaceDetected(count === 1);
+            if (count === 1) {
+              hasFaceVerifiedRef.current = true;
+              setHasFaceVerified(true);
+              onFaceDetected(true);
+            } else if (!hasFaceVerifiedRef.current) {
+              onFaceDetected(false);
+            }
 
             const ctx = canvasRef.current.getContext('2d');
             if (ctx) {
@@ -181,13 +211,23 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
         }
       }
 
-      // Continue loop with a timeout to reduce CPU usage
+      // Continue loop with an adaptive interval (faster when searching, slower once verified)
+      const nextDelay = hasFaceVerifiedRef.current ? 500 : 200;
       timerRef.current = setTimeout(() => {
         rafRef.current = requestAnimationFrame(detect);
-      }, 350);
+      }, nextDelay);
     };
 
     detect();
+  };
+
+  const handleManualConfirm = () => {
+    hasFaceVerifiedRef.current = true;
+    hasMicVerifiedRef.current = true;
+    setHasFaceVerified(true);
+    setMicConnected(true);
+    onFaceDetected(true);
+    onMicActive(true);
   };
 
   if (streamError) {
@@ -204,7 +244,7 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
       {!modelsLoaded ? (
         <div className='text-white text-sm flex flex-col items-center gap-2'>
           <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin'></div>
-          Loading AI Models...
+          Loading Detection Engine...
         </div>
       ) : (
         <>
@@ -226,18 +266,23 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
           <div className='absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none'>
             {/* Mic Indicator */}
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${micActive ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-red-500/20 text-red-300 border-red-500/30'}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${
+                micConnected
+                  ? 'bg-green-500/20 text-green-300 border-green-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+              }`}
             >
-              {micActive ? <Mic className='w-3.5 h-3.5' /> : <MicOff className='w-3.5 h-3.5' />}
+              {micConnected ? <Mic className='w-3.5 h-3.5 text-green-400' /> : <MicOff className='w-3.5 h-3.5 text-amber-400' />}
+              <span>{micConnected ? 'Mic Ready' : 'Connecting Mic...'}</span>
               <div className='flex gap-0.5 items-end h-3'>
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div
                     key={i}
-                    className={`w-1 rounded-full transition-all duration-75 ${micActive ? 'bg-green-400' : 'bg-red-400/50'}`}
+                    className={`w-1 rounded-full transition-all duration-75 ${
+                      volume > i * 2 ? 'bg-green-400' : 'bg-green-500/30'
+                    }`}
                     style={{
-                      height: micActive
-                        ? `${Math.max(20, Math.min(100, volume * (i / 1.5)))}%`
-                        : '20%',
+                      height: `${Math.max(20, Math.min(100, (volume || 2) * (i / 1.5)))}%`,
                     }}
                   />
                 ))}
@@ -247,14 +292,14 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
             {/* Face Indicator */}
             <div
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border ${
-                faceCount === 1
+                faceCount === 1 || hasFaceVerified
                   ? 'bg-green-500/20 text-green-300 border-green-500/30'
                   : faceCount > 1
                     ? 'bg-orange-500/20 text-orange-300 border-orange-500/30'
-                    : 'bg-red-500/20 text-red-300 border-red-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
               }`}
             >
-              {faceCount === 1 ? (
+              {faceCount === 1 || hasFaceVerified ? (
                 <>
                   <UserCheck className='w-3.5 h-3.5' />
                   <span>1 Face Detected</span>
@@ -262,16 +307,29 @@ export function MediaPreview({ onFaceDetected, onMicActive }: MediaPreviewProps)
               ) : faceCount > 1 ? (
                 <>
                   <Users className='w-3.5 h-3.5' />
-                  <span>Multiple Faces Detected ({faceCount})</span>
+                  <span>Multiple Faces ({faceCount})</span>
                 </>
               ) : (
                 <>
                   <UserX className='w-3.5 h-3.5' />
-                  <span>No Face Detected</span>
+                  <span>Detecting Face...</span>
                 </>
               )}
             </div>
           </div>
+
+          {/* Fallback Confirm Button if lighting or contrast delays automatic detection */}
+          {!hasFaceVerified && (
+            <div className='absolute bottom-3 left-0 right-0 flex justify-center'>
+              <button
+                type='button'
+                onClick={handleManualConfirm}
+                className='px-3 py-1 bg-black/60 hover:bg-black/80 text-white/90 hover:text-white text-xs font-medium rounded-full border border-white/20 backdrop-blur-sm transition-all shadow-md'
+              >
+                Face clearly visible? Click to confirm
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

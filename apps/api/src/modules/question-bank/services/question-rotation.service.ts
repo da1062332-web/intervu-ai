@@ -50,6 +50,7 @@ export class QuestionRotationService {
     const details: QuestionAvailabilityDetails[] = [];
     let totalAvailable = 0;
     let totalMissing = 0;
+    let totalRequired = 0;
 
     const difficulties: ("EASY" | "MEDIUM" | "HARD")[] = [
       "EASY",
@@ -57,8 +58,63 @@ export class QuestionRotationService {
       "HARD",
     ];
 
-    for (const diff of difficulties) {
-      const required = difficultyDistribution[diff] ?? 0;
+    const difficultyResults = await Promise.all(
+      difficulties.map(async (diff) => {
+        const required = difficultyDistribution[diff] ?? 0;
+        if (required === 0) {
+          return { diff, required: 0, availableCount: 0 };
+        }
+
+        // Query active, non-reserved questions for this difficulty
+        const availableCount = await this.prisma.question.count({
+          where: {
+            status: QuestionStatus.ACTIVE,
+            difficulty: diff,
+            topicId:
+              topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
+            AND: [
+              {
+                OR: [{ sectionId }, { sectionId: null }],
+              },
+              {
+                OR: [
+                  { questionSource: QuestionSourceType.MANUAL },
+                  request.examId
+                    ? {
+                        configUsages: {
+                          none: {
+                            configId: {
+                              not: request.examId,
+                            },
+                          },
+                        },
+                      }
+                    : {},
+                ],
+              },
+              {
+                OR: [
+                  { reservations: { is: null } },
+                  {
+                    reservations: {
+                      is: {
+                        expiresAt: {
+                          lte: new Date(),
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        });
+
+        return { diff, required, availableCount };
+      }),
+    );
+
+    for (const { diff, required, availableCount } of difficultyResults) {
       if (required === 0) {
         details.push({
           difficulty: diff,
@@ -69,51 +125,6 @@ export class QuestionRotationService {
         continue;
       }
 
-      // Query active, non-reserved questions for this difficulty
-      const availableCount = await this.prisma.question.count({
-        where: {
-          status: QuestionStatus.ACTIVE,
-          difficulty: diff,
-          topicId:
-            topicIds && topicIds.length > 0 ? { in: topicIds } : undefined,
-          AND: [
-            {
-              OR: [{ sectionId }, { sectionId: null }],
-            },
-            {
-              OR: [
-                { questionSource: QuestionSourceType.MANUAL },
-                request.examId
-                  ? {
-                      configUsages: {
-                        none: {
-                          configId: {
-                            not: request.examId,
-                          },
-                        },
-                      },
-                    }
-                  : {},
-              ],
-            },
-            {
-              OR: [
-                { reservations: { is: null } },
-                {
-                  reservations: {
-                    is: {
-                      expiresAt: {
-                        lte: new Date(),
-                      },
-                    },
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      });
-
       const missing = Math.max(0, required - availableCount);
       details.push({
         difficulty: diff,
@@ -122,6 +133,7 @@ export class QuestionRotationService {
         missing,
       });
 
+      totalRequired += required;
       totalAvailable += Math.min(required, availableCount);
       totalMissing += missing;
     }
@@ -130,7 +142,7 @@ export class QuestionRotationService {
 
     return {
       status,
-      required: request.count,
+      required: totalRequired,
       available: totalAvailable,
       missing: totalMissing,
       details,
@@ -160,8 +172,8 @@ export class QuestionRotationService {
 
     // Run the reservation lock inside a single interactive transaction
     return this.prisma.$transaction(async (tx) => {
-      // 1. Run lazy cleanup inside transaction
-      await this.reservationService.cleanupExpiredReservations(tx);
+      // 1. Run throttled lazy cleanup inside transaction
+      await this.reservationService.throttledCleanup(tx);
 
       const selectedQuestionIds: string[] = [];
 

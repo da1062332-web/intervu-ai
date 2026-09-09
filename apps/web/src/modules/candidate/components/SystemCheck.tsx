@@ -8,6 +8,7 @@ import { MediaPreview } from './MediaPreview';
 
 interface SystemCheckProps {
   onStatusChange: (isReady: boolean) => void;
+  isFaceDetectionDisabled?: boolean;
 }
 
 interface CheckItem {
@@ -18,7 +19,7 @@ interface CheckItem {
   errorDetails?: string;
 }
 
-export function SystemCheck({ onStatusChange }: SystemCheckProps) {
+export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = false }: SystemCheckProps) {
   const [checks, setChecks] = useState<CheckItem[]>([
     {
       id: 'internet',
@@ -40,15 +41,27 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
     },
     {
       id: 'media',
-      name: 'Camera & Microphone',
-      description: 'Testing media hardware capabilities',
-      status: 'pending',
+      name: isFaceDetectionDisabled ? 'Media Requirements' : 'Camera & Microphone',
+      description: isFaceDetectionDisabled
+        ? 'Webcam not required for this assessment'
+        : 'Testing media hardware capabilities',
+      status: isFaceDetectionDisabled ? 'success' : 'pending',
     },
   ]);
 
   const [triggerCount, setTriggerCount] = useState(0);
   const [faceDetected, setFaceDetected] = useState(false);
   const [micActive, setMicActive] = useState(false);
+  const [hasFacePassed, setHasFacePassed] = useState(isFaceDetectionDisabled);
+  const [hasMicPassed, setHasMicPassed] = useState(isFaceDetectionDisabled);
+
+  useEffect(() => {
+    if (faceDetected) setHasFacePassed(true);
+  }, [faceDetected]);
+
+  useEffect(() => {
+    if (micActive) setHasMicPassed(true);
+  }, [micActive]);
 
   useEffect(() => {
     let active = true;
@@ -111,9 +124,11 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
           navigator.mediaDevices.getUserMedia
         ) {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          // Immediately release media stream tracks
+          if (stream.getAudioTracks().length > 0) {
+            setHasMicPassed(true);
+          }
+          // Immediately release probe tracks
           stream.getTracks().forEach((track) => track.stop());
-          // Note: we leave status as 'checking' and wait for MediaPreview to confirm face and mic
         } else {
           throw new Error('Media capture APIs not supported in this environment.');
         }
@@ -146,11 +161,11 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
   useEffect(() => {
     const mediaCheck = checks.find((c) => c.id === 'media');
     if (mediaCheck?.status === 'checking') {
-      if (faceDetected && micActive) {
+      if (hasFacePassed && hasMicPassed) {
         updateCheckStatus('media', 'success');
       }
     }
-  }, [faceDetected, micActive, checks]);
+  }, [hasFacePassed, hasMicPassed, checks]);
 
   function updateCheckStatus(id: string, status: CheckItem['status'], errorDetails?: string) {
     setChecks((prev) =>
@@ -165,6 +180,8 @@ export function SystemCheck({ onStatusChange }: SystemCheckProps) {
   function handleRetry() {
     setFaceDetected(false);
     setMicActive(false);
+    setHasFacePassed(false);
+    setHasMicPassed(false);
     setChecks((prev) =>
       prev.map((item) => ({ ...item, status: 'pending', errorDetails: undefined })),
     );

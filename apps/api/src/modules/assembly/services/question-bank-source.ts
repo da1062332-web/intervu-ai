@@ -25,6 +25,17 @@ export class QuestionBankSource implements IQuestionSource {
   private readonly useRealBank =
     process.env["ENABLE_REAL_QUESTION_BANK"] !== "false";
 
+  private readonly topicResolutionCache = new Map<
+    string,
+    {
+      topic: any;
+      resolvedCode: string;
+      concept: any;
+      cachedAt: number;
+    }
+  >();
+  private readonly CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
   constructor(
     private readonly rotationService: QuestionRotationService,
     private readonly legacyPool: QuestionPoolRepository,
@@ -35,31 +46,49 @@ export class QuestionBankSource implements IQuestionSource {
     const tStart = Date.now();
     const inputConceptKey = (filters.conceptKey || "").replace(/^"|"$/g, "").trim();
 
-    // 1. Resolve UUID, Code, or Name
+    // 1. Resolve UUID, Code, or Name (with 10-minute in-memory memoization)
+    const cached = this.topicResolutionCache.get(inputConceptKey);
+    let topic: any;
     let resolvedCode = inputConceptKey;
-    let topic = await this.prisma.topic.findUnique({
-      where: { id: inputConceptKey },
-      include: { concepts: true },
-    });
-    if (!topic) {
-      topic = await this.prisma.topic.findFirst({
-        where: {
-          OR: [
-            { code: inputConceptKey },
-            { name: { equals: inputConceptKey, mode: "insensitive" } },
-            { name: { contains: inputConceptKey, mode: "insensitive" } },
-          ],
-        },
+    let concept: any;
+
+    if (cached && Date.now() - cached.cachedAt < this.CACHE_TTL_MS) {
+      topic = cached.topic;
+      resolvedCode = cached.resolvedCode;
+      concept = cached.concept;
+    } else {
+      topic = await this.prisma.topic.findUnique({
+        where: { id: inputConceptKey },
         include: { concepts: true },
       });
-    }
-    if (topic) {
-      resolvedCode = topic.code;
+      if (!topic) {
+        topic = await this.prisma.topic.findFirst({
+          where: {
+            OR: [
+              { code: inputConceptKey },
+              { name: { equals: inputConceptKey, mode: "insensitive" } },
+              { name: { contains: inputConceptKey, mode: "insensitive" } },
+            ],
+          },
+          include: { concepts: true },
+        });
+      }
+      if (topic) {
+        resolvedCode = topic.code;
+      }
+
+      concept = await this.prisma.concept.findFirst({
+        where: { code: resolvedCode.toUpperCase() },
+      });
+
+      this.topicResolutionCache.set(inputConceptKey, {
+        topic,
+        resolvedCode,
+        concept,
+        cachedAt: Date.now(),
+      });
     }
 
-    const concept = await this.prisma.concept.findFirst({
-      where: { code: resolvedCode.toUpperCase() },
-    });
     const resolvedFilters = { ...filters, conceptKey: resolvedCode };
     const limit = filters.limit ?? 10;
     const excludeIds = filters.excludeIds ?? [];
@@ -96,41 +125,42 @@ export class QuestionBankSource implements IQuestionSource {
       }
     }
 
-    // 1. Calculate available active Manual questions count matching requested difficulty (or all if flexible)
-    const manualCount = await this.prisma.question.count({
-      where: {
-        status: "ACTIVE",
-        ...(hasExplicitDifficulty ? { difficulty } : {}),
-        OR: [
-          ...(isCodingTopic ? [{ questionType: "CODING" }] : []),
-          { topicId: topicId },
-          { topicId: resolvedCode },
-          { concept: { topicId: topicId } },
-          { concept: { code: resolvedCode.toUpperCase() } },
-        ],
-        ...(effectiveExcludeIds.length > 0 ? { id: { notIn: effectiveExcludeIds } } : {}),
-      },
-    });
-
-    // 2. Calculate available active Templates count matching requested difficulty (or all if flexible)
+    // 2. Parallel Count: Calculate available active Manual questions and Templates concurrently
     const conceptCodes =
       (topic as any)?.concepts?.map((c: any) => c.code) || [];
-    const templateCount = await this.prisma.template.count({
-      where: {
-        isActive: true,
-        deletedAt: null,
-        ...(hasExplicitDifficulty ? { difficultyLevel: difficulty } : {}),
-        OR: [
-          {
-            conceptKey: {
-              in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode],
+
+    const [manualCount, templateCount] = await Promise.all([
+      this.prisma.question.count({
+        where: {
+          status: "ACTIVE",
+          ...(hasExplicitDifficulty ? { difficulty } : {}),
+          OR: [
+            ...(isCodingTopic ? [{ questionType: "CODING" }] : []),
+            { topicId: topicId },
+            { topicId: resolvedCode },
+            { concept: { topicId: topicId } },
+            { concept: { code: resolvedCode.toUpperCase() } },
+          ],
+          ...(effectiveExcludeIds.length > 0 ? { id: { notIn: effectiveExcludeIds } } : {}),
+        },
+      }),
+      this.prisma.template.count({
+        where: {
+          isActive: true,
+          deletedAt: null,
+          ...(hasExplicitDifficulty ? { difficultyLevel: difficulty } : {}),
+          OR: [
+            {
+              conceptKey: {
+                in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode],
+              },
             },
-          },
-          { conceptKey: resolvedCode },
-          { conceptKey: topicId },
-        ],
-      },
-    });
+            { conceptKey: resolvedCode },
+            { conceptKey: topicId },
+          ],
+        },
+      }),
+    ]);
 
     const totalPool = manualCount + templateCount;
 

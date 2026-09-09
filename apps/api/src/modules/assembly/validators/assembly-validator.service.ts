@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { BlueprintDto, BlueprintSectionDto } from "@intervu/shared";
 import { AllocatedSectionDto as SectionDto } from "@intervu/shared";
+import { extractStringFromOption } from "../../generation-ai/utils/display-value-formatter";
 
 export interface ValidationResult {
   valid: boolean;
@@ -114,10 +115,21 @@ export class AssemblyValidatorService {
                 `AVL-014: Objective question ${q.questionId} has fewer than 2 options (got ${Array.isArray(rawOpts) ? rawOpts.length : 0})`,
               );
             } else {
-              // Check uniqueness of option texts
-              const optTexts = rawOpts.map((o) => (typeof o === "string" ? o.trim() : o?.text?.trim() || ""));
-              const uniqueTexts = new Set(optTexts.filter((t) => t.length > 0));
-              if (uniqueTexts.size < optTexts.length) {
+              // Extract text cleanly across all option shapes (strings or objects with text/value/optionText/etc.)
+              const optTexts = rawOpts.map((o) => extractStringFromOption(o).trim());
+
+              // Check for empty option text
+              const hasEmptyOption = optTexts.some((t) => t.length === 0);
+              if (hasEmptyOption) {
+                errors.push(
+                  `AVL-014: Objective question ${q.questionId} contains empty option text`,
+                );
+              }
+
+              // Check uniqueness of non-empty option texts (case-insensitive)
+              const nonEmptyTexts = optTexts.filter((t) => t.length > 0);
+              const uniqueTexts = new Set(nonEmptyTexts.map((t) => t.toLowerCase()));
+              if (uniqueTexts.size < nonEmptyTexts.length) {
                 errors.push(
                   `AVL-014: Objective question ${q.questionId} contains duplicate option texts`,
                 );

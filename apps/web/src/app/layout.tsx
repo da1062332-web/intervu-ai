@@ -20,6 +20,38 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       suppressHydrationWarning
       className={cn(fontSans.variable, fontHeading.variable, fontMono.variable)}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window === 'undefined') return;
+                function isExtensionError(event) {
+                  var msg = (event && (event.message || (event.error && event.error.message))) || '';
+                  return typeof msg === 'string' && (
+                    msg.includes("reading 'startTime'") ||
+                    msg.includes('reportAllChanges')
+                  );
+                }
+                window.addEventListener('error', function(e) {
+                  if (isExtensionError(e)) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return true;
+                  }
+                }, true);
+                window.addEventListener('unhandledrejection', function(e) {
+                  var reason = e && e.reason && (e.reason.message || e.reason);
+                  if (typeof reason === 'string' && (reason.includes("reading 'startTime'") || reason.includes('reportAllChanges'))) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                  }
+                });
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>
         <AppProviders>
           {children}

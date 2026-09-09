@@ -20,6 +20,7 @@ import {
   normalizeDisplayQuestion,
   synthesizeNumericDistractors,
   extractAndNormalizeOptions,
+  extractStringFromOption,
 } from "../../generation-ai/utils/display-value-formatter";
 
 export interface AllocationConfig {
@@ -487,6 +488,11 @@ export class QuestionAllocatorService {
           });
           const fetchMs = Date.now() - tFetch;
 
+          if (!questions || questions.length === 0) {
+            // Pool is empty for this topic and tier — break early to avoid wasteful retries
+            break;
+          }
+
           for (const q of questions) {
             currentlyExcludedIds.add(q.id);
           }
@@ -814,21 +820,41 @@ export class QuestionAllocatorService {
         const correctAnswer = normalizedQ.answer || rawAnswer;
         const solution = normalizedQ.explanation || rawSolution;
 
-        let options: any[] =
+        let rawOptionsList: any[] =
           Array.isArray(normalizedQ.options) && normalizedQ.options.length >= 2
             ? normalizedQ.options
             : !isNaN(Number(rawAnswer))
               ? synthesizeNumericDistractors(Number(rawAnswer), 4)
               : [];
 
-        if (options.length < 2) {
-          options = [
-            String(correctAnswer),
-            `Alternative choice A for ${topicDisplayName}`,
-            `Alternative choice B for ${topicDisplayName}`,
-            `Alternative choice C for ${topicDisplayName}`,
-          ];
+        // Guarantee options are distinct, non-empty, and AVL-014 compliant
+        const seenOpts = new Set<string>();
+        const distinctOptions: string[] = [];
+        const cleanAns = String(correctAnswer || "").trim();
+
+        for (const opt of rawOptionsList) {
+          const optStr = typeof opt === "string" ? opt.trim() : extractStringFromOption(opt).trim();
+          if (optStr.length > 0 && !seenOpts.has(optStr.toLowerCase())) {
+            seenOpts.add(optStr.toLowerCase());
+            distinctOptions.push(optStr);
+          }
         }
+
+        if (cleanAns.length > 0 && !seenOpts.has(cleanAns.toLowerCase())) {
+          seenOpts.add(cleanAns.toLowerCase());
+          distinctOptions.unshift(cleanAns);
+        }
+
+        let fallbackCounter = 1;
+        while (distinctOptions.length < 4) {
+          const fallback = `Alternative ${String.fromCharCode(64 + distinctOptions.length + 1)} for ${topicDisplayName} (Choice ${fallbackCounter++})`;
+          if (!seenOpts.has(fallback.toLowerCase())) {
+            seenOpts.add(fallback.toLowerCase());
+            distinctOptions.push(fallback);
+          }
+        }
+
+        const options: string[] = distinctOptions.slice(0, 4);
 
         const defaultTemplate = await this.prisma.template.findFirst({
           select: { id: true },
