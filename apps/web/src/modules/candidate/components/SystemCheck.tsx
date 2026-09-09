@@ -19,7 +19,7 @@ interface CheckItem {
   errorDetails?: string;
 }
 
-export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = false }: SystemCheckProps) {
+export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = true }: SystemCheckProps) {
   const [checks, setChecks] = useState<CheckItem[]>([
     {
       id: 'internet',

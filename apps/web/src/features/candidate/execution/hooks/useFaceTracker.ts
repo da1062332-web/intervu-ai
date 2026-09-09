@@ -13,7 +13,7 @@ export function useFaceTracker({
   videoRef,
   canvasRef,
   onSubmit,
-  disabled = false,
+  disabled = true,
 }: UseFaceTrackerProps) {
   const [isModelLoaded, setIsModelLoaded] = useState(disabled);
   const [violations, setViolations] = useState(0);

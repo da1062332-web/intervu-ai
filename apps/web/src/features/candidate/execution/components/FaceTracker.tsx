@@ -60,7 +60,7 @@ function WarningDialog({
   );
 }
 
-export function FaceTracker({ onSubmit, disabled = false }: FaceTrackerProps) {
+export function FaceTracker({ onSubmit, disabled = true }: FaceTrackerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
