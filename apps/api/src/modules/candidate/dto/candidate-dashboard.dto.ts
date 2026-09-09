@@ -36,6 +36,9 @@ export class DashboardTestItemDto {
 
   @ApiProperty({ example: false })
   hasActiveAttempt!: boolean;
+
+  @ApiProperty({ example: false })
+  isLocked!: boolean;
 }
 
 export class DashboardActiveAttemptDto {
