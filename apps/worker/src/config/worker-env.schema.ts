@@ -10,6 +10,7 @@ export const workerEnvSchema = z.object({
   ENABLE_ANALYTICS_QUEUE: z.coerce.boolean().default(true),
   ENABLE_GENERATION_QUEUE: z.coerce.boolean().default(true),
   ENABLE_EVALUATION_QUEUE: z.coerce.boolean().default(true),
+  INTERNAL_SERVICE_TOKEN: z.string().optional(),
 });
 
 export type WorkerEnvConfig = z.infer<typeof workerEnvSchema>;

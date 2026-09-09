@@ -62,7 +62,7 @@ export class PreviewService {
         (pattern?.metadata as Record<string, any>)?.narrative;
 
       if (existingNarrative && !dto.forceRegenerate) {
-        aiPreviewNarrative = existingNarrative;
+        aiPreviewNarrative = this.statementGenerator.sanitizeNarrative(existingNarrative);
       } else {
         try {
           const aiStatement = await this.statementGenerator.generateStatement(
@@ -77,9 +77,11 @@ export class PreviewService {
             } as any,
             result,
           );
-          aiPreviewNarrative = aiStatement.narrative;
+          aiPreviewNarrative = this.statementGenerator.sanitizeNarrative(aiStatement.narrative);
         } catch (err) {
-          aiPreviewNarrative = `Write a function to solve the problem for the given input parameters and return the expected result.\n\n### Sample Input\n\`\`\`json\n${JSON.stringify(result.generatedInput, null, 2)}\n\`\`\`\n\n### Expected Output\n\`\`\`json\n${JSON.stringify(result.expectedOutput, null, 2)}\n\`\`\``;
+          const formattedInp = this.statementGenerator.formatNormalInput(result.generatedInput);
+          const formattedOut = this.statementGenerator.formatNormalOutput(result.expectedOutput);
+          aiPreviewNarrative = `Write a function to solve the problem for the given input parameters and return the expected result.\n\n### Examples\n\n#### Example 1\n**Input:** \`${formattedInp}\`\n**Output:** \`${formattedOut}\`\n**Explanation:** Generates the expected result matching the problem specification.`;
         }
       }
     }

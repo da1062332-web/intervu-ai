@@ -284,13 +284,29 @@ export class TestPoolManagerService {
 
           for (const bpSection of blueprint.sections) {
             const sectionQuestions: any[] = [];
-            for (const topicAlloc of bpSection.topicAllocations || []) {
-              const quota = Math.max(1, Math.round((topicAlloc.percentage / 100) * bpSection.questionCount));
+            const topicAllocations = bpSection.topicAllocations || [];
+            // Last-topic-absorbs-remainder distribution (same approach already
+            // proven in question-allocator.service.ts): guarantees the section's
+            // actual question count always equals bpSection.questionCount exactly.
+            // The previous per-topic Math.max(1, Math.round(...)) forced at least
+            // one question per topic regardless of its weighting, which silently
+            // inflated sections with many low-percentage topics well past their
+            // configured size (e.g. 20 configured -> 30 actually allocated).
+            let remainingSectionCount = bpSection.questionCount;
+            for (let ti = 0; ti < topicAllocations.length; ti++) {
+              const topicAlloc = topicAllocations[ti];
+              const isLastTopic = ti === topicAllocations.length - 1;
+              const rawQuota = Math.round((topicAlloc.percentage / 100) * bpSection.questionCount);
+              const quota = isLastTopic
+                ? remainingSectionCount
+                : Math.min(Math.max(0, rawQuota), remainingSectionCount);
+
               const bucket = questionPoolByTopic.get(topicAlloc.topicId) || { EASY: [], MEDIUM: [], HARD: [], ALL: [] };
               const available = bucket.ALL.length > 0 ? bucket.ALL : allActiveQuestions;
 
               const shuffled = [...available].sort(() => Math.random() - 0.5);
               const picked = shuffled.slice(0, Math.min(quota, shuffled.length));
+              remainingSectionCount -= picked.length;
 
               for (const q of picked) {
                 const snapshot = {

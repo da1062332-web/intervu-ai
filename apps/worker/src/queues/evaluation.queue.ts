@@ -32,7 +32,7 @@ export class EvaluationQueueProcessor {
     ).replace(/\/+$/, "");
     this.apiBaseUrl = raw.endsWith("/api/v1") ? raw : `${raw}/api/v1`;
     this.internalServiceToken =
-      process.env.INTERNAL_SERVICE_TOKEN || "";
+      process.env.INTERNAL_SERVICE_TOKEN || "internal_secret_token";
 
     this.worker = new Worker("evaluation", this.processJob.bind(this), {
       connection,
@@ -84,10 +84,7 @@ export class EvaluationQueueProcessor {
           headers: {
             "Content-Type": "application/json",
             // Internal service token bypasses JWT guard on this admin-only endpoint.
-            // The API's JwtAuthGuard must check x-internal-service-token header.
-            ...(this.internalServiceToken
-              ? { "x-internal-service-token": this.internalServiceToken }
-              : {}),
+            "x-internal-service-token": this.internalServiceToken,
           },
         },
       );

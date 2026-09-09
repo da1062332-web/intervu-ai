@@ -15,6 +15,24 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
   }
 
   async canActivate(context: ExecutionContext) {
+    // 1. Check for valid internal service-to-service token (worker -> api)
+    if (context.getType() === "http") {
+      const request = context.switchToHttp().getRequest();
+      const internalToken = request?.headers?.["x-internal-service-token"];
+      const expectedToken =
+        process.env.INTERNAL_SERVICE_TOKEN || "internal_secret_token";
+
+      if (internalToken && expectedToken && internalToken === expectedToken) {
+        request.user = {
+          id: "internal-worker",
+          email: "worker@internal.service",
+          role: "ADMIN",
+        };
+        return true;
+      }
+    }
+
+    // 2. Public route handling
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -37,6 +55,17 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     _info: unknown,
     context: ExecutionContext,
   ): TUser {
+    // Allow verified internal worker calls
+    if (context.getType() === "http") {
+      const request = context.switchToHttp().getRequest();
+      if (
+        request?.user?.id === "internal-worker" &&
+        request?.user?.role === "ADMIN"
+      ) {
+        return request.user as TUser;
+      }
+    }
+
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),

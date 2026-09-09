@@ -14,7 +14,12 @@ export class KeepAliveService {
       this.configService.get<string>("BACKEND_HEALTH_URL") ||
       process.env.BACKEND_HEALTH_URL;
 
-    if (!healthUrl) {
+    if (healthUrl) {
+      healthUrl = healthUrl.replace(/\/+$/, "");
+      if (!healthUrl.endsWith("/api/v1/health") && !healthUrl.endsWith("/health")) {
+        healthUrl = `${healthUrl}/api/v1/health`;
+      }
+    } else {
       const renderExternalUrl = process.env.RENDER_EXTERNAL_URL;
       if (renderExternalUrl) {
         healthUrl = `${renderExternalUrl.replace(/\/+$/, "")}/api/v1/health`;

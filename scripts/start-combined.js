@@ -59,6 +59,9 @@ if (missingEnv.length > 0) {
 }
 console.log("✅ Environment variables validated.");
 
+process.env.INTERNAL_SERVICE_TOKEN =
+  process.env.INTERNAL_SERVICE_TOKEN || "internal_secret_token";
+
 const dbUrl = process.env.DATABASE_URL || "";
 if (dbUrl.includes(":6543")) {
   console.log("⚡ [Database] Supabase Transaction Pooler (:6543) detected — pooling enabled.");
