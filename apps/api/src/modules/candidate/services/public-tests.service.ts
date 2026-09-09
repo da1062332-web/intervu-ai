@@ -85,18 +85,18 @@ export class PublicTestsService {
       }
     }
 
+    const planUpper = String(entitlements?.plan || "FREE").toUpperCase();
     const isVip =
-      entitlements?.plan === "VIP_UNLIMITED" ||
+      planUpper === "VIP_UNLIMITED" ||
       entitlements?.planSlug === "vip-unlimited";
-    const hasActivePlan = Boolean(entitlements?.hasActivePlan);
-    const isPaidSubscriber =
-      hasActivePlan ||
+    const isAllAccessPaid =
       isVip ||
-      ["STARTER", "PRO", "TEAMS"].includes(
-        String(entitlements?.plan).toUpperCase(),
-      );
-    if (isPaidSubscriber && (!allowedList || allowedList.length === 0)) {
-      allowedList = ["all"];
+      ["PRO", "TEAMS", "ALL-COMPANIES"].includes(planUpper) ||
+      entitlements?.planSlug === "all-companies" ||
+      entitlements?.planSlug === "vip-unlimited";
+
+    if (!allowedList || allowedList.length === 0) {
+      allowedList = isAllAccessPaid ? ["all"] : ["TCS_NQT_SHORT_ASSESSMENT"];
     }
 
     const result = await this.publicTestsRepository.findPublicTests({

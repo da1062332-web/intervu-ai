@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { AttemptHistoryService } from "./attempt-history.service";
 import { AttemptHistoryRepository } from "../repositories/attempt-history.repository";
+import { EntitlementService } from "../../billing/services/entitlement.service";
 
 describe("AttemptHistoryService", () => {
   let service: AttemptHistoryService;
@@ -9,12 +10,21 @@ describe("AttemptHistoryService", () => {
   beforeEach(async () => {
     const mockRepository = {
       findAttemptsByUser: jest.fn(),
+      getUserAttemptConfigs: jest.fn().mockResolvedValue([]),
+    };
+    const mockEntitlementService = {
+      getUserEntitlements: jest.fn().mockResolvedValue({
+        plan: "VIP_UNLIMITED",
+        hasActivePlan: true,
+        features: { allowedAssessments: ["all"], roundHistoryLimit: null },
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AttemptHistoryService,
         { provide: AttemptHistoryRepository, useValue: mockRepository },
+        { provide: EntitlementService, useValue: mockEntitlementService },
       ],
     }).compile();
 

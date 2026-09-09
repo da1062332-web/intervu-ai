@@ -159,6 +159,13 @@ export class PublicTestsRepository {
           (item.name && allowedAssessments.includes(item.name))
         );
       });
+    } else if (!allowedAssessments || allowedAssessments.length === 0) {
+      combined = combined.filter((item: any) => {
+        return (
+          item.code === "TCS_NQT_SHORT_ASSESSMENT" ||
+          item.name === "TCS NQT Short Assessment"
+        );
+      });
     }
 
     if (difficulty && difficulty.toLowerCase() !== "all") {
