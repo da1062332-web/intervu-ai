@@ -288,8 +288,11 @@ model TestInstance {
   @@index([userId])
   @@index([status])
   @@index([testConfigId])
+  @@index([examConfigId])
   @@index([createdAt])
   @@index([userId, status])
+  @@index([userId, examConfigId])
+  @@index([userId, testConfigId])
   @@index([userId, createdAt(sort: Desc)])
 }
 
@@ -529,6 +532,7 @@ model PregeneratedTestInstance {
   examConfig        ExamConfig  @relation(fields: [configId], references: [id], onDelete: Cascade)
 
   @@index([configId, status])
+  @@index([configId, status, createdAt])
   @@map("pregenerated_test_instances")
 }
 
@@ -1067,6 +1071,7 @@ model AssembledTest {
 
   @@index([configId])
   @@index([status])
+  @@index([configId, status])
   @@map("assembled_tests")
 }
 

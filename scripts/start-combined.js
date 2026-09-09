@@ -117,6 +117,8 @@ function retry() {
 
 function startWorker() {
   try {
+    process.env.INTERNAL_API_URL =
+      process.env.INTERNAL_API_URL || `http://127.0.0.1:${port}/api/v1`;
     require(path.join(__dirname, "../apps/worker/dist/apps/worker/src/main"));
     console.log("🚀 Worker bootstrapped successfully.");
     global.isWorkerInitialized = true; // Sets flag for readiness checks

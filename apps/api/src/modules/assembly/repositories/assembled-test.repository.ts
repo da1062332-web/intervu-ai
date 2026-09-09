@@ -139,6 +139,7 @@ export class AssembledTestRepository {
             name: true,
             role: true,
             code: true,
+            ruleFlags: true,
           },
         },
         sections: {

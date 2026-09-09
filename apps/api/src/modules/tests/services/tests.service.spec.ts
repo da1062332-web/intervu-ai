@@ -67,8 +67,13 @@ describe("TestsService — getAvailableConfigs", () => {
       name: "Senior Frontend Engineer Interview",
       difficulty: "MEDIUM",
       duration: 3600,
+      durationMinutes: 60,
       questionCount: 0,
-      sections: ["HTML & CSS", "JavaScript", "React"],
+      sections: [
+        { id: "section-0", name: "HTML & CSS", questionCount: 0, durationMinutes: 0 },
+        { id: "section-1", name: "JavaScript", questionCount: 0, durationMinutes: 0 },
+        { id: "section-2", name: "React", questionCount: 0, durationMinutes: 0 },
+      ],
     });
   });
 

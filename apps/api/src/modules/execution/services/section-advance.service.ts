@@ -185,12 +185,13 @@ export class SectionAdvanceService {
         });
 
       if (assembledQuestions.length > 0) {
+        const shuffled = [...assembledQuestions].sort(() => Math.random() - 0.5);
         await this.prisma.testInstanceQuestion.createMany({
-          data: assembledQuestions.map((q, idx) => ({
+          data: shuffled.map((q, idx) => ({
             testInstanceId,
             sectionId: nextSection.id,
             questionId: q.questionId,
-            questionOrder: q.questionOrder ?? idx,
+            questionOrder: idx,
             questionSnapshot: q.questionSnapshot as any,
           })),
           skipDuplicates: true,
@@ -220,12 +221,13 @@ export class SectionAdvanceService {
           });
 
           if (reusableSec && reusableSec.questions.length > 0) {
+            const shuffled = [...reusableSec.questions].sort(() => Math.random() - 0.5);
             await this.prisma.testInstanceQuestion.createMany({
-              data: reusableSec.questions.map((q, idx) => ({
+              data: shuffled.map((q, idx) => ({
                 testInstanceId,
                 sectionId: nextSection.id,
                 questionId: q.questionId,
-                questionOrder: q.questionOrder ?? idx,
+                questionOrder: idx,
                 questionSnapshot: (q.questionSnapshot as any) || {},
               })),
               skipDuplicates: true,

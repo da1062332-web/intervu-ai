@@ -23,10 +23,17 @@ export class PregeneratedTestRepository {
   /**
    * Atomically claims one pre-generated test instance using PostgreSQL row-level locking
    * (SELECT ... FOR UPDATE SKIP LOCKED) in < 10ms.
+   *
+   * When `expectedVersionHash` is provided, only a instance generated from that exact
+   * blueprint version is eligible — a pool instance baked before an admin edited the
+   * exam's sections (question counts, topic weightage) no longer matches the live
+   * config and must never be handed to a candidate. Passing `null`/`undefined` skips
+   * the version check (used by tests and any caller that hasn't computed a hash).
    */
   async claimAtomicInstance(
     configId: string,
     userId: string,
+    expectedVersionHash?: string | null,
   ): Promise<ClaimedPregeneratedInstance | null> {
     try {
       // 1. Primary path: Native PostgreSQL atomic claim
@@ -40,6 +47,10 @@ export class PregeneratedTestRepository {
           WHERE "id" = (
             SELECT "id" FROM "pregenerated_test_instances"
             WHERE "config_id" = ${configId} AND "status" = 'READY'
+              AND (
+                ${expectedVersionHash ?? null}::text IS NULL
+                OR "config_version_hash" = ${expectedVersionHash ?? null}
+              )
             ORDER BY "created_at" ASC
             LIMIT 1
             FOR UPDATE SKIP LOCKED
@@ -69,7 +80,11 @@ export class PregeneratedTestRepository {
       try {
         return await this.prisma.$transaction(async (tx) => {
           const candidate = await (tx as any).pregeneratedTestInstance.findFirst({
-            where: { configId, status: "READY" },
+            where: {
+              configId,
+              status: "READY",
+              ...(expectedVersionHash ? { configVersionHash: expectedVersionHash } : {}),
+            },
             orderBy: { createdAt: "asc" },
           });
 
@@ -90,6 +105,29 @@ export class PregeneratedTestRepository {
         this.logger.error(`  [POOL-CLAIM ❌] Fallback pool claim failed: ${fallbackErr?.message || fallbackErr}`);
         return null;
       }
+    }
+  }
+
+  /**
+   * Marks READY instances whose content no longer matches the current blueprint
+   * as EXPIRED, so they stop counting toward pool depth and are never claimed.
+   * Returns the number of instances expired.
+   */
+  async expireStaleInstances(configId: string, currentVersionHash: string): Promise<number> {
+    try {
+      const result = await this.prisma.$executeRaw(
+        Prisma.sql`
+          UPDATE "pregenerated_test_instances"
+          SET "status" = 'EXPIRED', "updated_at" = NOW()
+          WHERE "config_id" = ${configId}
+            AND "status" = 'READY'
+            AND ("config_version_hash" IS NULL OR "config_version_hash" != ${currentVersionHash});
+        `,
+      );
+      return Number(result) || 0;
+    } catch (err: any) {
+      this.logger.warn(`  [POOL-EXPIRE ⚠️] Failed to expire stale instances for ${configId}: ${err?.message || err}`);
+      return 0;
     }
   }
 

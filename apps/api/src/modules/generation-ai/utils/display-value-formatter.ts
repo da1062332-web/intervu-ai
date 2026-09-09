@@ -274,7 +274,8 @@ export function extractAndNormalizeOptions(
     if (sequenceCodeCheckRegex.test(trimmed)) {
       return trimmed;
     }
-    return trimmed.replace(labelPrefixRegex, "").trim();
+    const stripped = trimmed.replace(labelPrefixRegex, "").trim();
+    return stripped.length > 0 ? stripped : trimmed;
   });
 
   // 5. Normalize correct answer:
@@ -490,6 +491,12 @@ export function extractAndNormalizeOptions(
     }
     optionsList = uniqueOptions.slice(0, Math.max(4, optionsList.length));
   }
+
+  // Final AVL-014 guard: Ensure no empty string options exist
+  optionsList = optionsList.map((opt, i) => {
+    const trimmed = (opt || "").trim();
+    return trimmed.length > 0 ? trimmed : `Option ${String.fromCharCode(65 + i)}`;
+  });
 
   return {
     options: optionsList,

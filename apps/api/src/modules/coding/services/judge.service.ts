@@ -122,12 +122,7 @@ export class JudgeService {
     const judge0Url = this.getJudge0Url();
     const languageId = this.mapLanguageToId(options.language);
 
-    // For Java (62), pass compiler/VM flags to cap CompressedClassSpace and Metaspace
-    // to prevent VM startup crash: "Could not allocate metaspace: 1073741824 bytes"
-    let compilerOptions = options.compilerOptions;
-    if (languageId === 62 && !compilerOptions) {
-      compilerOptions = "-J-XX:CompressedClassSpaceSize=64m -J-XX:MaxMetaspaceSize=128m -J-Xmx256m";
-    }
+    const compilerOptions = options.compilerOptions;
 
     const payload = {
       source_code: this.encodeBase64(options.sourceCode),
@@ -164,9 +159,15 @@ export class JudgeService {
             status: res.status,
             response: errText,
           });
-          if (attempt >= maxAttempts) {
-            const detailMsg =
-              res.status === 404
+
+          const isNgrokOffline =
+            errText.includes("ERR_NGROK_3200") ||
+            (errText.includes("tunnel") && errText.includes("not found"));
+
+          if (isNgrokOffline || attempt >= maxAttempts) {
+            const detailMsg = isNgrokOffline
+              ? "Coding evaluation engine is temporarily offline (Judge0 execution tunnel inactive). Please ensure the ngrok tunnel or execution server is online."
+              : res.status === 404
                 ? `Judge0 execution service returned error: Not Found (404) at ${judge0Url}/submissions. If using ngrok or a deployed server, please ensure: 1) ngrok is forwarding to port 2358 ('ngrok http 2358'), NOT port 3000/4000; 2) JUDGE0_URL is the base URL (e.g. 'https://xxxx.ngrok-free.app') without /submissions; 3) Judge0 Docker container is active.`
                 : `Judge0 execution service returned error: ${res.statusText} (${res.status})`;
             throw new InternalServerErrorException(detailMsg);
@@ -181,6 +182,13 @@ export class JudgeService {
         lastError = err;
         if (err instanceof InternalServerErrorException || err instanceof BadRequestException) {
           throw err;
+        }
+        const errMsg = String(err?.message || err);
+        const isNgrokOffline = errMsg.includes("ERR_NGROK_3200") || (errMsg.includes("tunnel") && errMsg.includes("not found"));
+        if (isNgrokOffline) {
+          throw new InternalServerErrorException(
+            "Coding evaluation engine is temporarily offline (Judge0 execution tunnel inactive). Please ensure the ngrok tunnel or execution server is online.",
+          );
         }
         this.logger.warn(`Judge0 connection attempt ${attempt}/${maxAttempts} failed`, {
           url: judge0Url,
@@ -207,7 +215,7 @@ export class JudgeService {
 
     // Poll if submission is in queue (1) or processing (2)
     let pollCount = 0;
-    const maxPolls = 10;
+    const maxPolls = 60;
     const pollDelayMs = process.env.NODE_ENV === "test" ? 10 : 500;
     while ((statusId === 1 || statusId === 2) && pollCount < maxPolls) {
       await new Promise((resolve) => setTimeout(resolve, pollDelayMs));
@@ -236,6 +244,15 @@ export class JudgeService {
     }
 
     const normalized = this.normalizeResult(token, responseData);
+    this.logger.info("Judge0 execution evaluated", {
+      token,
+      languageId,
+      statusId: normalized.statusId,
+      statusDescription: normalized.statusDescription,
+      time: normalized.time,
+      memory: normalized.memory,
+      hasError: Boolean(normalized.error),
+    });
     // Auto-clean submission artifacts from Judge0 memory/storage
     this.deleteSubmission(token).catch(() => null);
     return normalized;

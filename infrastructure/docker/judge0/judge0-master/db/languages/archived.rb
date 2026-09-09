@@ -209,8 +209,8 @@
     name: "Java (OpenJDK 8)",
     is_archived: true,
     source_file: "Main.java",
-    compile_cmd: "/usr/lib/jvm/java-8-openjdk-amd64/bin/javac %s Main.java",
-    run_cmd: "/usr/lib/jvm/java-8-openjdk-amd64/bin/java Main",
+    compile_cmd: "/usr/lib/jvm/java-8-openjdk-amd64/bin/javac -J-XX:+UseSerialGC -J-XX:CompressedClassSpaceSize=64m -J-XX:MaxMetaspaceSize=128m -J-XX:ReservedCodeCacheSize=32m -J-Xmx256m %s Main.java",
+    run_cmd: "/usr/lib/jvm/java-8-openjdk-amd64/bin/java -XX:+UseSerialGC -XX:CompressedClassSpaceSize=64m -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=32m -Xmx256m Main",
   },
   {
     id: 28,

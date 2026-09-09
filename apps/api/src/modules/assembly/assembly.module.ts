@@ -37,6 +37,7 @@ import { ProgressiveAssemblyWorkerService } from "./services/progressive-assembl
 import { FinalShufflerService } from "../tests/start-test/final-shuffler.service";
 import { PregeneratedTestRepository } from "./repositories/pregenerated-test.repository";
 import { TestPoolManagerService } from "./services/test-pool-manager.service";
+import { PoolRefillSchedulerService } from "./services/pool-refill-scheduler.service";
 
 import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 
@@ -74,6 +75,7 @@ import { GenerationAiModule } from "../generation-ai/generation-ai.module";
     FinalShufflerService,
     PregeneratedTestRepository,
     TestPoolManagerService,
+    PoolRefillSchedulerService,
     // --- New Integration Layer Services ---
     QuestionBankSource,
     DuplicateDetectionService,

@@ -81,8 +81,13 @@ export default function AssemblyPreviewPage() {
 
   const hasVersionSnapshot = versions.length > 0;
   const latestVersion = hasVersionSnapshot ? versions[0] : null;
+  const isTestInstance = assembly?.sourceType === 'TEST_INSTANCE';
 
   const handlePublish = async () => {
+    if (isTestInstance) {
+      toast.error('This is a candidate test instance, not a master assembly. Publishing does not apply here.');
+      return;
+    }
     if (!hasVersionSnapshot) {
       toast.error('Cannot publish. Please save a version snapshot first.');
       return;
@@ -119,6 +124,10 @@ export default function AssemblyPreviewPage() {
   };
 
   const handleCreateVersion = async () => {
+    if (isTestInstance) {
+      toast.error('This is a candidate test instance, not a master assembly. There is nothing to version here.');
+      return;
+    }
     setIsSavingVersion(true);
     try {
       await apiClient.request(`/assembly/${params.id}/version`, { method: 'POST' });
@@ -282,11 +291,21 @@ export default function AssemblyPreviewPage() {
           description='Manage version snapshots and readiness for publishing.'
           className='md:col-span-3 border-2 border-primary/20 bg-primary/5'
         >
+          {isTestInstance && (
+            <div className='mb-4 p-3 rounded-md border border-amber-300 bg-amber-50 text-amber-800 text-sm flex items-start gap-2'>
+              <AlertCircle className='h-4 w-4 mt-0.5 shrink-0' />
+              <span>
+                This is an individual candidate test instance, not a master assembly. Version
+                snapshots and publishing only apply to master assemblies created via &ldquo;Save
+                Assembly&rdquo;.
+              </span>
+            </div>
+          )}
           <div className='flex justify-end gap-2 mb-4'>
             <Button
               variant='outline'
               onClick={handleCreateVersion}
-              disabled={isSavingVersion || isPublished}
+              disabled={isSavingVersion || isPublished || isTestInstance}
             >
               {isSavingVersion && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
               Save Version Snapshot
@@ -295,14 +314,14 @@ export default function AssemblyPreviewPage() {
             <div className='relative group'>
               <Button
                 onClick={handlePublish}
-                disabled={!hasVersionSnapshot || isPublished || isPublishing}
+                disabled={!hasVersionSnapshot || isPublished || isPublishing || isTestInstance}
                 className='min-w-[140px]'
               >
                 {isPublishing && <Loader2 className='h-4 w-4 mr-2 animate-spin' />}
                 {isPublished ? 'Published' : 'Publish Assembly'}
               </Button>
 
-              {!hasVersionSnapshot && !isPublished && (
+              {!hasVersionSnapshot && !isPublished && !isTestInstance && (
                 <div className='absolute bottom-full mb-2 right-0 hidden group-hover:block bg-popover text-popover-foreground border p-3 rounded-md shadow-lg text-sm w-56 z-50'>
                   <p className='font-semibold mb-2 flex items-center gap-1.5 text-amber-500'>
                     <AlertCircle className='h-4 w-4' /> Publish blocked

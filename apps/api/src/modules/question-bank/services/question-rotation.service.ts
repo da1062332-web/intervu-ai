@@ -154,16 +154,19 @@ export class QuestionRotationService {
    */
   async retrieveAndReserve(
     request: AssemblyProviderRequest,
+    options?: { skipAvailabilityCheck?: boolean },
   ): Promise<AssemblyProviderResponse> {
     this.validateRequest(request);
 
-    // Check availability first. If pool is insufficient, throw exception.
-    const availability = await this.checkAvailability(request);
-    if (availability.status === "INSUFFICIENT_POOL") {
-      throw new BadRequestException({
-        message: "Insufficient question pool to satisfy the blueprint.",
-        details: availability.details,
-      });
+    // Check availability first if not explicitly skipped. If pool is insufficient, throw exception.
+    if (!options?.skipAvailabilityCheck) {
+      const availability = await this.checkAvailability(request);
+      if (availability.status === "INSUFFICIENT_POOL") {
+        throw new BadRequestException({
+          message: "Insufficient question pool to satisfy the blueprint.",
+          details: availability.details,
+        });
+      }
     }
 
     const { sectionId, difficultyDistribution, topicIds } = request;

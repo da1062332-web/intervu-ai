@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, Inject, Optional } from "@nestjs/common";
+import * as crypto from "crypto";
 import { BlueprintDto, BlueprintSectionDto } from "@intervu/shared";
 import { BlueprintRepository } from "../repositories/blueprint.repository";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
@@ -98,6 +99,8 @@ export class BlueprintBuilderService {
       },
     );
 
+    const versionHash = this.computeVersionHash(sections, config.difficultyDistribution);
+
     const blueprint: BlueprintDto = {
       testConfigId: configId,
       totalQuestions,
@@ -110,6 +113,7 @@ export class BlueprintBuilderService {
           }
         : undefined,
       sections,
+      versionHash,
     };
 
     const ttl = parseInt(
@@ -121,5 +125,30 @@ export class BlueprintBuilderService {
     }
 
     return blueprint;
+  }
+
+  /**
+   * Deterministic content hash over the fields that determine what a
+   * pre-generated pool instance actually looks like. Anything cosmetic
+   * (display names) is intentionally excluded — only changes that affect
+   * question selection should invalidate pre-generated content.
+   */
+  private computeVersionHash(
+    sections: BlueprintSectionDto[],
+    difficultyDistribution?: { easyPercentage: number; mediumPercentage: number; hardPercentage: number } | null,
+  ): string {
+    const stableSections = sections
+      .map((s) => ({
+        sectionKey: s.sectionKey,
+        questionCount: s.questionCount,
+        durationSeconds: s.durationSeconds,
+        topicAllocations: [...s.topicAllocations]
+          .map((t) => ({ topicId: t.topicId, percentage: t.percentage }))
+          .sort((a, b) => a.topicId.localeCompare(b.topicId)),
+      }))
+      .sort((a, b) => a.sectionKey.localeCompare(b.sectionKey));
+
+    const payload = JSON.stringify({ sections: stableSections, difficultyDistribution: difficultyDistribution ?? null });
+    return crypto.createHash("sha256").update(payload).digest("hex");
   }
 }

@@ -95,12 +95,22 @@ export class AntiRepetitionService {
     };
   }
 
+  private readonly resolvedQuestionsCache = new Map<string, PoolQuestion>();
+
   async filterPool<T extends PoolQuestion>(
     pool: T[],
     historyIds: string[],
     activeIds: string[],
+    knownActiveQuestions?: PoolQuestion[],
   ): Promise<T[]> {
     if (!pool || pool.length === 0) return [];
+
+    // Pre-cache pool questions for zero-latency retrieval in subsequent section iterations
+    for (const q of pool) {
+      if (q && q.id) {
+        this.resolvedQuestionsCache.set(q.id, q);
+      }
+    }
 
     // O(1) Set lookups for fast Level 1 & Level 2 exact match filtering
     const historySet = new Set(historyIds.filter((id) => Boolean(id)));
@@ -111,7 +121,10 @@ export class AntiRepetitionService {
 
     for (const q of pool) {
       if (!q || !q.id) continue;
-      if ((historySet.size > 0 && historySet.has(q.id)) || (activeSet.size > 0 && activeSet.has(q.id))) {
+      if (
+        (historySet.size > 0 && historySet.has(q.id)) ||
+        (activeSet.size > 0 && activeSet.has(q.id))
+      ) {
         // Instant Level 1/2 filter out without DB query or string comparison
         continue;
       }
@@ -127,10 +140,34 @@ export class AntiRepetitionService {
       historyIds.length > 0
         ? await this.poolRepository.getQuestionsByIds(historyIds)
         : [];
-    const activeQuestions =
-      activeIds.length > 0
-        ? await this.poolRepository.getQuestionsByIds(activeIds)
-        : [];
+
+    const activeQuestions: PoolQuestion[] = [];
+    if (activeIds.length > 0) {
+      const missingIds: string[] = [];
+      const knownMap = new Map<string, PoolQuestion>();
+      if (knownActiveQuestions) {
+        for (const kq of knownActiveQuestions) {
+          if (kq && kq.id) knownMap.set(kq.id, kq);
+        }
+      }
+
+      for (const id of activeIds) {
+        const found = knownMap.get(id) || this.resolvedQuestionsCache.get(id);
+        if (found) {
+          activeQuestions.push(found);
+        } else {
+          missingIds.push(id);
+        }
+      }
+
+      if (missingIds.length > 0) {
+        const fetched = await this.poolRepository.getQuestionsByIds(missingIds);
+        for (const f of fetched) {
+          this.resolvedQuestionsCache.set(f.id, f);
+        }
+        activeQuestions.push(...fetched);
+      }
+    }
 
     for (const q of candidatesForSemanticCheck) {
       const check = await this.checkDuplicate(

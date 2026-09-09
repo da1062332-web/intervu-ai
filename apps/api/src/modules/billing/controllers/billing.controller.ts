@@ -86,6 +86,7 @@ export class BillingController {
   ) {
     const planSlug = body?.planSlug || body?.plan || "FREE";
     const subscription = await this.subscriptionService.subscribeFree(user.id, planSlug);
+    this.entitlementService.invalidateCache(user.id);
     const entitlements = await this.entitlementService.getUserEntitlements(user.id);
     return {
       success: true,

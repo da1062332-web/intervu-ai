@@ -11,6 +11,9 @@ services:
     container_name: judge0-server
     volumes:
       - ./judge0.conf:/judge0.conf:ro
+      - ./db/languages/active.rb:/api/db/languages/active.rb:ro
+      - ./db/languages/archived.rb:/api/db/languages/archived.rb:ro
+      - ./app/helpers/isolate_runner.rb:/api/app/helpers/isolate_runner.rb:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     ports:
       - "2358:2358"
@@ -26,6 +29,9 @@ services:
     command: ["./scripts/workers"]
     volumes:
       - ./judge0.conf:/judge0.conf:ro
+      - ./db/languages/active.rb:/api/db/languages/active.rb:ro
+      - ./db/languages/archived.rb:/api/db/languages/archived.rb:ro
+      - ./app/helpers/isolate_runner.rb:/api/app/helpers/isolate_runner.rb:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
     <<: *default-logging

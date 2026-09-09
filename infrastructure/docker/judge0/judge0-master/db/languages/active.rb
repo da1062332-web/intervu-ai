@@ -152,8 +152,8 @@
     name: "Java (OpenJDK 13.0.1)",
     is_archived: false,
     source_file: "Main.java",
-    compile_cmd: "/usr/local/openjdk13/bin/javac %s Main.java",
-    run_cmd: "/usr/local/openjdk13/bin/java Main"
+    compile_cmd: "/usr/local/openjdk13/bin/javac -J-XX:+UseSerialGC -J-XX:TieredStopAtLevel=1 -J-XX:CompressedClassSpaceSize=64m -J-XX:MaxMetaspaceSize=128m -J-XX:ReservedCodeCacheSize=32m -J-Xmx256m %s Main.java",
+    run_cmd: "/usr/local/openjdk13/bin/java -XX:+UseSerialGC -XX:CompressedClassSpaceSize=64m -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=32m -Xmx256m Main"
   },
   {
     id: 63,

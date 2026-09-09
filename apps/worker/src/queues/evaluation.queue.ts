@@ -24,8 +24,13 @@ export class EvaluationQueueProcessor {
 
   constructor(connection: ConnectionOptions, logger: AppLogger) {
     this.logger = logger;
-    this.apiBaseUrl =
-      process.env.INTERNAL_API_URL || "http://localhost:4000";
+    const defaultPort = process.env.PORT || 4000;
+    const raw = (
+      process.env.INTERNAL_API_URL ||
+      process.env.RENDER_EXTERNAL_URL ||
+      `http://127.0.0.1:${defaultPort}`
+    ).replace(/\/+$/, "");
+    this.apiBaseUrl = raw.endsWith("/api/v1") ? raw : `${raw}/api/v1`;
     this.internalServiceToken =
       process.env.INTERNAL_SERVICE_TOKEN || "";
 

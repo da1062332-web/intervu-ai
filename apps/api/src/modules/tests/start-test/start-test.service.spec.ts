@@ -13,6 +13,7 @@ import {
 import { TestInstanceStatus } from "@prisma/client";
 import { PrismaService } from "@/prisma/prisma.service";
 import { FinalShufflerService } from "./final-shuffler.service";
+import { AssemblyService } from "../../assembly/services/test-assembly.service";
 
 describe("StartTestService", () => {
   let service: StartTestService;
@@ -22,6 +23,7 @@ describe("StartTestService", () => {
   let testInstanceService: jest.Mocked<TestInstanceService>;
   let assembledTestRepository: { findByConfigId: jest.Mock };
   let finalShufflerService: { shuffleSections: jest.Mock };
+  let assemblyService: { assembleTest: jest.Mock };
 
   beforeEach(async () => {
     const eligibilityMock = {
@@ -35,12 +37,19 @@ describe("StartTestService", () => {
     };
     const testInstanceMock = {
       createTestInstance: jest.fn(),
+      getTestInstance: jest.fn().mockResolvedValue({
+        id: "test-inst-1",
+        status: TestInstanceStatus.CREATED,
+      }),
     };
     const assembledTestRepositoryMock = {
       findByConfigId: jest.fn(),
     };
     const finalShufflerMock = {
       shuffleSections: jest.fn().mockImplementation((sections) => sections),
+    };
+    const assemblyServiceMock = {
+      assembleTest: jest.fn().mockResolvedValue("test-inst-1"),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -56,6 +65,7 @@ describe("StartTestService", () => {
         { provide: TestInstanceService, useValue: testInstanceMock },
         { provide: PrismaService, useValue: {} },
         { provide: FinalShufflerService, useValue: finalShufflerMock },
+        { provide: AssemblyService, useValue: assemblyServiceMock },
       ],
     }).compile();
 
@@ -66,6 +76,7 @@ describe("StartTestService", () => {
     testInstanceService = module.get(TestInstanceService);
     assembledTestRepository = module.get(AssembledTestRepository);
     finalShufflerService = module.get(FinalShufflerService);
+    assemblyService = module.get(AssemblyService);
   });
 
   const validUserId = "user-1";
@@ -133,7 +144,7 @@ describe("StartTestService", () => {
       totalDurationSeconds: 3600,
       sections: [{ sectionKey: "js-basics", questionCount: 5 }],
     });
-    questionProvider.fetchOrGenerateQuestions.mockRejectedValue(
+    assemblyService.assembleTest.mockRejectedValue(
       new InternalServerErrorException({ code: "QUESTION_POOL_EMPTY" }),
     );
 
@@ -150,8 +161,7 @@ describe("StartTestService", () => {
       id: validConfigId,
       sections: [{ sectionKey: "js-basics", questionCount: 5 }],
     });
-    questionProvider.fetchOrGenerateQuestions.mockResolvedValue([]);
-    testInstanceService.createTestInstance.mockRejectedValue(
+    assemblyService.assembleTest.mockRejectedValue(
       new Error("DB_ERROR"),
     );
 
@@ -170,35 +180,8 @@ describe("StartTestService", () => {
       sections: [{ sectionKey: "js-basics", questionCount: 2 }],
     });
 
-    // Mock a published assembled test with sections and questions
-    assembledTestRepository.findByConfigId.mockResolvedValue({
-      id: "assembly-1",
-      configId: validConfigId,
-      sections: [
-        {
-          id: "s1",
-          sectionKey: "js-basics",
-          sectionName: "JS Basics",
-          durationSeconds: 600,
-          questionCount: 2,
-          orderIndex: 0,
-          questions: [
-            {
-              questionId: "q1",
-              questionOrder: 0,
-              questionSnapshot: { questionText: "Q1" },
-            },
-            {
-              questionId: "q2",
-              questionOrder: 1,
-              questionSnapshot: { questionText: "Q2" },
-            },
-          ],
-        },
-      ],
-    });
-
-    testInstanceService.createTestInstance.mockResolvedValue({
+    assemblyService.assembleTest.mockResolvedValue("test-inst-2");
+    testInstanceService.getTestInstance.mockResolvedValue({
       id: "test-inst-2",
       status: TestInstanceStatus.CREATED,
     } as any);
@@ -208,8 +191,6 @@ describe("StartTestService", () => {
     });
 
     expect(result.testInstanceId).toBe("test-inst-2");
-    // Ensure live generation was NOT called when published snapshot exists.
-    expect(questionProvider.fetchOrGenerateQuestions).not.toHaveBeenCalled();
   });
 
   it("START-007 Duplicate Active Test", async () => {

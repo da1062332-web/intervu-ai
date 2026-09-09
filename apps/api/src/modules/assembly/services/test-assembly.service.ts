@@ -20,6 +20,9 @@ import { QuestionPoolRepository } from "../repositories/question-pool.repository
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { ProgressiveAssemblyWorkerService } from "./progressive-assembly-worker.service";
 import { PregeneratedTestRepository } from "../repositories/pregenerated-test.repository";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { GeneratedQuestion } from "@prisma/client";
+import { PreloadedTopicPool } from "./question-allocator.service";
 
 @Injectable()
 export class AssemblyService {
@@ -52,7 +55,104 @@ export class AssemblyService {
     @Optional()
     @Inject(PregeneratedTestRepository)
     private readonly pregeneratedRepo?: PregeneratedTestRepository,
+    @Optional()
+    @Inject(PrismaService)
+    private readonly prisma?: PrismaService,
   ) {}
+
+  private mapDbQuestionToGenerated(q: any): GeneratedQuestion {
+    const isCoding =
+      (q as any).questionType === "CODING" ||
+      Boolean(q.codingData) ||
+      (q.questionText || "").startsWith("### Problem Statement");
+    const questionType = isCoding
+      ? "CODING"
+      : (q as any).questionType || "MULTIPLE_CHOICE";
+    const rawOptions = isCoding
+      ? []
+      : q.mcqData?.options ||
+        q.options ||
+        (q as any).metadata?.options ||
+        (q as any).choices ||
+        [];
+
+    return {
+      id: q.id,
+      conceptKey: q.topicId,
+      difficultyLevel: (q.difficulty || "MEDIUM") as GeneratedQuestion["difficultyLevel"],
+      questionType: questionType as any,
+      questionText: q.questionText,
+      questionHash: q.id,
+      metadata: {
+        answer: q.answer,
+        explanation: q.explanation,
+        sectionId: q.sectionId,
+        source: "QUESTION_BANK",
+      } as unknown as GeneratedQuestion["metadata"],
+      templateId: q.templateId || (null as unknown as string),
+      options: rawOptions as unknown as GeneratedQuestion["options"],
+      mcqData: q.mcqData,
+      codingData: q.codingData,
+      correctAnswer: q.answer as unknown as GeneratedQuestion["correctAnswer"],
+      solution: q.explanation as unknown as GeneratedQuestion["solution"],
+      expectedAnswer: null as unknown as string,
+      questionStatement: q.questionStatement as unknown as string,
+      instructions: q.instructions as unknown as string,
+      createdAt: q.createdAt || new Date(),
+      updatedAt: q.updatedAt || new Date(),
+    } as GeneratedQuestion;
+  }
+
+  private async buildPreloadedPool(blueprint: any): Promise<PreloadedTopicPool | undefined> {
+    if (!this.prisma) return undefined;
+
+    const tStart = Date.now();
+    const topicIdSet = new Set<string>();
+    for (const sec of blueprint.sections || []) {
+      for (const t of sec.topicAllocations || []) {
+        if (t.topicId) topicIdSet.add(t.topicId);
+      }
+    }
+
+    if (topicIdSet.size === 0) return undefined;
+
+    const allTopicIds = Array.from(topicIdSet);
+    this.logger.log(`  [ASSEMBLY 📦] Pre-fetching question pool for ${allTopicIds.length} topics in 1 batch query...`);
+
+    const dbQuestions = await this.prisma.question.findMany({
+      where: {
+        status: "ACTIVE",
+        OR: [
+          { topicId: { in: allTopicIds } },
+          { concept: { topicId: { in: allTopicIds } } },
+        ],
+      },
+      orderBy: [
+        { timesUsed: "asc" },
+        { lastUsed: "asc" },
+        { createdAt: "asc" },
+      ],
+    });
+
+    const pool: PreloadedTopicPool = new Map();
+    for (const q of dbQuestions) {
+      const gq = this.mapDbQuestionToGenerated(q);
+      const tId = q.topicId;
+      if (!pool.has(tId)) {
+        pool.set(tId, { EASY: [], MEDIUM: [], HARD: [], ALL: [] });
+      }
+      const bucket = pool.get(tId)!;
+      bucket.ALL.push(gq);
+      const diff = (gq.difficultyLevel || "MEDIUM").toUpperCase();
+      if (diff === "EASY") bucket.EASY.push(gq);
+      else if (diff === "HARD") bucket.HARD.push(gq);
+      else bucket.MEDIUM.push(gq);
+    }
+
+    this.poolRepository.seedQuestions(dbQuestions);
+    this.logger.log(`  [ASSEMBLY ⚡📦] Pre-fetched ${dbQuestions.length} active questions across ${pool.size} topics in ${Date.now() - tStart}ms!`);
+    return pool;
+  }
 
   async assembleTest(
     configId: string,
@@ -63,17 +163,37 @@ export class AssemblyService {
     if (!configId) throw new BadRequestException("configId is required");
 
     // Flow 0: Atomic Pre-Generated Pool Claim (< 10ms claim, < 25ms materialize)
-    if (!forceNew && this.pregeneratedRepo) {
+    // Only attempted when this exam config has explicitly enabled the pool feature —
+    // otherwise every test start would pay for a claim query against a pool that
+    // is never populated for this config (pregenerated_test_instances is keyed by
+    // ExamConfig, so this is a no-op for TestConfig-based assemblies too).
+    if (!forceNew && this.pregeneratedRepo && this.prisma) {
       try {
-        const claimed = await this.pregeneratedRepo.claimAtomicInstance(configId, userId);
-        if (claimed) {
-          const tClaim = Date.now();
-          const instanceId = await this.persistenceService.materializePregeneratedInstanceForCandidate(
-            claimed,
+        const ruleFlags = await this.prisma.ruleFlags.findUnique({
+          where: { examConfigId: configId },
+          select: { poolEnabled: true },
+        });
+
+        if (ruleFlags?.poolEnabled) {
+          // Pool instances are baked ahead of time from a specific blueprint
+          // version; only accept one that still matches the config's current
+          // sections/topic weightage, or a candidate could silently receive a
+          // stale question set from before an admin's last edit.
+          const currentBlueprint = await this.blueprintBuilder.generateBlueprint(configId);
+          const claimed = await this.pregeneratedRepo.claimAtomicInstance(
+            configId,
             userId,
+            (currentBlueprint as any)?.versionHash ?? null,
           );
-          this.logger.log(`  [ASSEMBLY ⚡🚀] FLOW 0 (PRE-GEN POOL) COMPLETE in ${Date.now() - tClaim}ms -> Instance: ${instanceId}`);
-          return instanceId;
+          if (claimed) {
+            const tClaim = Date.now();
+            const instanceId = await this.persistenceService.materializePregeneratedInstanceForCandidate(
+              claimed,
+              userId,
+            );
+            this.logger.log(`  [ASSEMBLY ⚡🚀] FLOW 0 (PRE-GEN POOL) COMPLETE in ${Date.now() - tClaim}ms -> Instance: ${instanceId}`);
+            return instanceId;
+          }
         }
       } catch (poolErr: any) {
         this.logger.warn(`  [ASSEMBLY ⚠️] Pre-generated pool claim failed (${poolErr?.message || poolErr}). Falling back to standard flows.`);
@@ -133,6 +253,8 @@ export class AssemblyService {
       });
     }
 
+    const preloadedPool = await this.buildPreloadedPool(blueprint);
+
     const sections: SectionDto[] = [];
     const allocatedQuestionIds = new Set<string>();
 
@@ -155,6 +277,7 @@ export class AssemblyService {
         historyIds,
         this.DEFAULT_ALLOCATION_CONFIG,
         configId,
+        preloadedPool,
       );
       const sec1 = this.sectionBuilder.buildSection(sec1Blueprint, sec1Questions);
       sections.push(sec1);
@@ -233,6 +356,7 @@ export class AssemblyService {
         historyIds,
         this.DEFAULT_ALLOCATION_CONFIG,
         configId,
+        preloadedPool,
       );
 
       const section = this.sectionBuilder.buildSection(
@@ -293,6 +417,8 @@ export class AssemblyService {
     const historyIds =
       await this.poolRepository.findRecentUsedQuestions(userId);
 
+    const preloadedPool = await this.buildPreloadedPool(blueprint);
+
     for (const blueprintSection of blueprint.sections) {
       const allocatedQuestions = await this.allocator.allocateQuestions(
         blueprintSection,
@@ -300,6 +426,7 @@ export class AssemblyService {
         historyIds,
         this.DEFAULT_ALLOCATION_CONFIG,
         configId,
+        preloadedPool,
       );
 
       const section = this.sectionBuilder.buildSection(
@@ -332,6 +459,8 @@ export class AssemblyService {
     const historyIds =
       await this.poolRepository.findRecentUsedQuestions(userId);
 
+    const preloadedPool = await this.buildPreloadedPool(blueprint);
+
     for (const blueprintSection of blueprint.sections) {
       const allocatedQuestions = await this.allocator.allocateQuestions(
         blueprintSection,
@@ -339,6 +468,7 @@ export class AssemblyService {
         historyIds,
         this.DEFAULT_ALLOCATION_CONFIG,
         configId,
+        preloadedPool,
       );
 
       const section = this.sectionBuilder.buildSection(
