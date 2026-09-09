@@ -106,7 +106,17 @@ export function StreamlinedQuestionRenderer() {
 
   const extractOptionText = (option: any): string => {
     if (option === null || option === undefined) return '';
-    if (typeof option === 'string') return option;
+    if (typeof option === 'string') {
+      const trimmed = option.trim();
+      if (trimmed === '[object Object]') return '';
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return extractOptionText(parsed);
+        } catch {}
+      }
+      return trimmed;
+    }
     if (typeof option === 'number' || typeof option === 'boolean') return String(option);
     if (typeof option === 'object') {
       if (typeof option.text === 'string') return option.text;
@@ -120,14 +130,18 @@ export function StreamlinedQuestionRenderer() {
       if (typeof option.value === 'object' && option.value !== null) return extractOptionText(option.value);
       for (const key of ['text', 'value', 'label', 'option', 'content', 'title', 'description']) {
         if (typeof option[key] === 'string') return option[key];
+        if (typeof option[key] === 'number') return String(option[key]);
       }
       for (const [k, v] of Object.entries(option)) {
-        if (k !== 'id' && k !== 'isCorrect' && typeof v === 'string' && v.trim() !== '') {
+        if (k !== 'id' && k !== 'isCorrect' && typeof v === 'string' && v.trim() !== '' && v !== '[object Object]') {
           return v;
+        }
+        if (k !== 'id' && k !== 'isCorrect' && typeof v === 'number') {
+          return String(v);
         }
       }
     }
-    const str = String(option);
+    const str = String(option).trim();
     return str === '[object Object]' ? '' : str;
   };
 

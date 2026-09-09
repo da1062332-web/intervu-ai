@@ -81,7 +81,7 @@ describe("RazorpayService", () => {
 
     expect(order.amount).toBe(0);
     expect(order.plan).toBe("STARTER");
-    expect(order.isFree).toBe(true);
+    expect((order as any).isFree).toBe(true);
     expect(order.order_id).toMatch(/^free_/);
   });
 
