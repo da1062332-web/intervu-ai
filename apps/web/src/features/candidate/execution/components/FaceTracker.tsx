@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 import { useFaceTracker } from '../hooks/useFaceTracker';
 import { AlertCircle, Camera, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useExecutionStore } from '../stores/execution.store';
+import { isFaceDetectionDisabledForAssessment } from '@/lib/proctoring';
 
 interface FaceTrackerProps {
   onSubmit: () => void;
@@ -60,7 +62,11 @@ function WarningDialog({
   );
 }
 
-export function FaceTracker({ onSubmit, disabled = true }: FaceTrackerProps) {
+export function FaceTracker({ onSubmit, disabled: propDisabled = false }: FaceTrackerProps) {
+  const testInstance = useExecutionStore((s) => s.testInstance);
+  const isAssessmentDisabled = isFaceDetectionDisabledForAssessment(testInstance);
+  const disabled = propDisabled || isAssessmentDisabled;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

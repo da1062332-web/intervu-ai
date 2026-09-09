@@ -150,9 +150,10 @@ export class AutosaveService {
     let attempt = 0;
     while (attempt < retries) {
       try {
-        await this.prisma.$transaction(async (tx) => {
-          // Direct upsert of candidate answer
-          await tx.candidateAnswer.upsert({
+        // Direct parallel upserts without interactive $transaction.
+        // This avoids holding open connections and hitting transaction pooler timeouts on PgBouncer.
+        await Promise.all([
+          this.prisma.candidateAnswer.upsert({
             where: {
               testInstanceId_questionId: {
                 testInstanceId,
@@ -178,10 +179,8 @@ export class AutosaveService {
               isMarkedForReview: dto.isMarkedForReview || false,
               savedAt: new Date(),
             },
-          });
-
-          // Update remaining time in ExecutionState
-          await tx.executionState.upsert({
+          }),
+          this.prisma.executionState.upsert({
             where: {
               testInstanceId,
             },
@@ -195,8 +194,8 @@ export class AutosaveService {
               remainingTimeSeconds: remainingTime,
               lastActivityAt: new Date(),
             },
-          });
-        });
+          }),
+        ]);
         return; // Success
       } catch (error) {
         attempt++;

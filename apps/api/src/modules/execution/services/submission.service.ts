@@ -73,6 +73,28 @@ export class SubmissionService {
       };
     }
 
+    const testInstanceCheck = await this.prisma.testInstance.findUnique({
+      where: { id: testInstanceId },
+      include: { submission: true },
+    });
+    if (
+      testInstanceCheck &&
+      (testInstanceCheck.status === "SUBMITTED" ||
+        testInstanceCheck.status === "COMPLETED")
+    ) {
+      this.logger.info(
+        "TestInstance already marked SUBMITTED, returning existing reference (idempotency)",
+        {
+          testInstanceId,
+          submissionId: testInstanceCheck.submission?.id,
+        },
+      );
+      return {
+        submissionId: testInstanceCheck.submission?.id || testInstanceId,
+        status: testInstanceCheck.submission?.status || "SUBMITTED",
+      };
+    }
+
     // B. Locking & Double-Submit Guard via Redis Cache
     const lockKey = `lock:submit:${testInstanceId}`;
     const isLocked = await this.cacheService.get<string>(lockKey);
@@ -151,12 +173,18 @@ export class SubmissionService {
             submittedAt: new Date(),
           });
 
-          // 6. Create Submission record
-          const subRepo = this.submissionRepo.withTransaction(tx);
-          const submission = await subRepo.create({
-            testInstance: { connect: { id: testInstanceId } },
-            status: "SUBMITTED",
-            submittedAt: new Date(),
+          // 6. Create or update Submission record idempotently
+          const submission = await tx.submission.upsert({
+            where: { testInstanceId },
+            create: {
+              testInstanceId,
+              status: "SUBMITTED",
+              submittedAt: new Date(),
+            },
+            update: {
+              status: "SUBMITTED",
+              submittedAt: new Date(),
+            },
           });
 
           // 7. Collect answers for Evaluation
@@ -204,6 +232,10 @@ export class SubmissionService {
           };
 
           return { submission, executionResult };
+        },
+        {
+          timeout: 25000,
+          maxWait: 10000,
         },
       );
 

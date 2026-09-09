@@ -56,6 +56,16 @@ export function SystemCheck({ onStatusChange, isFaceDetectionDisabled = true }: 
   const [hasMicPassed, setHasMicPassed] = useState(isFaceDetectionDisabled);
 
   useEffect(() => {
+    if (isFaceDetectionDisabled) {
+      setFaceDetected(true);
+      setMicActive(true);
+      setHasFacePassed(true);
+      setHasMicPassed(true);
+      updateCheckStatus('media', 'success');
+    }
+  }, [isFaceDetectionDisabled]);
+
+  useEffect(() => {
     if (faceDetected) setHasFacePassed(true);
   }, [faceDetected]);
 

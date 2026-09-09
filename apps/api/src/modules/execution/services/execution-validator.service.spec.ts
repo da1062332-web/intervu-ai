@@ -64,11 +64,12 @@ describe("ExecutionValidatorService", () => {
   });
 
   describe("validateOwnership", () => {
-    it("should not throw when ownership validation is temporarily bypassed", () => {
+    it("should not throw when ownership validation is bypassed for ADMIN", () => {
       expect(() =>
         service.validateOwnership(
           { userId: "user_1" } as unknown as TestInstance,
           "user_2",
+          "ADMIN",
         ),
       ).not.toThrow();
     });

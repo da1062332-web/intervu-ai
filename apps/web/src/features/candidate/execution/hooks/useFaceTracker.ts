@@ -44,7 +44,15 @@ export function useFaceTracker({
 
   // ─── Phase 1: Start camera immediately ────────────────────────────────────
   useEffect(() => {
-    if (disabled) return;
+    if (disabled) {
+      // Immediately stop any existing stream if disabled becomes true
+      if (videoRef.current?.srcObject) {
+        const currentStream = videoRef.current.srcObject as MediaStream;
+        currentStream.getTracks?.().forEach((t) => t.stop());
+        videoRef.current.srcObject = null;
+      }
+      return;
+    }
     let stream: MediaStream | null = null;
     let mounted = true;
 
@@ -79,7 +87,7 @@ export function useFaceTracker({
         audio: false,
       })
       .then((s) => {
-        if (!mounted) {
+        if (!mounted || disabled) {
           s.getTracks().forEach((t) => t.stop());
           return;
         }
@@ -92,7 +100,7 @@ export function useFaceTracker({
         setHasCameraError(false);
       })
       .catch((err: unknown) => {
-        if (!mounted) return;
+        if (!mounted || disabled) return;
         const errorName = (err as Error)?.name || '';
         const errorMessage = (err as Error)?.message || String(err);
         if (
@@ -125,7 +133,7 @@ export function useFaceTracker({
       }
       stopStream();
     };
-  }, [videoRef]);
+  }, [videoRef, disabled]);
 
   // ─── Phase 2: Load models (SSD MobileNet V1 & TinyFaceDetector) ───────────
   useEffect(() => {

@@ -33,6 +33,8 @@ describe("AutosaveService", () => {
 
     prisma = {
       $transaction: jest.fn(),
+      candidateAnswer: { upsert: jest.fn().mockResolvedValue({}) },
+      executionState: { upsert: jest.fn().mockResolvedValue({}) },
       testInstanceQuestion: {
         findFirst: jest
           .fn()
@@ -86,7 +88,6 @@ describe("AutosaveService", () => {
       isExpired: false,
       actualRemainingTime: 40,
     });
-    prisma.$transaction.mockResolvedValue(undefined);
 
     const result = await service.saveAnswer("test-123", "user-1", {
       questionId: "q1",
@@ -96,7 +97,8 @@ describe("AutosaveService", () => {
 
     expect(result.status).toBe("saved");
     expect(cacheService.set).toHaveBeenCalledTimes(2); // once for answer, once for state
-    expect(prisma.$transaction).toHaveBeenCalled();
+    expect(prisma.candidateAnswer.upsert).toHaveBeenCalled();
+    expect(prisma.executionState.upsert).toHaveBeenCalled();
   });
 
   it("should return locked status if question section is locked", async () => {

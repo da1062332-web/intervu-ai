@@ -56,7 +56,14 @@ export class AnswerController {
 
     if (result.status === "expired") {
       // Authoritative timer expired -> Automatically submit
-      await this.submissionService.submitAssessment(id, user.id, true);
+      try {
+        await this.submissionService.submitAssessment(id, user.id, true);
+      } catch (err) {
+        // Log warning but gracefully return EXPIRED_AND_SUBMITTED so candidate frontend smoothly transitions
+        console.warn(
+          `[AnswerController] Auto-submit on timer expiry handled: ${err instanceof Error ? err.message : err}`,
+        );
+      }
       // Return frontend friendly state instead of throwing exception
       return {
         status: "EXPIRED_AND_SUBMITTED",
