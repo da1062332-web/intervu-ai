@@ -6,6 +6,43 @@ export interface NormalizedOptionsResult {
   correctAnswer: string;
 }
 
+export function extractStringFromOption(opt: unknown): string {
+  if (opt === null || opt === undefined) return "";
+  if (typeof opt === "string") {
+    const trimmed = opt.trim();
+    if (trimmed === "[object Object]") return "";
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return extractStringFromOption(parsed);
+      } catch {}
+    }
+    return trimmed;
+  }
+  if (typeof opt === "number" || typeof opt === "boolean") return String(opt).trim();
+  if (typeof opt === "object") {
+    const o = opt as Record<string, unknown>;
+    for (const key of ["text", "value", "option", "label", "optionText", "content", "statement", "title", "description"]) {
+      if (typeof o[key] === "string" && (o[key] as string).trim().length > 0) {
+        return (o[key] as string).trim();
+      }
+      if (typeof o[key] === "number") {
+        return String(o[key]).trim();
+      }
+    }
+    for (const [k, v] of Object.entries(o)) {
+      if (k !== "id" && k !== "isCorrect" && typeof v === "string" && v.trim().length > 0) {
+        return v.trim();
+      }
+      if (k !== "id" && k !== "isCorrect" && typeof v === "number") {
+        return String(v).trim();
+      }
+    }
+  }
+  const s = String(opt).trim();
+  return s === "[object Object]" ? "" : s;
+}
+
 /**
  * Normalizes options from various LLM response shapes (e.g. single multi-line string,
  * key-value objects, labeled items like "A) Option") into a clean 4-item array.
@@ -15,7 +52,7 @@ export function extractAndNormalizeOptions(
   rawCorrectAnswer: unknown,
 ): NormalizedOptionsResult {
   let optionsList: string[] = [];
-  let cleanCorrect = String(rawCorrectAnswer ?? "").trim();
+  let cleanCorrect = extractStringFromOption(rawCorrectAnswer);
 
   // 1. Handle object format: { A: "10", B: "20", C: "30", D: "40" } or { option1: "...", ... }
   if (
@@ -28,8 +65,8 @@ export function extractAndNormalizeOptions(
       k1.localeCompare(k2, undefined, { numeric: true }),
     );
     optionsList = entries
-      .map(([, v]) => String(v ?? "").trim())
-      .filter(Boolean);
+      .map(([, v]) => extractStringFromOption(v))
+      .filter((s) => s.length > 0);
   } else if (typeof rawOptions === "string") {
     // 2. Handle stringified array or multi-line string
     const trimmed = rawOptions.trim();
@@ -37,7 +74,7 @@ export function extractAndNormalizeOptions(
       try {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
-          optionsList = parsed.map((item) => String(item ?? "").trim());
+          optionsList = parsed.map((item) => extractStringFromOption(item)).filter((s) => s.length > 0);
         }
       } catch {
         optionsList = [trimmed];
@@ -46,7 +83,7 @@ export function extractAndNormalizeOptions(
       optionsList = [trimmed];
     }
   } else if (Array.isArray(rawOptions)) {
-    optionsList = rawOptions.map((opt) => String(opt ?? "").trim());
+    optionsList = rawOptions.map((opt) => extractStringFromOption(opt)).filter((s) => s.length > 0);
   }
 
   // 3. Handle array of 1 element containing multiple options separated by newline or option markers
@@ -83,7 +120,7 @@ export function extractAndNormalizeOptions(
   const sequenceCodeCheckRegex =
     /^[A-Za-z][\-–][A-Za-z][\-–][A-Za-z][\-–][A-Za-z]$/i;
   const labelPrefixRegex =
-    /^(?:[A-Za-z][).:]|\([A-Za-z]\)|(?:Option\s+[A-Za-z][).:-]?)|[1-9][).:]|\([1-9]\)|(?:Option\s+[1-9][).:-]?)|[A-Za-z]\s+[-–]\s+)\s*/i;
+    /^(?:[A-Za-z][).:]|\([A-Za-z]\)|(?:Option\s+[A-Za-z][).:-]?)|[1-9]\.(?!\d)\s*|[1-9][):]|\([1-9]\)|(?:Option\s+[1-9][).:-]?)|[A-Za-z]\s+[-–]\s+)\s*/i;
 
   const originalOptionsBeforeStrip = [...optionsList];
   optionsList = optionsList.map((opt) => {

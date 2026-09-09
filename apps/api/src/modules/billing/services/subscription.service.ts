@@ -371,7 +371,7 @@ export class SubscriptionService {
       where: { userId },
       create: {
         userId,
-        plan: targetPlan,
+        plan: targetPlan as any,
         status: SubscriptionStatus.ACTIVE,
         billingCycle: "monthly",
         currentPeriodStart: new Date(),
@@ -379,7 +379,7 @@ export class SubscriptionService {
         cancelAtPeriodEnd: false,
       },
       update: {
-        plan: targetPlan,
+        plan: targetPlan as any,
         status: SubscriptionStatus.ACTIVE,
         billingCycle: "monthly",
         currentPeriodStart: new Date(),

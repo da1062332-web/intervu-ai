@@ -118,7 +118,7 @@ export class BillingController {
       return {
         ...order,
         isFree: true,
-      };
+      } as any;
     }
 
     // Record local pending order transaction for strict DB ownership validation
