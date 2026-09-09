@@ -85,6 +85,24 @@ export class EligibilityService {
       }
     }
 
+    // Resolve by ExamConfig unique code
+    if (!config) {
+      config = await this.prisma.examConfig.findFirst({
+        where: { code: testConfigId },
+        include: { ruleFlags: true },
+      });
+      if (config) {
+        isExamConfig = true;
+      }
+    }
+
+    // Resolve by TestConfig unique configKey
+    if (!config) {
+      config = await this.prisma.testConfig.findFirst({
+        where: { configKey: testConfigId },
+      });
+    }
+
     // Fallback: If passed ID is a testInstance ID or assembledTest ID, resolve the parent config ID
     if (!config) {
       const testInstance = await this.prisma.testInstance.findUnique({
@@ -95,7 +113,6 @@ export class EligibilityService {
       const resolvedConfigId = testInstance?.examConfigId || testInstance?.testConfigId;
 
       if (resolvedConfigId) {
-        testConfigId = resolvedConfigId;
         config = await this.prisma.examConfig.findUnique({
           where: { id: resolvedConfigId },
           include: { ruleFlags: true },
@@ -115,6 +132,8 @@ export class EligibilityService {
         reason: "Configuration does not exist",
       };
     }
+
+    const targetConfigId = config.id;
 
     if (!config.isActive) {
       return {
@@ -168,13 +187,13 @@ export class EligibilityService {
       ? await this.prisma.testInstance.findFirst({
           where: {
             userId,
-            examConfigId: testConfigId,
+            examConfigId: targetConfigId,
             status: { in: ["CREATED", "IN_PROGRESS"] },
           },
         })
       : await this.testInstanceRepository.findActiveByUser(
           userId,
-          testConfigId,
+          targetConfigId,
         );
 
     if (activeTest) {
@@ -211,6 +230,7 @@ export class EligibilityService {
 
           if (allowedList && !allowedList.includes("all")) {
             const isAllowed =
+              allowedList.includes(targetConfigId) ||
               allowedList.includes(testConfigId) ||
               (config.code && allowedList.includes(config.code)) ||
               (config.configKey && allowedList.includes(config.configKey)) ||
@@ -230,12 +250,12 @@ export class EligibilityService {
     }
 
     if (isVip) {
-      return { eligible: true, isExamConfig, resolvedConfigId: testConfigId };
+      return { eligible: true, isExamConfig, resolvedConfigId: targetConfigId };
     }
 
     const previousAttempts = await this.testInstanceRepository.countAttempts(
       userId,
-      testConfigId,
+      targetConfigId,
     );
 
     if (previousAttempts >= effectiveMaxAttempts) {
@@ -246,6 +266,6 @@ export class EligibilityService {
       };
     }
 
-    return { eligible: true, isExamConfig, resolvedConfigId: testConfigId };
+    return { eligible: true, isExamConfig, resolvedConfigId: targetConfigId };
   }
 }

@@ -55,7 +55,7 @@ export function CandidateDashboard() {
     const paid = hasActivePlan ? dashboard.availableTests[0] : null;
 
     const heroId = (activeTest || enrolled || referral || paid)?.id;
-    if (!heroId) return dashboard;
+    if (!heroId || dashboard.availableTests.length <= 1) return dashboard;
 
     return {
       ...dashboard,

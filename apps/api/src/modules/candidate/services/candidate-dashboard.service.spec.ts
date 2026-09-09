@@ -93,4 +93,68 @@ describe("CandidateDashboardService", () => {
     expect(result.recommendedTests).toHaveLength(1);
     expect(result.recommendedTests[0].name).toBe("Recommended");
   });
+
+  it("should calculate canReattempt: true when usedAttempts < maxAttempts", async () => {
+    (service as any).entitlementService.getUserEntitlements.mockResolvedValue({
+      plan: "STANDARD",
+      hasActivePlan: true,
+      features: { allowedAssessments: ["all"] },
+    });
+
+    jest.spyOn(repository, "getDashboardData").mockResolvedValue({
+      attemptsByConfig: { test3: 1 },
+      activeAttempts: [],
+      completedTests: [],
+      enrollments: [],
+      upcomingTests: [
+        {
+          id: "test3",
+          displayName: "Recommended",
+          companyName: "Acme",
+          totalDurationSeconds: 1800,
+          totalQuestions: 5,
+          sections: [],
+          ruleFlags: { maxAttempts: 3 },
+        } as any,
+      ],
+    });
+
+    const result = await service.getDashboardData("user1");
+    expect(result.recommendedTests).toHaveLength(1);
+    expect(result.recommendedTests[0].attemptCount).toBe(1);
+    expect(result.recommendedTests[0].canReattempt).toBe(true);
+    expect(result.recommendedTests[0].isLocked).toBe(false);
+  });
+
+  it("should calculate canReattempt: false and isLocked: true when usedAttempts >= maxAttempts", async () => {
+    (service as any).entitlementService.getUserEntitlements.mockResolvedValue({
+      plan: "STANDARD",
+      hasActivePlan: true,
+      features: { allowedAssessments: ["all"] },
+    });
+
+    jest.spyOn(repository, "getDashboardData").mockResolvedValue({
+      attemptsByConfig: { test3: 3 },
+      activeAttempts: [],
+      completedTests: [],
+      enrollments: [],
+      upcomingTests: [
+        {
+          id: "test3",
+          displayName: "Recommended",
+          companyName: "Acme",
+          totalDurationSeconds: 1800,
+          totalQuestions: 5,
+          sections: [],
+          ruleFlags: { maxAttempts: 3 },
+        } as any,
+      ],
+    });
+
+    const result = await service.getDashboardData("user1");
+    expect(result.recommendedTests).toHaveLength(1);
+    expect(result.recommendedTests[0].attemptCount).toBe(3);
+    expect(result.recommendedTests[0].canReattempt).toBe(false);
+    expect(result.recommendedTests[0].isLocked).toBe(true);
+  });
 });

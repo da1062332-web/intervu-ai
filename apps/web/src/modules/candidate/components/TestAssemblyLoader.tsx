@@ -1,132 +1,278 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ShieldCheck, Sparkles, Cpu, Lock } from 'lucide-react';
-
-const STORAGE_KEY = 'intervu_assembly_progress';
+import { useEffect, useState, useCallback } from 'react';
+import {
+  Lightbulb,
+  Compass,
+  Briefcase,
+  Brain,
+  Code2,
+  ShieldAlert,
+  Timer,
+  CheckCircle2,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Shuffle,
+  BookOpen,
+  Target,
+} from 'lucide-react';
+import { CANDIDATE_TIPS, CandidateTip } from '../data/candidateTipsData';
 
 interface TestAssemblyLoaderProps {
   isResume?: boolean;
 }
 
 export function TestAssemblyLoader({ isResume = false }: TestAssemblyLoaderProps) {
-  const [progress, setProgress] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = parseInt(saved, 10);
-        if (!isNaN(parsed) && parsed > 0 && parsed < 95) {
-          return parsed;
-        }
-      }
-    }
-    return 5;
-  });
+  const [currentTipIndex, setCurrentTipIndex] = useState(() =>
+    Math.floor(Math.random() * CANDIDATE_TIPS.length)
+  );
+  const [isFading, setIsFading] = useState(false);
+  const [progressWidth, setProgressWidth] = useState(0);
 
-  const [stageText, setStageText] = useState(() => {
-    if (progress < 25) {
-      return isResume ? 'Re-verifying session token...' : 'Initializing secure test environment...';
-    } else if (progress < 55) {
-      return isResume ? 'Restoring saved candidate state...' : 'Assembling section questions & variants...';
-    } else if (progress < 80) {
-      return 'Verifying camera & AI proctoring channel...';
-    } else {
-      return 'Finalizing exam sandbox & randomizing options...';
-    }
-  });
+  const getNextRandomTip = useCallback(() => {
+    setIsFading(true);
+    setTimeout(() => {
+      setCurrentTipIndex((prevIndex) => {
+        let nextIndex = Math.floor(Math.random() * CANDIDATE_TIPS.length);
+        if (CANDIDATE_TIPS.length > 1 && nextIndex === prevIndex) {
+          nextIndex = (nextIndex + 1) % CANDIDATE_TIPS.length;
+        }
+        return nextIndex;
+      });
+      setProgressWidth(0);
+      setIsFading(false);
+    }, 200);
+  }, []);
+
+  const getPrevTip = useCallback(() => {
+    setIsFading(true);
+    setTimeout(() => {
+      setCurrentTipIndex((prevIndex) =>
+        prevIndex === 0 ? CANDIDATE_TIPS.length - 1 : prevIndex - 1
+      );
+      setProgressWidth(0);
+      setIsFading(false);
+    }, 200);
+  }, []);
 
   useEffect(() => {
-    // Smooth simulated progress timer for assembly
+    // 50ms tick interval to smoothly drive the 5-second progress indicator bar
+    const stepTimeMs = 50;
+    const totalDurationMs = 5000;
+    const increment = (stepTimeMs / totalDurationMs) * 100;
+
     const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return 95; // Hold at 95% until navigation and execution render finishes
+      setProgressWidth((prev) => {
+        if (prev >= 100) {
+          getNextRandomTip();
+          return 0;
         }
-        // Accelerate early, then slow down near completion
-        const increment = prev < 40 ? 6 : prev < 75 ? 4 : 2;
-        const next = Math.min(prev + increment, 95);
-
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(STORAGE_KEY, next.toString());
-        }
-
-        if (next < 25) {
-          setStageText(isResume ? 'Re-verifying session token...' : 'Initializing secure test environment...');
-        } else if (next < 55) {
-          setStageText(isResume ? 'Restoring saved candidate state...' : 'Assembling section questions & variants...');
-        } else if (next < 80) {
-          setStageText('Verifying camera & AI proctoring channel...');
-        } else {
-          setStageText('Finalizing exam sandbox & randomizing options...');
-        }
-
-        return next;
+        return prev + increment;
       });
-    }, 120);
+    }, stepTimeMs);
 
     return () => clearInterval(interval);
-  }, [isResume]);
+  }, [getNextRandomTip]);
+
+  const currentTip: CandidateTip = CANDIDATE_TIPS[currentTipIndex] || CANDIDATE_TIPS[0];
+
+  const renderIcon = (type: CandidateTip['iconType']) => {
+    switch (type) {
+      case 'general':
+        return <Lightbulb className="w-6 h-6 text-blue-400" />;
+      case 'numerical':
+        return <Target className="w-6 h-6 text-emerald-400" />;
+      case 'logical':
+        return <Brain className="w-6 h-6 text-cyan-400" />;
+      case 'verbal':
+        return <BookOpen className="w-6 h-6 text-violet-400" />;
+      case 'coding':
+        return <Code2 className="w-6 h-6 text-indigo-400" />;
+      case 'company':
+        return <Briefcase className="w-6 h-6 text-purple-400" />;
+      case 'difficulty':
+        return <Compass className="w-6 h-6 text-blue-400" />;
+      case 'time':
+        return <Timer className="w-6 h-6 text-rose-400" />;
+      case 'antitrap':
+        return <ShieldAlert className="w-6 h-6 text-amber-400" />;
+      case 'pretest':
+        return <CheckCircle2 className="w-6 h-6 text-emerald-400" />;
+      default:
+        return <Sparkles className="w-6 h-6 text-indigo-400" />;
+    }
+  };
+
+  const getColorClasses = (color: CandidateTip['color']) => {
+    switch (color) {
+      case 'emerald':
+        return {
+          badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+          glow: 'from-emerald-500/15 via-teal-500/10 to-transparent',
+          border: 'border-emerald-500/30',
+        };
+      case 'amber':
+        return {
+          badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+          glow: 'from-amber-500/15 via-orange-500/10 to-transparent',
+          border: 'border-amber-500/30',
+        };
+      case 'purple':
+        return {
+          badge: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+          glow: 'from-purple-500/15 via-pink-500/10 to-transparent',
+          border: 'border-purple-500/30',
+        };
+      case 'cyan':
+        return {
+          badge: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+          glow: 'from-cyan-500/15 via-sky-500/10 to-transparent',
+          border: 'border-cyan-500/30',
+        };
+      case 'violet':
+        return {
+          badge: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+          glow: 'from-violet-500/15 via-purple-500/10 to-transparent',
+          border: 'border-violet-500/30',
+        };
+      case 'rose':
+        return {
+          badge: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+          glow: 'from-rose-500/15 via-pink-500/10 to-transparent',
+          border: 'border-rose-500/30',
+        };
+      case 'blue':
+        return {
+          badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+          glow: 'from-blue-500/15 via-indigo-500/10 to-transparent',
+          border: 'border-blue-500/30',
+        };
+      case 'indigo':
+      default:
+        return {
+          badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+          glow: 'from-indigo-500/15 via-purple-500/10 to-transparent',
+          border: 'border-indigo-500/30',
+        };
+    }
+  };
+
+  const styleConfig = getColorClasses(currentTip.color);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-in fade-in duration-300">
-      <div className="relative max-w-md w-full bg-slate-900 border border-slate-800/80 rounded-3xl p-6 sm:p-8 text-center text-slate-100 shadow-2xl overflow-hidden flex flex-col items-center space-y-6">
-        {/* Background ambient lighting */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 animate-in fade-in duration-300">
+      <div className="relative max-w-xl w-full bg-slate-900/95 border border-slate-800/90 rounded-3xl p-6 sm:p-8 text-slate-100 shadow-2xl overflow-hidden flex flex-col space-y-6">
+        {/* Dynamic Glow Ambient Lighting */}
+        <div
+          className={`absolute -top-28 -left-28 w-60 h-60 bg-gradient-to-br ${styleConfig.glow} rounded-full blur-3xl pointer-events-none transition-all duration-700`}
+        />
+        <div className="absolute -bottom-28 -right-28 w-60 h-60 bg-gradient-to-tl from-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-        {/* Top badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold tracking-wide uppercase">
-          <Lock className="w-3.5 h-3.5 animate-pulse" />
-          {isResume ? 'Session Recovery In Progress' : 'Assessment Assembly'}
-        </div>
-
-        {/* Center Icon */}
-        <div className="relative flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-b from-indigo-500/20 to-purple-500/10 border border-indigo-500/30 shadow-inner group">
-          <div className="absolute inset-0 rounded-2xl border-2 border-indigo-500/40 border-t-transparent animate-spin" />
-          <Cpu className="w-9 h-9 text-indigo-400 animate-pulse" />
-        </div>
-
-        {/* Title and Subtitle */}
-        <div className="space-y-1.5 max-w-sm">
-          <h2 className="text-xl sm:text-2xl font-bold font-heading tracking-tight bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
-            {isResume ? 'Resuming Your Session' : 'Assembling Assessment'}
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
-            {isResume
-              ? 'Restoring your state and securing your connection...'
-              : 'Generating questions and preparing secure test sandbox...'}
-          </p>
-        </div>
-
-        {/* Centered Loading Bar Container */}
-        <div className="w-full space-y-2 pt-2">
-          <div className="flex items-center justify-between text-xs font-semibold px-1">
-            <span className="text-slate-300 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-spin" />
-              {stageText}
-            </span>
-            <span className="text-indigo-400 font-mono text-sm font-bold">
-              {progress}%
+        {/* Header bar with test loading status & auto-rotate indicator */}
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex items-center justify-center w-5 h-5">
+              <div className="absolute inset-0 rounded-full border-2 border-indigo-500/40 border-t-indigo-400 animate-spin" />
+            </div>
+            <span className="text-xs sm:text-sm font-semibold text-slate-300">
+              {isResume ? 'Preparing exam session...' : 'Preparing assessment environment...'}
             </span>
           </div>
 
-          {/* Progress Bar */}
-          <div className="w-full bg-slate-800/90 border border-slate-700/60 h-3.5 rounded-full p-0.5 relative overflow-hidden shadow-inner">
-            <div
-              className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full rounded-full transition-all duration-200 ease-out shadow-sm relative"
-              style={{ width: `${progress}%` }}
-            >
-              {/* Shimmer effect inside progress bar */}
-              <div className="absolute inset-0 bg-white/20 animate-pulse rounded-full" />
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 text-slate-400 text-xs font-medium">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <span>5s Tip Rotation</span>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div
+          className={`transition-all duration-300 ${
+            isFading ? 'opacity-0 translate-y-2 scale-98' : 'opacity-100 translate-y-0 scale-100'
+          }`}
+        >
+          {/* Category & Topic Badges */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${styleConfig.badge}`}
+              >
+                {currentTip.badge}
+              </span>
+
+              {currentTip.topic && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                  {currentTip.topic}
+                </span>
+              )}
+            </div>
+
+            <span className="text-xs font-mono text-slate-400 font-semibold">
+              Tip #{currentTipIndex + 1} / {CANDIDATE_TIPS.length}
+            </span>
+          </div>
+
+          {/* Tip Card Body */}
+          <div
+            className={`relative p-5 sm:p-6 rounded-2xl bg-slate-950/60 border ${styleConfig.border} shadow-inner space-y-3`}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 shadow-sm shrink-0">
+                {renderIcon(currentTip.iconType)}
+              </div>
+
+              <div className="space-y-1 flex-1">
+                <h3 className="text-lg sm:text-xl font-bold font-heading tracking-tight text-slate-100">
+                  {currentTip.title}
+                </h3>
+                <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-normal">
+                  {currentTip.content}
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom security assurance */}
-        <div className="pt-2 flex items-center justify-center gap-2 text-xs text-slate-400 border-t border-slate-800/80 w-full">
-          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Proctoring Active & Environment Protected</span>
+        {/* 5-second interval visual progress line */}
+        <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden relative">
+          <div
+            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-75 ease-linear"
+            style={{
+              width: `${Math.min(progressWidth, 100)}%`,
+            }}
+          />
+        </div>
+
+        {/* Footer Navigation & Controls */}
+        <div className="flex items-center justify-between pt-1 text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={getPrevTip}
+              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors border border-slate-700/60 flex items-center gap-1 font-medium cursor-pointer"
+              title="Previous Tip"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Prev</span>
+            </button>
+
+            <button
+              onClick={getNextRandomTip}
+              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors border border-slate-700/60 flex items-center gap-1 font-medium cursor-pointer"
+              title="Next Random Tip"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <button
+            onClick={getNextRandomTip}
+            className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors cursor-pointer"
+          >
+            <Shuffle className="w-3.5 h-3.5" />
+            <span>Randomize</span>
+          </button>
         </div>
       </div>
     </div>

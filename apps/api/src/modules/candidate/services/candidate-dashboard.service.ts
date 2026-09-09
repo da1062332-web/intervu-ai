@@ -213,6 +213,15 @@ export class CandidateDashboardService {
               attemptsPerExamOverride ??
               (t.ruleFlags?.maxAttempts ?? 3));
 
+        const attemptCount =
+          attemptsByConfig[t.id] ??
+          (t.code && attemptsByConfig[t.code]) ??
+          (t.name && attemptsByConfig[t.name]) ??
+          0;
+
+        const canReattempt =
+          isVip || (maxAttempts != null ? attemptCount < maxAttempts : true);
+
         return {
           configId: t.id,
           name: t.isExam ? t.name : t.displayName,
@@ -222,10 +231,10 @@ export class CandidateDashboardService {
           questionCount,
           sections: mappedSections,
           enrollmentStatus: "AVAILABLE",
-          attemptCount: 0,
+          attemptCount,
           maxAttempts,
-          canReattempt: true,
-          isLocked: false,
+          canReattempt,
+          isLocked: !canReattempt,
           hasActiveAttempt: false,
         };
       });

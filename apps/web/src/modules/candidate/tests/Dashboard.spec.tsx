@@ -13,6 +13,12 @@ vi.mock('next/navigation', () => ({
 // Mock hook
 vi.mock('../hooks/useCandidateDashboard', () => ({
   useCandidateDashboard: vi.fn(),
+  useCandidateDashboardMetrics: vi.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  })),
 }));
 
 describe('CandidateDashboard component', () => {
