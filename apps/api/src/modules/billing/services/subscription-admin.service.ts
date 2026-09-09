@@ -57,8 +57,8 @@ export class SubscriptionAdminService {
           createdAt: true,
           subscription: true,
           usageQuotas: {
-            where: { periodKey: currentPeriodKey },
-            take: 1,
+            orderBy: { createdAt: "desc" },
+            take: 5,
           },
           quotaOverrides: {
             orderBy: { createdAt: "desc" },
@@ -70,7 +70,12 @@ export class SubscriptionAdminService {
     return {
       data: users.map((u: any) => {
         const sub = u.subscription;
-        const usage = u.usageQuotas[0];
+        const usage = (u.usageQuotas || []).find(
+          (q: any) =>
+            q.periodKey === currentPeriodKey ||
+            (sub && q.subscriptionId === sub.id) ||
+            (sub && q.periodKey === `sub_${sub.id}`),
+        ) || u.usageQuotas?.[0];
         return {
           userId: u.id,
           email: u.email,

@@ -93,6 +93,7 @@ export class SubscriptionService {
               where: {
                 userId,
                 status: { in: ['SUBMITTED', 'COMPLETED'] },
+                createdAt: { gte: override.createdAt },
                 OR: [
                   { examConfigId: { in: targetAssessments } },
                   { testConfigId: { in: targetAssessments } },
@@ -106,6 +107,7 @@ export class SubscriptionService {
               where: {
                 userId,
                 status: { in: ['SUBMITTED', 'COMPLETED'] },
+                createdAt: { gte: override.createdAt },
               },
             });
           }
@@ -133,25 +135,14 @@ export class SubscriptionService {
 
           const val = override.overrideValue as any;
           const bonus = typeof val?.bonusRounds === 'number' ? val.bonusRounds : (typeof val === 'number' ? val : 0);
-          let used = 0;
-          const periodKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-          const q = await this.prisma.usageQuota.findFirst({
-            where: {
-              userId,
-              OR: [
-                { periodKey },
-                { subscriptionId: subscription?.id },
-              ],
-            },
-          });
-          used = q?.roundsUsed || 0;
           const instanceCount = await this.prisma.testInstance.count({
             where: {
               userId,
               status: { in: ['SUBMITTED', 'COMPLETED'] },
+              createdAt: { gte: override.createdAt },
             },
           });
-          used = Math.max(used, instanceCount);
+          const used = instanceCount;
 
           if (bonus > used) {
             hasRemainingReferralReward = true;
@@ -503,14 +494,14 @@ export class SubscriptionService {
       currentPeriodEnd ||
       new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days period
 
-    // 1. Check if transaction with this payment ID is already recorded
+    // 1. Check if transaction with this payment ID is already successfully processed
     const existingTx = await this.prisma.paymentTransaction.findUnique({
       where: { razorpayPaymentId },
     });
 
-    if (existingTx) {
+    if (existingTx && existingTx.status === PaymentStatus.SUCCESS) {
       this.logger.log(
-        `[IDEMPOTENT] Payment ${razorpayPaymentId} already processed. Returning active subscription.`,
+        `[IDEMPOTENT] Payment ${razorpayPaymentId} already successfully processed. Returning active subscription.`,
       );
       return this.prisma.subscription.findUnique({ where: { userId } });
     }
@@ -566,12 +557,23 @@ export class SubscriptionService {
           where: {
             razorpayOrderId,
             status: PaymentStatus.PENDING,
+            NOT: { razorpayPaymentId },
           },
         });
       }
 
-      await tx.paymentTransaction.create({
-        data: {
+      await tx.paymentTransaction.upsert({
+        where: { razorpayPaymentId },
+        update: {
+          subscriptionId: subscription.id,
+          razorpayOrderId,
+          razorpaySignature,
+          amount,
+          currency,
+          status: PaymentStatus.SUCCESS,
+          eventPayload: { source, ...eventPayload },
+        },
+        create: {
           userId,
           subscriptionId: subscription.id,
           razorpayPaymentId,

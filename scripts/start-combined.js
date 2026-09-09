@@ -59,6 +59,13 @@ if (missingEnv.length > 0) {
 }
 console.log("✅ Environment variables validated.");
 
+const dbUrl = process.env.DATABASE_URL || "";
+if (dbUrl.includes(":6543")) {
+  console.log("⚡ [Database] Supabase Transaction Pooler (:6543) detected — pooling enabled.");
+} else if (dbUrl.includes("supabase.co:5432")) {
+  console.warn("⚠️ [Database] Using direct Supabase connection (:5432). For optimal speed on Render, use port 6543 with ?pgbouncer=true.");
+}
+
 // 2. Run Database Migrations (Post-Build, Pre-Start) (Item 1 & 6)
 try {
   console.log("🔄 Running database migrations...");

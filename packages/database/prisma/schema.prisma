@@ -288,6 +288,8 @@ model TestInstance {
   @@index([status])
   @@index([testConfigId])
   @@index([createdAt])
+  @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model TestInstanceSection {
@@ -509,6 +511,7 @@ model ExamConfig {
   @@index([createdAt])
   @@index([role])
   @@index([status])
+  @@index([status, isActive, isArchived])
 }
 
 model PregeneratedTestInstance {
@@ -1286,6 +1289,7 @@ model CandidateEnrollment {
   @@index([candidateId])
   @@index([testId])
   @@index([status])
+  @@index([candidateId, status])
   @@map("candidate_enrollments")
 }
 

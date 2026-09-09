@@ -41,6 +41,8 @@ export class RedisConnectionManager {
       enableReadyCheck: true,
       enableOfflineQueue: true,
       connectTimeout: timeoutMs,
+      family: 4, // Force IPv4 to prevent cloud IPv6 resolution delays
+      keepAlive: 10000, // TCP keep-alive to keep connection warm
     });
 
     redis.on("connect", () => {

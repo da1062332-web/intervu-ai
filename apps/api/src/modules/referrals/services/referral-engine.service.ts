@@ -4,6 +4,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { randomInt } from 'crypto';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ReferralRewardService, RewardConfig } from './referral-reward.service';
 
@@ -71,6 +72,19 @@ export class ReferralEngineService {
       const eligibility = (campaign.eligibilityConfig as any) || {};
       if (!eligibility.allowSelfReferral && referralCode.userId === userId) {
         throw new BadRequestException('You cannot redeem your own referral code');
+      }
+
+      // 6b. Circular / Mutual referral check (FRAUD-03)
+      if (referralCode.userId) {
+        const reverseReferral = await tx.referralEvent.findFirst({
+          where: {
+            referrerId: userId,
+            referredId: referralCode.userId,
+          },
+        });
+        if (reverseReferral) {
+          throw new BadRequestException('Mutual or circular referral between candidates is not permitted');
+        }
       }
 
       // 7. Idempotency: Check if user already redeemed this specific code
@@ -280,29 +294,38 @@ export class ReferralEngineService {
       });
 
       if (!existingCode) {
-        // Generate a new unique code
-        let code: string;
-        let attempts = 0;
-        do {
-          code = this.generateRandomCode();
-          attempts++;
-          if (attempts > 20) throw new Error('Could not generate unique code');
-          // @ts-ignore
-        } while (await this.prisma.referralCode.findUnique({ where: { code } }));
+        // Concurrency-safe code generation & creation (FRAUD-04)
+        existingCode = await this.prisma.$transaction(async (tx: any) => {
+          const doubleCheck = await tx.referralCode.findFirst({
+            where: { campaignId: candidateCampaign.id, userId, isActive: true },
+          });
+          if (doubleCheck) return doubleCheck;
 
-        // @ts-ignore
-        existingCode = await this.prisma.referralCode.create({
-          data: {
-            campaignId: candidateCampaign.id,
-            userId,
-            code: code!,
-            isActive: true,
-          },
+          let code: string;
+          let attempts = 0;
+          do {
+            code = this.generateRandomCode();
+            attempts++;
+            if (attempts > 20) throw new Error('Could not generate unique code');
+            // @ts-ignore
+          } while (await tx.referralCode.findUnique({ where: { code } }));
+
+          // @ts-ignore
+          return tx.referralCode.create({
+            data: {
+              campaignId: candidateCampaign.id,
+              userId,
+              code: code!,
+              isActive: true,
+            },
+          });
         });
       }
 
-      personalCode = existingCode.code;
-      referralLink = `${baseUrl}/signup?ref=${existingCode.code}`;
+      if (existingCode) {
+        personalCode = existingCode.code;
+        referralLink = `${baseUrl}/signup?ref=${existingCode.code}`;
+      }
     }
 
     // Run counts, event history, and redemptions in parallel
@@ -348,7 +371,7 @@ export class ReferralEngineService {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
     for (let i = 0; i < 8; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+      code += chars.charAt(randomInt(0, chars.length));
     }
     return code;
   }

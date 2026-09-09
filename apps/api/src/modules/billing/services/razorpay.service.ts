@@ -25,15 +25,9 @@ export class RazorpayService {
     private readonly configService: ConfigService,
     private readonly planManagementService: PlanManagementService,
   ) {
-    this.keyId =
-      this.configService.get<string>("RAZORPAY_KEY_ID") ||
-      "rzp_live_TX7JsRywgX7pvg";
-    this.keySecret =
-      this.configService.get<string>("RAZORPAY_KEY_SECRET") ||
-      "EpkObpbLlEH9KwLQtu1Gv6aq";
-    this.webhookSecret =
-      this.configService.get<string>("RAZORPAY_WEBHOOK_SECRET") ||
-      "EpkObpbLlEH9KwLQtu1Gv6aq";
+    this.keyId = this.configService.get<string>("RAZORPAY_KEY_ID") || "";
+    this.keySecret = this.configService.get<string>("RAZORPAY_KEY_SECRET") || "";
+    this.webhookSecret = this.configService.get<string>("RAZORPAY_WEBHOOK_SECRET") || "";
 
     if (this.keyId.startsWith("rzp_test_")) {
       this.logger.warn(
@@ -223,5 +217,25 @@ export class RazorpayService {
         name: params.fullName || "Candidate",
       },
     };
+  }
+
+  /**
+   * Fetches upstream payment entity details directly from Razorpay Payments API
+   * Used to confirm payment status, capture state, and actual amount paid.
+   */
+  async fetchPayment(paymentId: string): Promise<any> {
+    if (!this.razorpayInstance) {
+      throw new InternalServerErrorException(
+        "Razorpay payment gateway client is not initialized. Please verify environment configuration.",
+      );
+    }
+    try {
+      return await this.razorpayInstance.payments.fetch(paymentId);
+    } catch (error: any) {
+      this.logger.error(`Failed to fetch payment ${paymentId} from Razorpay:`, error);
+      throw new InternalServerErrorException(
+        error?.error?.description || error?.message || "Failed to fetch payment details from Razorpay",
+      );
+    }
   }
 }

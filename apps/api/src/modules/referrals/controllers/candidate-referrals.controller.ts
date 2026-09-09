@@ -5,15 +5,18 @@ import {
   Post,
   Request,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
+import { RateLimitCategory } from '../../../common';
 import { UserRole } from '@prisma/client';
 import { ReferralEngineService } from '../services/referral-engine.service';
 
 @ApiTags('candidate-referrals')
+@RateLimitCategory('auth')
 @Controller('candidate/referrals')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.CANDIDATE)
@@ -35,12 +38,16 @@ export class CandidateReferralsController {
   }
 
   @Post('redeem')
+  @RateLimitCategory('auth')
   @ApiOperation({ summary: 'Redeem a referral code' })
   async redeemCode(
     @Request() req: any,
     @Body('code') code: string,
   ) {
+    if (!code || typeof code !== 'string' || !code.trim()) {
+      throw new BadRequestException('Referral code is required');
+    }
     const userId: string = req.user.id;
-    return this.engine.redeemCode(userId, code);
+    return this.engine.redeemCode(userId, code.trim().toUpperCase());
   }
 }

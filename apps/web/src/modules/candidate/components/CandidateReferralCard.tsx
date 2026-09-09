@@ -67,13 +67,12 @@ export function CandidateReferralCard() {
   const effectiveReferralLink = useMemo(() => {
     let domain = 'https://app.skillitrix.com';
     if (typeof window !== 'undefined' && window.location.origin) {
-      if (window.location.origin.includes('skillitrix.com')) {
-        domain = window.location.origin;
-      }
+      domain = window.location.origin;
     }
 
-    return `${domain}/signup`;
-  }, []);
+    const code = status?.personalCode;
+    return code ? `${domain}/signup?ref=${encodeURIComponent(code)}` : `${domain}/signup`;
+  }, [status?.personalCode]);
 
   const load = async () => {
     setLoading(true);

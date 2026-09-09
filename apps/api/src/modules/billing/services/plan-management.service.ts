@@ -256,6 +256,24 @@ export class PlanManagementService {
       throw new NotFoundException(`Plan with ID '${id}' not found`);
     }
 
+    // Check if active subscriptions reference this plan slug or name (BUG-06)
+    const activeSubscribersCount = await this.prisma.subscription.count({
+      where: {
+        OR: [
+          { plan: { equals: plan.slug, mode: "insensitive" } },
+          { plan: { equals: plan.name, mode: "insensitive" } },
+          { razorpayPlanId: plan.id },
+        ],
+        status: "ACTIVE",
+      },
+    });
+
+    if (activeSubscribersCount > 0) {
+      throw new BadRequestException(
+        `Cannot delete plan '${plan.name}' because it currently has ${activeSubscribersCount} active subscribers. Please deactivate/archive the plan instead.`,
+      );
+    }
+
     const result = await this.prisma.plan.delete({
       where: { id },
     });

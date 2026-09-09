@@ -40,6 +40,17 @@ export class PrismaService
       }
     });
 
+    const dbUrl = process.env.DATABASE_URL || "";
+    if (dbUrl.includes("supabase.co:5432")) {
+      this.logger.warn(
+        `[PrismaService] ⚠️ PERFORMANCE WARNING: DATABASE_URL is connecting directly to Supabase on port 5432. For optimal latency and throughput on Render, switch to the Supabase Transaction Pooler (port 6543 with ?pgbouncer=true).`
+      );
+    } else if (dbUrl.includes(":6543")) {
+      this.logger.log(
+        `[PrismaService] ⚡ Supabase Transaction Pooler (port 6543) active. High-concurrency connection pooling enabled.`
+      );
+    }
+
     await this.$connect();
   }
 

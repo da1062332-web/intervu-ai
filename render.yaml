@@ -1,9 +1,10 @@
 services:
-  # 1. Combined API and Worker Web Service (Free Tier)
+  # 1. Combined API and Worker Web Service
   - type: web
     name: intervu-backend-combined
     env: node
-    plan: free
+    region: singapore # Closest Render region to Supabase in AWS Mumbai (~30ms latency)
+    plan: starter # Dedicated CPU, no sleep/cold starts
     buildCommand: npm install && npx turbo run build --filter=@intervu-ai/api --filter=@intervu-ai/worker
     startCommand: node scripts/start-combined.js
     envVars:
@@ -12,16 +13,18 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        sync: false # User will configure their Supabase DATABASE_URL
+        sync: false # Supabase Transaction Pooler (port 6543 with ?pgbouncer=true)
+      - key: DIRECT_URL
+        sync: false # Supabase Direct Connection (port 5432) for Prisma migrations
       - key: REDIS_URL
         fromService:
           type: redis
           name: intervu-redis
           property: connectionString
       - key: NODE_OPTIONS
-        value: --max-old-space-size=350
+        value: --max-old-space-size=1536 # 1.5GB heap to prevent blocking GC pauses
       - key: WORKER_CONCURRENCY
-        value: 1
+        value: 2
       - key: ENABLE_GENERATION_QUEUE
         value: true
       - key: ENABLE_EVALUATION_QUEUE
@@ -33,11 +36,12 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
 
-  # 2. Next.js Frontend Web Service (Free Tier Option)
+  # 2. Next.js Frontend Web Service
   - type: web
     name: intervu-web
     env: node
-    plan: free
+    region: singapore # Closest region to users in India/Asia
+    plan: starter
     buildCommand: npm install && npx turbo run build --filter=@intervu-ai/web
     startCommand: npm run start --workspace @intervu-ai/web
     envVars:
@@ -49,8 +53,9 @@ services:
           name: intervu-backend-combined
           property: url
 
-# 3. Managed Redis (Free Tier - Note: expires after 25 days on Render)
+# 3. Managed Redis
 redis:
   - name: intervu-redis
-    plan: free
+    region: singapore
+    plan: starter # Persistent instance (does not expire)
     ipAllowList: [] # empty IP allowlist permits connection from other services within Render account

@@ -110,7 +110,13 @@ export default function PlansPage() {
       const razorpayKey =
         order.keyId ||
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
-        'rzp_live_TX7JsRywgX7pvg';
+        '';
+
+      if (!razorpayKey) {
+        notifyApiError('Payment gateway key is not configured. Please contact support.');
+        setLoadingPlan(null);
+        return;
+      }
 
       const orderId = order.order_id || order.orderId;
       if (!orderId) {
@@ -241,7 +247,9 @@ export default function PlansPage() {
                 ? `${Math.round(((plan.originalPrice! - plan.priceMonthly) / plan.originalPrice!) * 100)}%`
                 : undefined;
 
-              const displayFeatures = plan.features.map((f) => {
+              const displayFeatures = (plan.features || []).map((f: any) => {
+                if (!f) return '';
+                if (typeof f === 'string') return f.replace(/^Monthly\s+/i, '');
                 if (f.featureKey === 'allowed_assessments' && typeof f.valueJson === 'object' && f.valueJson !== null) {
                   const list = f.valueJson.assessments;
                   const attempts = f.valueJson.overallAttempts ?? f.valueJson.attemptsPerExam;
@@ -259,7 +267,8 @@ export default function PlansPage() {
                     return 'Unlimited Assessment Practice Tests';
                   }
                 }
-                return f.featureName.replace(/^Monthly\s+/i, '');
+                const name = f.featureName || f.name || '';
+                return name.replace(/^Monthly\s+/i, '');
               });
 
               return (
@@ -273,7 +282,7 @@ export default function PlansPage() {
                   highlighted={plan.isHighlighted}
                   description={plan.description || ''}
                   features={displayFeatures}
-                  buttonText={isCurrent ? 'Current Plan' : plan.buttonText}
+                  buttonText={isCurrent ? 'Current Plan' : (plan.buttonText || (plan.priceMonthly > 0 ? 'Upgrade' : 'Get Started'))}
                   disabled={isCurrent}
                   isLoading={loadingPlan === plan.slug}
                   onSelect={handlePlanSelect}

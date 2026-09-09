@@ -175,6 +175,33 @@ export class BillingController {
         );
       }
 
+      // 3. Upstream Gateway Verification (SEC-07): Confirm payment status & amount directly with Razorpay
+      const upstreamPayment = await this.razorpayService.fetchPayment(razorpay_payment_id);
+      if (!upstreamPayment) {
+        throw new BadRequestException("Payment could not be verified with the payment gateway");
+      }
+
+      const validStatuses = ["captured", "authorized"];
+      if (!validStatuses.includes(upstreamPayment.status)) {
+        this.logger.warn(
+          `Payment verification failed: upstream payment ${razorpay_payment_id} status is ${upstreamPayment.status}`,
+        );
+        throw new BadRequestException(
+          `Payment has not been completed (status: ${upstreamPayment.status}). Please retry checkout.`,
+        );
+      }
+
+      if (upstreamPayment.order_id && upstreamPayment.order_id !== razorpay_order_id) {
+        throw new BadRequestException("Payment does not match the associated checkout order");
+      }
+
+      if (typeof upstreamPayment.amount === "number" && upstreamPayment.amount < orderRecord.amount) {
+        this.logger.error(
+          `Payment amount mismatch: upstream paid ${upstreamPayment.amount}, expected ${orderRecord.amount}`,
+        );
+        throw new BadRequestException("Payment amount mismatch. Verification failed.");
+      }
+
       const subscription = await this.subscriptionService.processPaymentSuccess({
         userId: user.id,
         plan: orderRecord.plan,
