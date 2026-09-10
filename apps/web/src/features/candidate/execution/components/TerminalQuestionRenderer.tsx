@@ -774,10 +774,38 @@ export function TerminalQuestionRenderer() {
     );
   }
 
+  const statementContent =
+    currentQuestion.stem ||
+    (currentQuestion as any).questionStatement ||
+    (currentQuestion as any).statements ||
+    (currentQuestion as any).context ||
+    (currentQuestion as any).passage ||
+    (currentQuestion as any).questionSnapshot?.stem ||
+    (currentQuestion as any).questionSnapshot?.questionStatement ||
+    (currentQuestion as any).questionSnapshot?.statements ||
+    '';
+
+  const normalizedStatement =
+    typeof statementContent === 'string'
+      ? statementContent.trim()
+      : Array.isArray(statementContent)
+        ? statementContent
+            .map((s: any, i: number) =>
+              typeof s === 'string'
+                ? s
+                : s.text || s.statement || `Statement ${i + 1}: ${JSON.stringify(s)}`,
+            )
+            .join('\n\n')
+        : '';
+
+  const hasDistinctStatement =
+    normalizedStatement.length > 0 &&
+    normalizedStatement.toLowerCase() !== (currentQuestion.text || '').trim().toLowerCase();
+
   return (
-    <div className='flex flex-col md:flex-row flex-1 w-full h-full overflow-hidden gap-4 select-none bg-transparent'>
+    <div className='flex flex-col md:flex-row flex-1 w-full h-full overflow-hidden gap-4 select-none bg-transparent min-h-0'>
       {/* Left Pane - Question Statement & Context */}
-      <div className='w-full md:w-1/2 flex flex-col bg-[#0d1117] border border-slate-800 rounded-xl overflow-hidden shadow-xs shrink-0'>
+      <div className='w-full md:w-1/2 flex flex-col bg-[#0d1117] border border-slate-800 rounded-xl overflow-hidden shadow-xs min-h-0 flex-1'>
         {/* Header Bar */}
         <div className='bg-[#161b22] px-5 py-3.5 border-b border-slate-800 flex items-center justify-between shrink-0'>
           <div className='flex items-center gap-3'>
@@ -794,25 +822,26 @@ export function TerminalQuestionRenderer() {
         </div>
 
         {/* Content Body */}
-        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col justify-between space-y-5'>
-          <div className='space-y-4'>
-            {currentQuestion.stem &&
-              currentQuestion.stem.trim().toLowerCase() !==
-                (currentQuestion.text || '').trim().toLowerCase() && (
-                <div className='bg-[#161b22] border border-slate-800 rounded-lg p-4 text-sm leading-relaxed text-slate-300 font-normal space-y-2'>
-                  <h4 className='font-mono font-bold text-xs text-emerald-400 uppercase tracking-wider'>
-                    &gt; Passage / Context:
-                  </h4>
-                  <MarkdownRenderer content={currentQuestion.stem} />
-                </div>
-              )}
+        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col justify-between space-y-5 min-h-0'>
+          <div className='space-y-4 flex-1'>
+            {hasDistinctStatement && (
+              <div className='bg-[#161b22] border border-slate-800 rounded-lg p-4 text-sm leading-relaxed text-slate-300 font-normal space-y-2'>
+                <h4 className='font-mono font-bold text-xs text-emerald-400 uppercase tracking-wider'>
+                  &gt; {normalizedStatement.toLowerCase().includes('cause') ||
+                  normalizedStatement.toLowerCase().includes('effect')
+                    ? 'STATEMENTS (CAUSE & EFFECT):'
+                    : 'STATEMENTS / CONTEXT:'}
+                </h4>
+                <MarkdownRenderer content={normalizedStatement} />
+              </div>
+            )}
 
             <div className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-100 font-sans break-words space-y-2'>
               <div className='font-mono font-bold text-xs text-slate-400 uppercase tracking-wider'>
                 &gt; Problem Statement:
               </div>
               <MarkdownRenderer
-                content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim()}
+                content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim() || 'No question text provided.'}
                 className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-100 font-sans'
               />
             </div>
@@ -827,14 +856,14 @@ export function TerminalQuestionRenderer() {
             )}
           </div>
 
-          <p className='text-slate-500 text-xs pt-4 border-t border-slate-800 font-mono'>
+          <p className='text-slate-500 text-xs pt-4 border-t border-slate-800 font-mono shrink-0'>
             * Hint: Use &quot;Mark For Review&quot; to flag questions for re-evaluation before section timeout.
           </p>
         </div>
       </div>
 
       {/* Right Pane - Options / Response Box */}
-      <div className='w-full md:w-1/2 flex flex-col bg-[#0d1117] border border-slate-800 rounded-xl overflow-hidden shadow-xs shrink-0'>
+      <div className='w-full md:w-1/2 flex flex-col bg-[#0d1117] border border-slate-800 rounded-xl overflow-hidden shadow-xs min-h-0 flex-1'>
         <div className='bg-[#161b22] px-5 py-3.5 border-b border-slate-800 flex items-center justify-between shrink-0'>
           <span className='font-mono text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2'>
             <span>&gt;</span>
@@ -848,8 +877,8 @@ export function TerminalQuestionRenderer() {
           </span>
         </div>
 
-        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col'>
-          <div className='w-full'>{renderQuestionContent()}</div>
+        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col min-h-0'>
+          <div className='w-full flex-1'>{renderQuestionContent()}</div>
         </div>
       </div>
     </div>

@@ -769,6 +769,34 @@ export function QuestionRenderer() {
     );
   }
 
+  const statementContent =
+    currentQuestion.stem ||
+    (currentQuestion as any).questionStatement ||
+    (currentQuestion as any).statements ||
+    (currentQuestion as any).context ||
+    (currentQuestion as any).passage ||
+    (currentQuestion as any).questionSnapshot?.stem ||
+    (currentQuestion as any).questionSnapshot?.questionStatement ||
+    (currentQuestion as any).questionSnapshot?.statements ||
+    '';
+
+  const normalizedStatement =
+    typeof statementContent === 'string'
+      ? statementContent.trim()
+      : Array.isArray(statementContent)
+        ? statementContent
+            .map((s: any, i: number) =>
+              typeof s === 'string'
+                ? s
+                : s.text || s.statement || `Statement ${i + 1}: ${JSON.stringify(s)}`,
+            )
+            .join('\n\n')
+        : '';
+
+  const hasDistinctStatement =
+    normalizedStatement.length > 0 &&
+    normalizedStatement.toLowerCase() !== (currentQuestion.text || '').trim().toLowerCase();
+
   return (
     <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
       {/* Question Number Header Bar */}
@@ -787,27 +815,34 @@ export function QuestionRenderer() {
       </div>
 
       {/* Two-Column Split Pane (Question & Context on Left, Options / Actions on Right) */}
-      <div className='flex flex-1 w-full overflow-hidden divide-y md:divide-y-0 md:divide-x divide-gray-300 min-h-[420px]'>
+      <div className='flex flex-col md:flex-row flex-1 w-full overflow-hidden divide-y md:divide-y-0 md:divide-x divide-gray-300 min-h-0'>
         {/* Left Pane - Question Statement & Context */}
-        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-white shrink-0 custom-scrollbar select-text flex flex-col justify-between'>
+        <div className='w-full md:w-1/2 flex-1 min-h-0 overflow-y-auto p-5 sm:p-6 bg-white custom-scrollbar select-text flex flex-col justify-between'>
           <div className='max-w-2xl text-gray-800 space-y-5 font-sans'>
-            {currentQuestion.stem &&
-              currentQuestion.stem.trim().toLowerCase() !==
-                (currentQuestion.text || '').trim().toLowerCase() && (
-                <div className='bg-slate-50 border border-slate-200 rounded-lg p-4 text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 text-justify'>
-                  <h4 className='font-bold text-xs text-slate-500 uppercase tracking-wider mb-1'>
-                    Question Context / Passage:
+            {/* STATEMENTS / CONTEXT / PASSAGE BOX */}
+            {hasDistinctStatement && (
+              <div className='bg-slate-50 border border-slate-200/90 rounded-xl p-4 sm:p-5 text-[15px] sm:text-[16px] leading-relaxed text-gray-800 font-normal space-y-3 shadow-2xs'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <span className='w-2 h-2 rounded-full bg-blue-600' />
+                  <h4 className='font-bold text-xs text-slate-600 uppercase tracking-wider'>
+                    {normalizedStatement.toLowerCase().includes('cause') ||
+                    normalizedStatement.toLowerCase().includes('effect')
+                      ? 'Statements (Cause & Effect):'
+                      : normalizedStatement.toLowerCase().includes('statement')
+                        ? 'Statements:'
+                        : 'Question Context / Passage:'}
                   </h4>
-                  <MarkdownRenderer content={currentQuestion.stem} />
                 </div>
-              )}
+                <MarkdownRenderer content={normalizedStatement} />
+              </div>
+            )}
 
             <div className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-800 font-sans break-words pb-3 border-b border-gray-100'>
               <div className='font-bold text-gray-900 text-sm mb-2 tracking-tight'>
                 Question :
               </div>
               <MarkdownRenderer
-                content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim()}
+                content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim() || 'No question text provided.'}
                 className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-800 font-sans'
               />
             </div>
@@ -822,7 +857,7 @@ export function QuestionRenderer() {
             )}
           </div>
 
-          <p className='text-gray-500 text-xs pt-4 mt-6 border-t border-gray-100'>
+          <p className='text-gray-500 text-xs pt-4 mt-6 border-t border-gray-100 shrink-0'>
             Note: You may click{' '}
             <span className='font-semibold text-gray-700'>Mark for Review & Next</span> if you wish
             to re-evaluate your response later before completing this section.
@@ -830,7 +865,7 @@ export function QuestionRenderer() {
         </div>
 
         {/* Right Pane - Options / Response Box */}
-        <div className='w-full md:w-1/2 overflow-y-auto p-5 sm:p-6 bg-slate-50/30 flex flex-col justify-between custom-scrollbar select-text'>
+        <div className='w-full md:w-1/2 flex-1 min-h-0 overflow-y-auto p-5 sm:p-6 bg-slate-50/30 flex flex-col justify-between custom-scrollbar select-text'>
           <div className='space-y-4 max-w-2xl w-full'>
             <div className='text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between pb-2 border-b border-gray-200'>
               <span>
