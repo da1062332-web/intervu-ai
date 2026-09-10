@@ -6,6 +6,7 @@ import type {
   RecommendationResponse,
   StrengthWeaknessResponse,
   PerformanceDashboardResponse,
+  AiAnalysisResponse,
 } from '../types/results.types';
 import type { PerformanceAnalyticsDto } from '@intervu-ai/contracts';
 

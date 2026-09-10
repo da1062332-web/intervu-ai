@@ -47,12 +47,14 @@ async function bootstrap() {
   // API prefix and versioning
   app.setGlobalPrefix("api/v1");
 
-  // Root ping handler for load balancers and Render uptime checks (prevents 404 Cannot GET/HEAD /)
+  // Root and health ping handler for load balancers and Render uptime checks (prevents 404 Cannot GET/HEAD /)
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.get("/", (_req: any, res: any) =>
     res.status(200).json({ status: "ok", service: "intervu-api" }),
   );
   expressApp.head("/", (_req: any, res: any) => res.status(200).end());
+  expressApp.get("/favicon.ico", (_req: any, res: any) => res.status(204).end());
+  expressApp.head("/favicon.ico", (_req: any, res: any) => res.status(204).end());
 
   // Global pipes
 

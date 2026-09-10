@@ -19,7 +19,7 @@ import { AttemptHistoryResponseDto } from "../dto/attempt-history.dto";
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.CANDIDATE)
-@Controller("candidate/attempts")
+@Controller(["candidate/attempts", "candidate/history"])
 export class AttemptHistoryController {
   constructor(private readonly attemptHistoryService: AttemptHistoryService) {}
 
