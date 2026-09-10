@@ -227,10 +227,24 @@ const mockTestInstance: TestInstance = {
           ],
         },
         {
+          id: 'q6b',
+          questionHash: 'hash-q6b',
+          type: 'MCQ',
+          orderIndex: 6,
+          stem: 'Given below are two statements marked as Statement 1 and Statement 2:\n\nStatement 1: The municipal health authority has issued an advisory directing citizens to drink boiled water during the monsoon season.\nStatement 2: A large number of patients suffering from waterborne illnesses have been admitted to city hospitals.',
+          text: 'Analyze Statement 1 and Statement 2 and select the option that best describes the logical relationship between them (Cause and Effect):',
+          options: [
+            { id: 'opt-6b-a', text: 'Statement 2 is the cause and Statement 1 is its effect.' },
+            { id: 'opt-6b-b', text: 'Statement 1 is the cause and Statement 2 is its effect.' },
+            { id: 'opt-6b-c', text: 'Both Statement 1 and Statement 2 are independent causes.' },
+            { id: 'opt-6b-d', text: 'Both Statement 1 and Statement 2 are effects of independent causes.' },
+          ],
+        },
+        {
           id: 'q7',
           questionHash: 'hash-q7',
           type: 'MSQ',
-          orderIndex: 6,
+          orderIndex: 7,
           stem: 'Multiple Select Question (MSQ): You may select MORE THAN ONE option for this question.',
           text: 'Which of the following numbers are both perfect squares and perfect cubes?',
           options: [

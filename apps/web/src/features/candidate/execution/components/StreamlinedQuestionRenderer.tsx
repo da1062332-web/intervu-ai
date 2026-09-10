@@ -708,13 +708,40 @@ export function StreamlinedQuestionRenderer() {
     );
   }
 
+  const statementContent =
+    currentQuestion.stem ||
+    (currentQuestion as any).questionStatement ||
+    (currentQuestion as any).statements ||
+    (currentQuestion as any).context ||
+    (currentQuestion as any).passage ||
+    (currentQuestion as any).questionSnapshot?.stem ||
+    (currentQuestion as any).questionSnapshot?.questionStatement ||
+    (currentQuestion as any).questionSnapshot?.statements ||
+    '';
+
+  const normalizedStatement =
+    typeof statementContent === 'string'
+      ? statementContent.trim()
+      : Array.isArray(statementContent)
+        ? statementContent
+            .map((s: any, i: number) =>
+              typeof s === 'string'
+                ? s
+                : s.text || s.statement || `Statement ${i + 1}: ${JSON.stringify(s)}`,
+            )
+            .join('\n\n')
+        : '';
+
+  const hasDistinctStatement =
+    normalizedStatement.length > 0 &&
+    normalizedStatement.toLowerCase() !== (currentQuestion.text || '').trim().toLowerCase();
+
   return (
-    <div className='flex flex-col md:flex-row flex-1 w-full h-full overflow-hidden gap-4 lg:gap-6 select-none bg-transparent'>
-      
+    <div className='flex flex-col md:flex-row flex-1 w-full h-full overflow-hidden gap-4 lg:gap-6 select-none bg-transparent min-h-0'>
       {/* Left Pane - Question Card */}
-      <div className='w-full md:w-1/2 flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0'>
+      <div className='w-full md:w-1/2 flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden min-h-0 flex-1'>
         {/* Header Ribbon */}
-        <div className='flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100'>
+        <div className='flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 shrink-0'>
           <div className='bg-[#4939a3] text-white text-xs font-bold px-4 py-1.5 rounded-r-full -ml-5 shadow-sm'>
             Q {displaySectionQuestionNo} OF {sectionTotalQuestions}
           </div>
@@ -724,28 +751,31 @@ export function StreamlinedQuestionRenderer() {
         </div>
         
         {/* Question Content */}
-        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col space-y-6'>
-          <div className='flex items-center gap-2 text-slate-800 font-bold mb-1'>
+        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col space-y-6 min-h-0'>
+          <div className='flex items-center gap-2 text-slate-800 font-bold mb-1 shrink-0'>
             <div className='w-5 h-5 bg-[#4939a3] rounded-md text-white flex items-center justify-center text-xs'>?</div>
             <span>Question</span>
           </div>
           
-          <div className='text-slate-700 space-y-5 font-sans leading-relaxed'>
-            {currentQuestion.stem &&
-              currentQuestion.stem.trim().toLowerCase() !==
-                (currentQuestion.text || '').trim().toLowerCase() && (
-                <div className='text-[15px] sm:text-[16px]'>
-                  <div className='font-bold text-sm text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5'>
-                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'></path></svg>
-                    Statements:
-                  </div>
-                  <MarkdownRenderer content={currentQuestion.stem} />
+          <div className='text-slate-700 space-y-5 font-sans leading-relaxed flex-1'>
+            {hasDistinctStatement && (
+              <div className='p-4 bg-slate-50 border border-slate-200 rounded-xl text-[15px] sm:text-[16px] space-y-2.5 shadow-2xs'>
+                <div className='font-bold text-sm text-[#4939a3] uppercase tracking-wider flex items-center gap-1.5'>
+                  <svg className='w-4 h-4 text-[#4939a3]' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                  </svg>
+                  {normalizedStatement.toLowerCase().includes('cause') ||
+                  normalizedStatement.toLowerCase().includes('effect')
+                    ? 'Statements (Cause & Effect):'
+                    : 'Statements / Context:'}
                 </div>
-              )}
+                <MarkdownRenderer content={normalizedStatement} />
+              </div>
+            )}
 
             <div className='text-[15px] sm:text-[16px]'>
               <MarkdownRenderer
-                content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim()}
+                content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim() || 'No question text provided.'}
               />
             </div>
 
@@ -762,9 +792,9 @@ export function StreamlinedQuestionRenderer() {
       </div>
 
       {/* Right Pane - Options / Response Card */}
-      <div className='w-full md:w-1/2 flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0'>
-        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col'>
-          <div className='bg-[#f8f6ff] text-[#4939a3] font-bold text-sm rounded-lg px-4 py-3 flex items-center gap-2 mb-5'>
+      <div className='w-full md:w-1/2 flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden min-h-0 flex-1'>
+        <div className='flex-1 overflow-y-auto p-5 custom-scrollbar select-text flex flex-col min-h-0'>
+          <div className='bg-[#f8f6ff] text-[#4939a3] font-bold text-sm rounded-lg px-4 py-3 flex items-center gap-2 mb-5 shrink-0'>
             {currentQuestion.type?.toUpperCase() === 'NUMERIC' ? (
               <>
                 <span className='text-lg'>🔢</span> Enter the numerical value
@@ -784,7 +814,7 @@ export function StreamlinedQuestionRenderer() {
             )}
           </div>
           
-          <div className='w-full'>
+          <div className='w-full flex-1'>
             {renderQuestionContent()}
           </div>
         </div>

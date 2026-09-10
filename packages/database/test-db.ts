@@ -6,4 +6,4 @@ async function main() {
   });
   console.table(exams);
 }
-main().catch(console.error).finally(() => prisma.());
+main().catch(console.error).finally(() => prisma.$disconnect());
