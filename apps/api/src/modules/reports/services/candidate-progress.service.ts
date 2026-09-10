@@ -198,11 +198,11 @@ export class CandidateProgressService {
             /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
               cleanName.trim(),
             ) || /^c[a-z0-9]{24}$/i.test(cleanName.trim());
-          if (isUuidOrId) continue;
+          const resolvedTopicName = isUuidOrId ? "General Domain Competency" : cleanName;
 
-          if (!topicAgg[cleanName]) topicAgg[cleanName] = { sum: 0, count: 0 };
-          topicAgg[cleanName].sum += Number(accuracy) || 0;
-          topicAgg[cleanName].count += 1;
+          if (!topicAgg[resolvedTopicName]) topicAgg[resolvedTopicName] = { sum: 0, count: 0 };
+          topicAgg[resolvedTopicName].sum += Number(accuracy) || 0;
+          topicAgg[resolvedTopicName].count += 1;
         }
       }
 

@@ -162,4 +162,48 @@ describe('execution.store', () => {
     expect(s.palette[0]).toBe('CURRENT');
     expect(s.palette[1]).toBe('UNANSWERED');
   });
+
+  it('safely handles missing or malformed sections without crashing', () => {
+    const malformedTest: any = {
+      id: 'test-2',
+      durationSeconds: 1800,
+      sections: undefined,
+    };
+
+    expect(() => {
+      useExecutionStore.getState().initializeTest(malformedTest);
+    }).not.toThrow();
+
+    const state = useExecutionStore.getState();
+    expect(state.questions).toHaveLength(0);
+    expect(state.remainingTime).toBe(1800);
+  });
+
+  it('initializes section timing accurately when sectionTimingEnabled is true and startedAt is provided', () => {
+    const now = Date.now();
+    const startedAt = new Date(now - 10000).toISOString(); // 10s ago
+    const timedSectionTest: TestInstance = {
+      ...mockTest,
+      sectionTimingEnabled: true,
+      serverTime: new Date(now).toISOString(),
+      sections: [
+        {
+          id: 'sec-1',
+          sectionKey: 's1',
+          title: 'Section 1',
+          durationSeconds: 120, // 2 mins
+          startedAt: startedAt,
+          questions: [
+            { id: 'q1', type: 'MCQ', text: 'Q1', options: [], orderIndex: 0, questionHash: 'h1' },
+          ],
+        },
+      ],
+    };
+
+    useExecutionStore.getState().initializeTest(timedSectionTest);
+    const state = useExecutionStore.getState();
+    expect(state.sectionTimingEnabled).toBe(true);
+    // 120s total - 10s elapsed = 110s remaining
+    expect(state.sectionRemainingTime).toBe(110);
+  });
 });

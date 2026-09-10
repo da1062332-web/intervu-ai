@@ -4,7 +4,18 @@ import { useTestTimer } from '../hooks/useTestTimer';
 import { cn } from '@/lib/utils';
 
 export function TimerWidget() {
-  const { formattedTime, isWarning } = useTestTimer();
+  const { formattedTime, isWarning, isReady } = useTestTimer();
+
+  if (!isReady) {
+    return (
+      <div
+        className='text-sm sm:text-base font-medium text-gray-400 font-sans tabular-nums whitespace-nowrap tracking-wide flex items-center justify-end'
+        aria-live='polite'
+      >
+        <span className='animate-pulse'>Time Left: --:--</span>
+      </div>
+    );
+  }
 
   return (
     <div

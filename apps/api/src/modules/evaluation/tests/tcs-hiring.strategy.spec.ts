@@ -279,4 +279,61 @@ describe("TcsHiringStrategy", () => {
     const result = await strategy.evaluate(context);
     expect(result.qualification).toBe("DIGITAL"); // Meets Digital requirement (1 coding solved)
   });
+
+  it("should preserve all 5 sections including Advanced Aptitude and Coding in sectionsBreakdown", async () => {
+    const context: HiringEvaluationContext = {
+      config: baseConfig,
+      sectionScores: [
+        { sectionKey: "SEC_NUM", sectionName: "Numerical Ability", correct: 8, incorrect: 2 },
+        { sectionKey: "SEC_VERB", sectionName: "Verbal Ability", correct: 8, incorrect: 2 },
+        { sectionKey: "SEC_REAS", sectionName: "Reasoning Ability", correct: 8, incorrect: 2 },
+        { sectionKey: "SEC_ADV", sectionName: "Advanced Aptitude", correct: 10, incorrect: 2 },
+      ],
+      objectiveEvalResults: [],
+      codingEvalResults: [
+        { questionId: "c1", score: 100, isCorrect: true },
+        { questionId: "c2", score: 100, isCorrect: true },
+      ],
+    };
+
+    const result = await strategy.evaluate(context);
+    const breakdowns = result.foundationBreakdown.sectionsBreakdown;
+    expect(breakdowns).toHaveLength(5);
+    expect(breakdowns.map((b) => b.sectionCode)).toEqual([
+      "SEC_NUM",
+      "SEC_VERB",
+      "SEC_REAS",
+      "SEC_ADV",
+      "SEC_CODE",
+    ]);
+    const advSection = breakdowns.find((b) => b.sectionCode === "SEC_ADV");
+    expect(advSection?.correctCount).toBe(10);
+    const codeSection = breakdowns.find((b) => b.sectionCode === "SEC_CODE");
+    expect(codeSection?.correctCount).toBe(2);
+  });
+
+  it("should preserve custom unmapped sections without duplication", async () => {
+    const context: HiringEvaluationContext = {
+      config: {
+        ...baseConfig,
+        sectionMappings: baseConfig.sectionMappings.slice(0, 3), // Only 3 foundation
+      },
+      sectionScores: [
+        { sectionKey: "SEC_NUM", sectionName: "Numerical Ability", correct: 6, incorrect: 4 },
+        { sectionKey: "SEC_VERB", sectionName: "Verbal Ability", correct: 6, incorrect: 4 },
+        { sectionKey: "SEC_REAS", sectionName: "Reasoning Ability", correct: 6, incorrect: 4 },
+        { sectionKey: "SEC_CUSTOM_TECH", sectionName: "Technical Specialization", correct: 15, incorrect: 0 },
+      ],
+      objectiveEvalResults: [],
+      codingEvalResults: [],
+    };
+
+    const result = await strategy.evaluate(context);
+    const breakdowns = result.foundationBreakdown.sectionsBreakdown;
+    expect(breakdowns).toHaveLength(4);
+    const customSec = breakdowns.find((b) => b.sectionCode === "SEC_CUSTOM_TECH");
+    expect(customSec).toBeDefined();
+    expect(customSec?.correctCount).toBe(15);
+    expect(customSec?.category).toBe("CUSTOM");
+  });
 });

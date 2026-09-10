@@ -146,7 +146,13 @@ export function CandidateSubscriptionSection() {
       const razorpayKey =
         order.keyId ||
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
-        'rzp_live_TX7JsRywgX7pvg';
+        '';
+
+      if (!razorpayKey) {
+        notifyApiError('Payment gateway key is not configured. Please contact support.');
+        setLoadingPlan(null);
+        return;
+      }
 
       const orderId = order.order_id || order.orderId;
       if (!orderId) {

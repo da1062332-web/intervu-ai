@@ -2,6 +2,15 @@ import { Injectable, Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { LLMAdapter } from "../../generation-ai/adapters/llm-adapter.interface";
 
+export interface SectionAnalysis {
+  sectionId?: string;
+  sectionName: string;
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+}
+
 export interface AiAnalysisResult {
   strengths: { title: string; detail: string }[];
   weaknesses: { title: string; detail: string }[];
@@ -12,6 +21,7 @@ export interface AiAnalysisResult {
   }[];
   practiceHours: number;
   summary: string;
+  sectionAnalyses?: SectionAnalysis[];
 }
 
 @Injectable()
@@ -71,12 +81,16 @@ export class AiAnalysisService {
     const analytics = attempt?.evaluationAnalytics as any;
 
     if (!attempt || !candidateResult) {
-      return this.fallback(50, {}, topicNameMap);
+      return this.fallback(50, {}, topicNameMap, []);
     }
 
     const overallScore = candidateResult.percentage || 0;
     const rawTopicAccuracy: Record<string, number> =
       (analytics?.topicAccuracy as Record<string, number>) || {};
+
+    const sectionAccuracy: any[] = Array.isArray(analytics?.sectionAccuracy)
+      ? analytics.sectionAccuracy
+      : [];
 
     // BUG-005: If the assessment was fully skipped (completionRate = 0 or overallScore = 0
     // and no topic has accuracy > 0), return no strengths early — do NOT send to LLM.
@@ -118,6 +132,13 @@ export class AiAnalysisService {
               "Attempt all questions to receive an accurate performance analysis and personalized recommendations.",
           },
         ],
+        sectionAnalyses: sectionAccuracy.map((s: any) => ({
+          sectionName: s.sectionName || "Section",
+          summary: "Section was not attempted.",
+          strengths: [],
+          weaknesses: ["No questions were attempted in this section."],
+          recommendations: ["Review section curriculum and attempt practice drills."],
+        })),
       };
     }
 
@@ -128,9 +149,6 @@ export class AiAnalysisService {
       topicAccuracy[cleanName] = val;
     }
 
-    const sectionAccuracy: any[] = Array.isArray(analytics?.sectionAccuracy)
-      ? analytics.sectionAccuracy
-      : [];
     const difficultyAccuracy: Record<string, number> =
       (analytics?.difficultyAccuracy as Record<string, number>) || {};
     const assessmentName =
@@ -140,7 +158,7 @@ export class AiAnalysisService {
     const qualification = candidateResult.qualification || "N/A";
 
     const prompt = `
-You are an expert AI assessment evaluator. Analyze the following candidate's assessment performance and generate a comprehensive, personalized evaluation report.
+You are an expert AI assessment evaluator. Analyze the following candidate's assessment performance and generate a comprehensive, personalized evaluation report including both overall insights and independent section-wise evaluation.
 
 Assessment: ${assessmentName}
 Overall Score: ${Math.round(overallScore)}%
@@ -159,11 +177,12 @@ Topic Accuracy: ${JSON.stringify(topicAccuracy)}
 Difficulty Accuracy: ${JSON.stringify(difficultyAccuracy)}
 
 Based on this data, generate a structured analysis with:
-1. 2-4 key STRENGTHS (areas where the candidate performed well, >65% accuracy)
-2. 2-4 key WEAKNESSES (areas needing improvement, <55% accuracy or consistently wrong)
-3. 3-5 prioritized RECOMMENDATIONS with concrete action steps (HIGH/MEDIUM/LOW priority)
+1. 2-4 key global STRENGTHS (areas where the candidate performed well, >65% accuracy)
+2. 2-4 key global WEAKNESSES (areas needing improvement, <55% accuracy or consistently wrong)
+3. 3-5 prioritized global RECOMMENDATIONS with concrete action steps (HIGH/MEDIUM/LOW priority)
 4. A brief overall SUMMARY sentence
 5. Total estimated PRACTICE_HOURS needed (integer, 5-40 range)
+6. Section-wise evaluation for every section present in Section Performance (under "sectionAnalyses")
 
 CRITICAL INSTRUCTIONS FOR STRENGTHS AND WEAKNESSES:
 - DO NOT INCLUDE ANY PERCENTAGES (e.g. '100%', '75%', '50%', 'X% accuracy') OR NUMBERS IN THE TITLE OR DETAIL TEXT FOR STRENGTHS OR WEAKNESSES.
@@ -183,6 +202,15 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
   ],
   "recommendations": [
     { "priority": "HIGH", "title": "Action Title", "action": "Concrete step with specific techniques" }
+  ],
+  "sectionAnalyses": [
+    {
+      "sectionName": "Exact Section Name from data",
+      "summary": "Qualitative assessment of performance in this specific section",
+      "strengths": ["Key section strength description"],
+      "weaknesses": ["Key section area for improvement"],
+      "recommendations": ["Targeted section action item"]
+    }
   ]
 }
 `;
@@ -233,6 +261,59 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
           Array.isArray(parsed.weaknesses) &&
           Array.isArray(parsed.recommendations)
         ) {
+          // Parse section analyses
+          const parsedSectionAnalyses: SectionAnalysis[] = [];
+          if (Array.isArray(parsed.sectionAnalyses)) {
+            for (const sa of parsed.sectionAnalyses) {
+              if (sa?.sectionName) {
+                parsedSectionAnalyses.push({
+                  sectionName: cleanString(sa.sectionName),
+                  summary: cleanString(sa.summary || "Performance analyzed for this section."),
+                  strengths: Array.isArray(sa.strengths)
+                    ? sa.strengths.map((s: string) => cleanString(s)).filter(Boolean)
+                    : [],
+                  weaknesses: Array.isArray(sa.weaknesses)
+                    ? sa.weaknesses.map((w: string) => cleanString(w)).filter(Boolean)
+                    : [],
+                  recommendations: Array.isArray(sa.recommendations)
+                    ? sa.recommendations.map((r: string) => cleanString(r)).filter(Boolean)
+                    : [],
+                });
+              }
+            }
+          }
+
+          // Ensure every assessment section is represented
+          const finalSectionAnalyses: SectionAnalysis[] = sectionAccuracy.map((s: any) => {
+            const existing = parsedSectionAnalyses.find(
+              (psa) =>
+                psa.sectionName.toLowerCase() === (s.sectionName || "").toLowerCase(),
+            );
+            if (existing) return existing;
+
+            const accuracy = Number(s.accuracy || 0);
+            return {
+              sectionName: s.sectionName || "Assessment Section",
+              summary:
+                accuracy >= 70
+                  ? `Strong proficiency demonstrated across core questions in this section.`
+                  : accuracy >= 40
+                    ? `Moderate understanding shown; targeted revision recommended.`
+                    : `Significant opportunity for growth through structured practice.`,
+              strengths:
+                accuracy >= 50
+                  ? ["Demonstrated fundamental grasp of core problem patterns."]
+                  : [],
+              weaknesses:
+                accuracy < 60
+                  ? ["Review foundational concepts and improve speed/accuracy."]
+                  : [],
+              recommendations: [
+                `Focus on practicing 10-15 standard problems in ${s.sectionName || "this section"} weekly.`,
+              ],
+            };
+          });
+
           return {
             summary: cleanString(
               parsed.summary || `Overall score: ${Math.round(overallScore)}%`,
@@ -262,6 +343,7 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
                 title: cleanString(r.title),
                 action: cleanString(r.action),
               })),
+            sectionAnalyses: finalSectionAnalyses,
           };
         }
 
@@ -274,13 +356,14 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
     }
 
     this.logger.warn("All AI analysis attempts failed, using fallback");
-    return this.fallback(overallScore, topicAccuracy, topicNameMap);
+    return this.fallback(overallScore, topicAccuracy, topicNameMap, sectionAccuracy);
   }
 
   private fallback(
     overallScore: number,
     rawTopicAccuracy: Record<string, number>,
     topicNameMap: Map<string, string>,
+    sectionAccuracy: any[] = [],
   ): AiAnalysisResult {
     const strengths: { title: string; detail: string }[] = [];
     const weaknesses: { title: string; detail: string }[] = [];
@@ -290,7 +373,7 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
       if (acc >= 65) {
         strengths.push({
           title: `Strong Performance in '${topicName}'`,
-          detail: `Achieved ${Math.round(acc)}% accuracy demonstrating solid understanding of core concepts.`,
+          detail: `Demonstrated solid understanding of core concepts.`,
         });
       } else if (acc < 55) {
         weaknesses.push({
@@ -313,6 +396,28 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
           "Minor pacing improvements needed for high-difficulty questions.",
       });
     }
+
+    const sectionAnalyses: SectionAnalysis[] = (sectionAccuracy || []).map((s: any) => {
+      const accuracy = Number(s.accuracy || 0);
+      return {
+        sectionName: s.sectionName || "Assessment Section",
+        summary:
+          accuracy >= 70
+            ? `Solid performance observed in ${s.sectionName}.`
+            : `Opportunity for mastery and refinement in ${s.sectionName}.`,
+        strengths:
+          accuracy >= 50
+            ? [`Consistent approach demonstrated in ${s.sectionName} topics.`]
+            : [],
+        weaknesses:
+          accuracy < 60
+            ? [`Improve problem selection and accuracy in ${s.sectionName}.`]
+            : [],
+        recommendations: [
+          `Target 10-15 practice problems specifically for ${s.sectionName}.`,
+        ],
+      };
+    });
 
     return {
       summary: `Overall score of ${Math.round(overallScore)}% with clear opportunities for targeted growth.`,
@@ -339,6 +444,7 @@ Return ONLY a valid JSON object in this exact format (no markdown, no explanatio
             "Review materials related to high accuracy topics weekly to reinforce knowledge.",
         },
       ],
+      sectionAnalyses,
     };
   }
 }

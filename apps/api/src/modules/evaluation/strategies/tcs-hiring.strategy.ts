@@ -82,72 +82,6 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
       return 0;
     };
 
-    const sectionsBreakdown: SectionPassFailBreakdown[] = [];
-
-    // Step 1: Evaluate Foundation Sections (NUMERICAL, VERBAL, REASONING)
-    const foundationMappings = config.sectionMappings.filter((m) =>
-      ["NUMERICAL", "VERBAL", "REASONING"].includes(m.mappingType),
-    );
-
-    let failedSectionalCutoff = false;
-    let numericalScore = 0;
-    let numericalMin = 0;
-    let verbalScore = 0;
-    let verbalMin = 0;
-    let reasoningScore = 0;
-    let reasoningMin = 0;
-
-    for (const mapping of foundationMappings) {
-      const correctCount = getCorrectForSection(
-        mapping.sectionCode,
-        mapping.sectionName || undefined,
-        mapping.mappingType,
-      );
-      const minRequired = mapping.minimumCorrectAnswers;
-      const passed = correctCount >= minRequired;
-
-      sectionsBreakdown.push({
-        category: mapping.mappingType,
-        sectionCode: mapping.sectionCode,
-        sectionName: mapping.sectionName || mapping.sectionCode,
-        correctCount,
-        requiredMin: minRequired,
-        passed,
-      });
-
-      if (!passed) {
-        failedSectionalCutoff = true;
-      }
-
-      if (mapping.mappingType === "NUMERICAL") {
-        numericalScore += correctCount;
-        numericalMin = Math.max(numericalMin, minRequired);
-      } else if (mapping.mappingType === "VERBAL") {
-        verbalScore += correctCount;
-        verbalMin = Math.max(verbalMin, minRequired);
-      } else if (mapping.mappingType === "REASONING") {
-        reasoningScore += correctCount;
-        reasoningMin = Math.max(reasoningMin, minRequired);
-      }
-    }
-
-    const foundationTotal = numericalScore + verbalScore + reasoningScore;
-
-    // Advanced Aptitude score calculation
-    const advancedMappings = config.sectionMappings.filter(
-      (m) => m.mappingType === "ADVANCED_APTITUDE",
-    );
-    let advancedScore = 0;
-    let advancedSectionCode: string | undefined;
-    for (const m of advancedMappings) {
-      advancedSectionCode = m.sectionCode;
-      advancedScore += getCorrectForSection(
-        m.sectionCode,
-        m.sectionName || undefined,
-        m.mappingType,
-      );
-    }
-
     // Coding Evaluation
     const codingProblemsSummaries: CodingProblemSummary[] =
       codingEvalResults.map((c) => {
@@ -169,6 +103,98 @@ export class TcsHiringStrategy implements IHiringEvaluationStrategy {
     ).length;
     const totalCodingProblems =
       config.codingTotalProblems || codingEvalResults.length;
+
+    const sectionsBreakdown: SectionPassFailBreakdown[] = [];
+    const processedSectionCodes = new Set<string>();
+
+    let failedSectionalCutoff = false;
+    let numericalScore = 0;
+    let numericalMin = 0;
+    let verbalScore = 0;
+    let verbalMin = 0;
+    let reasoningScore = 0;
+    let reasoningMin = 0;
+
+    // Evaluate all configured sections in mapping
+    for (const mapping of config.sectionMappings) {
+      const codeKey = (mapping.sectionCode || mapping.sectionName || "").toUpperCase();
+      if (processedSectionCodes.has(codeKey)) continue;
+      processedSectionCodes.add(codeKey);
+
+      let correctCount = 0;
+      const minRequired = mapping.minimumCorrectAnswers || 0;
+      let passed = true;
+
+      if (mapping.mappingType === "CODING") {
+        correctCount = codingSolved;
+        passed = correctCount >= minRequired;
+      } else {
+        correctCount = getCorrectForSection(
+          mapping.sectionCode,
+          mapping.sectionName || undefined,
+          mapping.mappingType,
+        );
+        passed = correctCount >= minRequired;
+      }
+
+      sectionsBreakdown.push({
+        category: mapping.mappingType,
+        sectionCode: mapping.sectionCode,
+        sectionName: mapping.sectionName || mapping.sectionCode,
+        correctCount,
+        requiredMin: minRequired,
+        passed,
+      });
+
+      if (["NUMERICAL", "VERBAL", "REASONING"].includes(mapping.mappingType)) {
+        if (!passed) {
+          failedSectionalCutoff = true;
+        }
+        if (mapping.mappingType === "NUMERICAL") {
+          numericalScore += correctCount;
+          numericalMin = Math.max(numericalMin, minRequired);
+        } else if (mapping.mappingType === "VERBAL") {
+          verbalScore += correctCount;
+          verbalMin = Math.max(verbalMin, minRequired);
+        } else if (mapping.mappingType === "REASONING") {
+          reasoningScore += correctCount;
+          reasoningMin = Math.max(reasoningMin, minRequired);
+        }
+      }
+    }
+
+    // Also include any section in sectionScores not explicitly mapped in sectionMappings
+    for (const sec of sectionScores) {
+      const codeKey = (sec.sectionKey || sec.sectionName || "").toUpperCase();
+      if (processedSectionCodes.has(codeKey)) continue;
+      processedSectionCodes.add(codeKey);
+
+      sectionsBreakdown.push({
+        category: "CUSTOM",
+        sectionCode: sec.sectionKey,
+        sectionName: sec.sectionName || sec.sectionKey,
+        correctCount: sec.correct,
+        requiredMin: 0,
+        passed: true,
+      });
+    }
+
+    const foundationTotal = numericalScore + verbalScore + reasoningScore;
+
+    // Advanced Aptitude score calculation
+    const advancedMappings = config.sectionMappings.filter(
+      (m) => m.mappingType === "ADVANCED_APTITUDE",
+    );
+    let advancedScore = 0;
+    let advancedSectionCode: string | undefined;
+    for (const m of advancedMappings) {
+      advancedSectionCode = m.sectionCode;
+      advancedScore += getCorrectForSection(
+        m.sectionCode,
+        m.sectionName || undefined,
+        m.mappingType,
+      );
+    }
 
     const foundationBreakdown = {
       numericalScore,

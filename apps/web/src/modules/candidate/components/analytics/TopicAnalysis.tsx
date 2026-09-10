@@ -13,6 +13,8 @@ interface TopicAnalysisProps {
 }
 
 export const TopicAnalysis = React.memo(function TopicAnalysis({ topics }: TopicAnalysisProps) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
   if (!topics || topics.length === 0) {
     return (
       <div className='flex flex-col items-center justify-center h-48 text-sm text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/40 p-4 text-center'>
@@ -32,19 +34,21 @@ export const TopicAnalysis = React.memo(function TopicAnalysis({ topics }: Topic
     return uuidRegex.test(str.trim()) || cuidRegex.test(str.trim()) || isHexHash.test(str.trim());
   };
 
-  // Filter out raw UUID/ID strings and take TOP 5 topics only
-  const validTopics = topics.filter((t) => !isUuidOrId(t.topic));
-  const sorted = [...(validTopics.length > 0 ? validTopics : topics)]
+  // Map and sort all attempted topics without dropping unresolved or low-performing topics
+  const allFormattedTopics = topics
     .map((t) => ({
       ...t,
       topic: isUuidOrId(t.topic) ? 'Core Technical Concepts' : t.topic,
     }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
+    .sort((a, b) => b.score - a.score);
+
+  const INITIAL_DISPLAY_COUNT = 5;
+  const displayTopics = isExpanded ? allFormattedTopics : allFormattedTopics.slice(0, INITIAL_DISPLAY_COUNT);
+  const hasMore = allFormattedTopics.length > INITIAL_DISPLAY_COUNT;
 
   return (
     <div className='space-y-4 py-1'>
-      {sorted.map((t, idx) => (
+      {displayTopics.map((t, idx) => (
         <div key={`${t.topic}-${idx}`} className='space-y-1.5'>
           <div className='flex justify-between items-center text-sm'>
             <span className='font-semibold text-foreground truncate max-w-[78%]' title={t.topic}>
@@ -74,6 +78,20 @@ export const TopicAnalysis = React.memo(function TopicAnalysis({ topics }: Topic
           />
         </div>
       ))}
+
+      {hasMore && (
+        <div className='pt-2 text-center'>
+          <button
+            type='button'
+            onClick={() => setIsExpanded(!isExpanded)}
+            className='text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors'
+          >
+            {isExpanded
+              ? 'Show Less'
+              : `View All ${allFormattedTopics.length} Attempted Topics (+${allFormattedTopics.length - INITIAL_DISPLAY_COUNT} more)`}
+          </button>
+        </div>
+      )}
     </div>
   );
 });

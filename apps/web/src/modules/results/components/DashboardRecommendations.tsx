@@ -76,7 +76,7 @@ export const DashboardRecommendations: React.FC<Props> = ({ data, attemptId }) =
     );
   }
 
-  const { strengths, weaknesses, recommendations, practiceHours, summary } = aiData;
+  const { strengths, weaknesses, recommendations, practiceHours, summary, sectionAnalyses } = aiData;
 
   const cleanDetailText = (str: string): string => {
     if (!str) return '';
@@ -453,6 +453,76 @@ export const DashboardRecommendations: React.FC<Props> = ({ data, attemptId }) =
                 ))}
               </div>
             </div>
+
+            {/* SECTION-WISE AI EVALUATION */}
+            {sectionAnalyses && sectionAnalyses.length > 0 && (
+              <div className='p-5 rounded-2xl bg-card border border-purple-200/80 dark:border-purple-900/50 space-y-4'>
+                <div className='flex items-center justify-between pb-2 border-b border-purple-100 dark:border-purple-900/40'>
+                  <h4 className='font-bold text-sm text-foreground flex items-center gap-2'>
+                    <Target className='w-4 h-4 text-purple-500' />
+                    Section-Wise AI Evaluation ({sectionAnalyses.length} Sections)
+                  </h4>
+                  <Badge className='bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20 text-[10px] uppercase font-bold rounded-md'>
+                    GRANULAR FEEDBACK
+                  </Badge>
+                </div>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                  {sectionAnalyses.map((sec, sIdx) => (
+                    <div
+                      key={sIdx}
+                      className='p-4 rounded-xl bg-purple-500/5 border border-purple-500/10 space-y-3 flex flex-col justify-between'
+                    >
+                      <div className='space-y-2'>
+                        <div className='flex items-center justify-between gap-2 border-b border-purple-100/60 dark:border-purple-900/30 pb-2'>
+                          <h5 className='text-xs font-extrabold text-foreground uppercase tracking-wide'>
+                            {sec.sectionName}
+                          </h5>
+                        </div>
+                        <p className='text-xs text-muted-foreground leading-relaxed'>
+                          {sec.summary}
+                        </p>
+                        {sec.strengths && sec.strengths.length > 0 && (
+                          <div className='space-y-1 pt-1'>
+                            <span className='text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block'>
+                              Strengths:
+                            </span>
+                            <ul className='list-disc list-inside text-xs text-muted-foreground space-y-0.5'>
+                              {sec.strengths.map((st, i) => (
+                                <li key={i} className='leading-tight'>{st}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {sec.weaknesses && sec.weaknesses.length > 0 && (
+                          <div className='space-y-1 pt-1'>
+                            <span className='text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider block'>
+                              Areas to Improve:
+                            </span>
+                            <ul className='list-disc list-inside text-xs text-muted-foreground space-y-0.5'>
+                              {sec.weaknesses.map((wk, i) => (
+                                <li key={i} className='leading-tight'>{wk}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {sec.recommendations && sec.recommendations.length > 0 && (
+                          <div className='space-y-1 pt-1'>
+                            <span className='text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block'>
+                              Next Steps:
+                            </span>
+                            <ul className='list-disc list-inside text-xs text-muted-foreground space-y-0.5'>
+                              {sec.recommendations.map((rc, i) => (
+                                <li key={i} className='leading-tight'>{rc}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Modal Footer */}

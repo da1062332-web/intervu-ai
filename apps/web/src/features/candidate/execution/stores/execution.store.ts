@@ -184,7 +184,10 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   hasUnsavedChanges: false,
 
   initializeTest: (testInstance) => {
-    const allQuestions = testInstance.sections.flatMap((s) => s.questions);
+    if (!testInstance) return;
+
+    const sections = Array.isArray(testInstance.sections) ? testInstance.sections : [];
+    const allQuestions = sections.flatMap((s) => (Array.isArray(s?.questions) ? s.questions : []));
     const initialPalette = allQuestions.map(
       (_, i) => (i === 0 ? 'CURRENT' : 'UNANSWERED') as QuestionStatus,
     );
@@ -193,25 +196,30 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     const serverSectionIndex = testInstance.currentSectionIndex ?? 0;
 
     // Derive locked sections: all sections before currentSectionIndex with status LOCKED or COMPLETED
-    const lockedKeys = testInstance.sections
+    const lockedKeys = sections
       .filter(
-        (s, idx) => idx < serverSectionIndex || s.status === 'LOCKED' || s.status === 'COMPLETED',
+        (s, idx) => idx < serverSectionIndex || s?.status === 'LOCKED' || s?.status === 'COMPLETED',
       )
-      .map((s) => s.sectionKey);
+      .map((s) => s.sectionKey)
+      .filter(Boolean);
 
     // Compute initial section remaining time from server clock + startedAt
     let sectionRemainingTime = 0;
-    if (testInstance.sectionTimingEnabled) {
-      const activeSection = testInstance.sections[serverSectionIndex];
-      if (activeSection?.startedAt && activeSection?.durationSeconds) {
+    if (testInstance.sectionTimingEnabled && sections.length > 0) {
+      const activeSection = sections[serverSectionIndex] || sections[0];
+      if (activeSection?.startedAt && typeof activeSection?.durationSeconds === 'number') {
         const serverNow = testInstance.serverTime
           ? new Date(testInstance.serverTime).getTime()
           : Date.now();
         const sectionStarted = new Date(activeSection.startedAt).getTime();
-        const elapsed = Math.floor((serverNow - sectionStarted) / 1000);
-        sectionRemainingTime = Math.max(0, activeSection.durationSeconds - elapsed);
-      } else if (testInstance.sections[serverSectionIndex]?.durationSeconds) {
-        sectionRemainingTime = testInstance.sections[serverSectionIndex].durationSeconds!;
+        if (!isNaN(sectionStarted)) {
+          const elapsed = Math.floor((serverNow - sectionStarted) / 1000);
+          sectionRemainingTime = Math.max(0, activeSection.durationSeconds - elapsed);
+        } else {
+          sectionRemainingTime = activeSection.durationSeconds;
+        }
+      } else if (typeof activeSection?.durationSeconds === 'number') {
+        sectionRemainingTime = activeSection.durationSeconds;
       }
     }
 
@@ -219,14 +227,15 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     let startingQuestionIndex = testInstance.currentQuestionIndex ?? 0;
 
     // If backend didn't provide a valid question index for the current section, calculate the first question of the current section
-    if (startingQuestionIndex === 0) {
+    if (startingQuestionIndex === 0 && sections.length > 0) {
       let runningCount = 0;
-      for (let i = 0; i < testInstance.sections.length; i++) {
+      for (let i = 0; i < sections.length; i++) {
+        const secQuestions = Array.isArray(sections[i]?.questions) ? sections[i].questions : [];
         if (i === serverSectionIndex) {
           startingQuestionIndex = runningCount;
           break;
         }
-        runningCount += testInstance.sections[i].questions.length;
+        runningCount += secQuestions.length;
       }
     }
 
@@ -236,7 +245,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       currentQuestionIndex: startingQuestionIndex,
       currentQuestion: allQuestions[startingQuestionIndex] || null,
       palette: initialPalette,
-      remainingTime: testInstance.durationSeconds,
+      remainingTime: typeof testInstance.durationSeconds === 'number' ? testInstance.durationSeconds : 0,
       answers: {},
       loading: false,
       error: null,

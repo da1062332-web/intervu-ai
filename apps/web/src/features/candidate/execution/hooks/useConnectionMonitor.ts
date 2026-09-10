@@ -42,9 +42,13 @@ export function useConnectionMonitor() {
 
       const start = Date.now();
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const baseUrl =
+          process.env.NEXT_PUBLIC_API_URL ||
+          (typeof window !== 'undefined' && window.location.origin.startsWith('https://')
+            ? window.location.origin
+            : 'http://localhost:4000');
         const res = await fetch(`${baseUrl}/api/v1/health`, {
-          method: 'GET', // Changed to GET just in case HEAD is not explicitly handled by NestJS
+          method: 'GET',
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache',

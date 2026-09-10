@@ -56,6 +56,24 @@ export type StrengthWeaknessResponse = {
   weaknesses: { topic: string; score: number; remarks: string }[];
 };
 
+export interface SectionAnalysis {
+  sectionId?: string;
+  sectionName: string;
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+}
+
+export type AiAnalysisResponse = {
+  summary: string;
+  practiceHours: number;
+  strengths: { title: string; detail: string }[];
+  weaknesses: { title: string; detail: string }[];
+  recommendations: { priority: 'HIGH' | 'MEDIUM' | 'LOW'; title: string; action: string }[];
+  sectionAnalyses?: SectionAnalysis[];
+};
+
 export type PerformanceDashboardResponse = {
   overallScore: number;
   percentage: number;

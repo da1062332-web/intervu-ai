@@ -58,16 +58,8 @@ export const resultApi = {
     );
   },
 
-  getAiAnalysis: async (
-    attemptId: string,
-  ): Promise<{
-    summary: string;
-    practiceHours: number;
-    strengths: { title: string; detail: string }[];
-    weaknesses: { title: string; detail: string }[];
-    recommendations: { priority: 'HIGH' | 'MEDIUM' | 'LOW'; title: string; action: string }[];
-  }> => {
-    return apiClient.request(`${BASE_PATH}/${attemptId}/ai-analysis`);
+  getAiAnalysis: async (attemptId: string): Promise<AiAnalysisResponse> => {
+    return apiClient.request<AiAnalysisResponse>(`${BASE_PATH}/${attemptId}/ai-analysis`);
   },
 
   exportToPdf: async (attemptId: string): Promise<Blob> => {
