@@ -10,10 +10,6 @@ import {
   ShieldAlert,
   Timer,
   CheckCircle2,
-  Sparkles,
-  ChevronLeft,
-  ChevronRight,
-  Shuffle,
   BookOpen,
   Target,
 } from 'lucide-react';
@@ -40,17 +36,6 @@ export function TestAssemblyLoader({ isResume = false }: TestAssemblyLoaderProps
         }
         return nextIndex;
       });
-      setProgressWidth(0);
-      setIsFading(false);
-    }, 200);
-  }, []);
-
-  const getPrevTip = useCallback(() => {
-    setIsFading(true);
-    setTimeout(() => {
-      setCurrentTipIndex((prevIndex) =>
-        prevIndex === 0 ? CANDIDATE_TIPS.length - 1 : prevIndex - 1
-      );
       setProgressWidth(0);
       setIsFading(false);
     }, 200);
@@ -100,7 +85,7 @@ export function TestAssemblyLoader({ isResume = false }: TestAssemblyLoaderProps
       case 'pretest':
         return <CheckCircle2 className="w-6 h-6 text-emerald-400" />;
       default:
-        return <Sparkles className="w-6 h-6 text-indigo-400" />;
+        return <Lightbulb className="w-6 h-6 text-indigo-400" />;
     }
   };
 
@@ -169,7 +154,7 @@ export function TestAssemblyLoader({ isResume = false }: TestAssemblyLoaderProps
         />
         <div className="absolute -bottom-28 -right-28 w-60 h-60 bg-gradient-to-tl from-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-        {/* Header bar with test loading status & auto-rotate indicator */}
+        {/* Header bar with test loading status */}
         <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
           <div className="flex items-center gap-2.5">
             <div className="relative flex items-center justify-center w-5 h-5">
@@ -178,11 +163,6 @@ export function TestAssemblyLoader({ isResume = false }: TestAssemblyLoaderProps
             <span className="text-xs sm:text-sm font-semibold text-slate-300">
               {isResume ? 'Preparing exam session...' : 'Preparing assessment environment...'}
             </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 text-slate-400 text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>5s Tip Rotation</span>
           </div>
         </div>
 
@@ -193,24 +173,18 @@ export function TestAssemblyLoader({ isResume = false }: TestAssemblyLoaderProps
           }`}
         >
           {/* Category & Topic Badges */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <div className="flex items-center gap-2">
-              <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${styleConfig.badge}`}
-              >
-                {currentTip.badge}
-              </span>
-
-              {currentTip.topic && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                  {currentTip.topic}
-                </span>
-              )}
-            </div>
-
-            <span className="text-xs font-mono text-slate-400 font-semibold">
-              Tip #{currentTipIndex + 1} / {CANDIDATE_TIPS.length}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${styleConfig.badge}`}
+            >
+              {currentTip.badge}
             </span>
+
+            {currentTip.topic && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                {currentTip.topic}
+              </span>
+            )}
           </div>
 
           {/* Tip Card Body */}
@@ -243,38 +217,8 @@ export function TestAssemblyLoader({ isResume = false }: TestAssemblyLoaderProps
             }}
           />
         </div>
-
-        {/* Footer Navigation & Controls */}
-        <div className="flex items-center justify-between pt-1 text-xs text-slate-400">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={getPrevTip}
-              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors border border-slate-700/60 flex items-center gap-1 font-medium cursor-pointer"
-              title="Previous Tip"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Prev</span>
-            </button>
-
-            <button
-              onClick={getNextRandomTip}
-              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors border border-slate-700/60 flex items-center gap-1 font-medium cursor-pointer"
-              title="Next Random Tip"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          <button
-            onClick={getNextRandomTip}
-            className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors cursor-pointer"
-          >
-            <Shuffle className="w-3.5 h-3.5" />
-            <span>Randomize</span>
-          </button>
-        </div>
       </div>
     </div>
   );
 }
+
