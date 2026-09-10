@@ -28,9 +28,9 @@ export function useExecution(testId: string) {
         if (!mounted) return;
 
         if (data.status === 'SUBMITTED' || data.status === 'COMPLETED') {
-          console.log(`[CLIENT-EXECUTION ℹ️] Assessment already completed. Redirecting to results.`);
+          console.log(`[CLIENT-EXECUTION ℹ️] Assessment already completed. Redirecting to dashboard.`);
           clearAssessmentSandboxStorage(testId);
-          router.replace(`/candidate/results/${testId}`);
+          router.replace('/candidate/dashboard');
           return;
         }
 

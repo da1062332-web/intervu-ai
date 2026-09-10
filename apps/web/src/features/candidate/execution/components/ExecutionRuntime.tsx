@@ -12,6 +12,7 @@ import { useCheckpoint } from '../hooks/useCheckpoint';
 import { useSectionTimer } from '../hooks/useSectionTimer';
 
 import { SubmissionModal } from './SubmissionModal';
+import { ThankYouModal } from './ThankYouModal';
 import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SectionChangeModal } from './SectionChangeModal';
@@ -88,15 +89,18 @@ export function ExecutionRuntime({ children }: ExecutionRuntimeProps) {
       style={isInteractionBlocked || isSubmitting ? { pointerEvents: 'none' } : undefined}
     >
       {/* Full-Screen Submission Overlay */}
-      {isSubmitting && (
+      {submissionStatus === 'SUBMITTING' && (
         <div className='fixed inset-0 z-100 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center animate-in fade-in duration-200'>
           <div className='w-14 h-14 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-5 shadow-lg' />
-          <h2 className='text-2xl font-bold tracking-tight'>Assessment Submitted</h2>
+          <h2 className='text-2xl font-bold tracking-tight'>Submitting Assessment...</h2>
           <p className='text-slate-300 text-sm mt-2 max-w-sm'>
-            Your answers have been securely submitted. Finalizing evaluation and redirecting to results...
+            Your answers are being securely submitted. Please wait...
           </p>
         </div>
       )}
+
+      {/* Thank You Modal Component */}
+      <ThankYouModal isOpen={submissionStatus === 'SUCCESS'} />
 
       {/* Shared Modals and Overlays */}
       <FullscreenOverlay />

@@ -16,6 +16,7 @@ import { useSectionTimer } from '../hooks/useSectionTimer';
 import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SubmissionModal } from './SubmissionModal';
+import { ThankYouModal } from './ThankYouModal';
 import { SectionChangeModal } from './SectionChangeModal';
 import { InstructionsModal } from './InstructionsModal';
 import { FloatingToolbar } from '@/components/candidate/sandbox/FloatingToolbar';
@@ -249,18 +250,11 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
       onPaste={handleCopyPaste}
       style={isInteractionBlocked || isSubmitting ? { pointerEvents: 'none' } : undefined}
     >
-      {isSubmitting && (
-        <div className='fixed inset-0 z-[100] bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center animate-in fade-in duration-200'>
-          <div className='w-14 h-14 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-5 shadow-lg' />
-          <h2 className='text-2xl font-bold tracking-tight'>Assessment Submitted</h2>
-          <p className='text-slate-300 text-sm mt-2 max-w-sm'>
-            Your answers have been securely submitted. Finalizing evaluation and redirecting to results...
-          </p>
-        </div>
-      )}
+
 
       <FullscreenOverlay />
       <TabWarningModal />
+      <ThankYouModal isOpen={submissionStatus === 'SUCCESS'} />
 
       {/* Top Header */}
       <header className='h-20 bg-white border-b border-slate-200 flex items-center justify-between shadow-sm pr-6 shrink-0'>

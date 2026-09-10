@@ -51,12 +51,9 @@ export function useSubmission(testId: string) {
 
       // Show a toast letting the candidate know results are being generated
       toast.success('Assessment submitted successfully!', {
-        description: 'Your results are being generated in the background. You can view them from your dashboard shortly.',
+        description: 'Thank you for completing the test. Click Go to Dashboard to return to your dashboard.',
         duration: 6000,
       });
-
-      // Redirect to the dashboard — results are generated in the background
-      router.push('/candidate/dashboard');
     } catch (error: any) {
       const isAlreadySubmitted =
         (error?.status === 409 || error?.response?.status === 409) &&
@@ -78,10 +75,9 @@ export function useSubmission(testId: string) {
           document.exitFullscreen().catch(console.error);
         }
         toast.info('Assessment already submitted.', {
-          description: 'Your results are being generated. Check your dashboard for updates.',
+          description: 'Thank you. Click Go to Dashboard to view your dashboard.',
           duration: 5000,
         });
-        router.push('/candidate/dashboard');
         return;
       }
 

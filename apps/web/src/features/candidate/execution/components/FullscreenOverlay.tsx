@@ -8,6 +8,8 @@ import { useExecutionStore } from '../stores/execution.store';
 export function FullscreenOverlay() {
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const submissionStatus = useExecutionStore((s) => s.submissionStatus);
+  const isSubmitted = submissionStatus === 'SUCCESS' || submissionStatus === 'SUBMITTING';
 
   useEffect(() => {
     setIsMounted(true);
@@ -15,7 +17,12 @@ export function FullscreenOverlay() {
     const checkFullscreen = () => {
       const isFs = !!document.fullscreenElement;
       setIsFullscreen(isFs);
-      useExecutionStore.getState().setInteractionBlocked(!isFs);
+      const currentStatus = useExecutionStore.getState().submissionStatus;
+      if (currentStatus !== 'SUCCESS' && currentStatus !== 'SUBMITTING') {
+        useExecutionStore.getState().setInteractionBlocked(!isFs);
+      } else {
+        useExecutionStore.getState().setInteractionBlocked(false);
+      }
     };
 
     // Check initial state
@@ -34,17 +41,27 @@ export function FullscreenOverlay() {
     };
   }, []);
 
+  useEffect(() => {
+    if (isSubmitted) {
+      useExecutionStore.getState().setInteractionBlocked(false);
+    }
+  }, [isSubmitted]);
+
   const requestFullscreen = async () => {
     try {
       if (document.documentElement.requestFullscreen) {
         await document.documentElement.requestFullscreen();
+      } else if ((document.documentElement as any).webkitRequestFullscreen) {
+        await (document.documentElement as any).webkitRequestFullscreen();
+      } else if ((document.documentElement as any).msRequestFullscreen) {
+        await (document.documentElement as any).msRequestFullscreen();
       }
     } catch (err) {
       console.error('Error attempting to enable fullscreen:', err);
     }
   };
 
-  if (!isMounted || isFullscreen) {
+  if (!isMounted || isFullscreen || isSubmitted) {
     return null;
   }
 

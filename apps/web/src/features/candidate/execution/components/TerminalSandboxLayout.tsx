@@ -34,6 +34,7 @@ import { useSectionTimer } from '../hooks/useSectionTimer';
 import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SubmissionModal } from './SubmissionModal';
+import { ThankYouModal } from './ThankYouModal';
 import { SectionChangeModal } from './SectionChangeModal';
 import { InstructionsModal } from './InstructionsModal';
 import { FloatingScratchPad } from '@/components/candidate/sandbox/FloatingScratchPad';
@@ -312,18 +313,11 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
       onPaste={handleCopyPaste}
       style={isInteractionBlocked || isSubmitting ? { pointerEvents: 'none' } : undefined}
     >
-      {isSubmitting && (
-        <div className='fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center animate-in fade-in duration-200'>
-          <div className='w-14 h-14 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-5 shadow-lg' />
-          <h2 className='text-2xl font-bold tracking-tight font-mono text-emerald-400'>[SYS_EXEC: SUBMITTING]</h2>
-          <p className='text-slate-400 text-sm mt-2 max-w-sm'>
-            Your assessment answers are being evaluated and securely finalized...
-          </p>
-        </div>
-      )}
+
 
       <FullscreenOverlay />
       <TabWarningModal />
+      <ThankYouModal isOpen={submissionStatus === 'SUCCESS'} />
 
       {/* Top Terminal Header */}
       <header className='h-16 bg-[#0d1117] border-b border-slate-800 px-4 md:px-6 flex items-center justify-between shadow-md shrink-0'>

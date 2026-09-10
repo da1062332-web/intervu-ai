@@ -5,6 +5,7 @@ import { QuestionRenderer } from './QuestionRenderer';
 import { QuestionPalette } from './QuestionPalette';
 import { NavigationControls } from './NavigationControls';
 import { SubmissionModal } from './SubmissionModal';
+import { ThankYouModal } from './ThankYouModal';
 import { SectionTabs } from './SectionTabs';
 import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
@@ -100,19 +101,11 @@ export function ExecutionLayout() {
       onPaste={handleCopyPaste}
       style={isInteractionBlocked || isSubmitting ? { pointerEvents: 'none' } : undefined}
     >
-      {/* Full-Screen Submission Overlay */}
-      {isSubmitting && (
-        <div className='fixed inset-0 z-100 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center animate-in fade-in duration-200'>
-          <div className='w-14 h-14 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-5 shadow-lg' />
-          <h2 className='text-2xl font-bold tracking-tight'>Assessment Submitted</h2>
-          <p className='text-slate-300 text-sm mt-2 max-w-sm'>
-            Your answers have been securely submitted. Finalizing evaluation and redirecting to results...
-          </p>
-        </div>
-      )}
+
 
       <FullscreenOverlay />
       <TabWarningModal />
+      <ThankYouModal isOpen={submissionStatus === 'SUCCESS'} />
 
       {/* Green Header Banner (with integrated sync status) */}
       <ExecutionHeader />

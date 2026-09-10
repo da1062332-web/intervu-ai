@@ -4,10 +4,14 @@ import { useTabMonitor } from '../hooks/useTabMonitor';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert } from 'lucide-react';
 
+import { useExecutionStore } from '../stores/execution.store';
+
 export function TabWarningModal() {
   const { showWarning, dismissWarning, tabHiddenCount } = useTabMonitor();
+  const submissionStatus = useExecutionStore((s) => s.submissionStatus);
+  const isSubmitted = submissionStatus === 'SUCCESS' || submissionStatus === 'SUBMITTING';
 
-  if (!showWarning) return null;
+  if (!showWarning || isSubmitted) return null;
 
   return (
     <div className='fixed inset-0 z-[99999] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in duration-200'>
