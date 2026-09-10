@@ -234,8 +234,8 @@ export class SubmissionService {
           return { submission, executionResult };
         },
         {
-          timeout: 25000,
-          maxWait: 10000,
+          timeout: 90000,
+          maxWait: 60000,
         },
       );
 

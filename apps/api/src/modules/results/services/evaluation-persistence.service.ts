@@ -109,8 +109,8 @@ export class EvaluationPersistenceService {
         );
       },
       {
-        maxWait: 25000, // 25 seconds max wait to acquire connection
-        timeout: 35000, // 35 seconds max execution timeout
+        maxWait: 60000, // 60 seconds max wait to acquire connection
+        timeout: 120000, // 120 seconds max execution timeout
       },
     );
   }

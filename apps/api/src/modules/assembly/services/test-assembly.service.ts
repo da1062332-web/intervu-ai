@@ -187,9 +187,21 @@ export class AssemblyService {
           );
           if (claimed) {
             const tClaim = Date.now();
+            const totalDurationSeconds =
+              (currentBlueprint as any)?.totalDurationSeconds ||
+              (Array.isArray(claimed.sectionsJson)
+                ? claimed.sectionsJson
+                : (claimed.sectionsJson as any)?.sections || []
+              ).reduce(
+                (sum: number, s: any) => sum + (Number(s.durationSeconds) || 0),
+                0,
+              ) ||
+              3600;
+
             const instanceId = await this.persistenceService.materializePregeneratedInstanceForCandidate(
               claimed,
               userId,
+              totalDurationSeconds,
             );
             this.logger.log(`  [ASSEMBLY ⚡🚀] FLOW 0 (PRE-GEN POOL) COMPLETE in ${Date.now() - tClaim}ms -> Instance: ${instanceId}`);
             return instanceId;

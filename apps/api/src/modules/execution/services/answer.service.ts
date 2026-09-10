@@ -72,24 +72,37 @@ export class AnswerService {
       }
 
       // 6a. Validate that the question's section is not locked (Feature 7)
-      const questionSection = await tx.testInstanceQuestion.findFirst({
-        where: { testInstanceId, questionId: dto.questionId },
-        include: { section: true },
-      });
-      if (
-        questionSection?.section?.status === "LOCKED" ||
-        questionSection?.section?.status === "COMPLETED" ||
-        questionSection?.section?.status === "EXPIRED"
-      ) {
-        this.logger.warn("Answer rejected: section is locked", {
-          testInstanceId,
-          questionId: dto.questionId,
-          sectionStatus: questionSection?.section?.status,
+      const configId =
+        testInstance.examConfigId || (testInstance as any).testConfigId;
+      let allowSectionNav = false;
+      if (configId) {
+        const examConfig = await tx.examConfig.findUnique({
+          where: { id: configId },
+          include: { ruleFlags: true },
         });
-        throw new BadRequestException({
-          code: "SECTION_LOCKED",
-          message: "This section is locked and no longer accepts answers.",
+        allowSectionNav = examConfig?.ruleFlags?.allowSectionNavigation ?? false;
+      }
+
+      if (!allowSectionNav) {
+        const questionSection = await tx.testInstanceQuestion.findFirst({
+          where: { testInstanceId, questionId: dto.questionId },
+          include: { section: true },
         });
+        if (
+          questionSection?.section?.status === "LOCKED" ||
+          questionSection?.section?.status === "COMPLETED" ||
+          questionSection?.section?.status === "EXPIRED"
+        ) {
+          this.logger.warn("Answer rejected: section is locked", {
+            testInstanceId,
+            questionId: dto.questionId,
+            sectionStatus: questionSection?.section?.status,
+          });
+          throw new BadRequestException({
+            code: "SECTION_LOCKED",
+            message: "This section is locked and no longer accepts answers.",
+          });
+        }
       }
 
       // 6. Validate question
@@ -139,6 +152,10 @@ export class AnswerService {
         questionId: dto.questionId,
       });
       return { status: "saved" };
+    },
+    {
+      timeout: 60000,
+      maxWait: 30000,
     });
   }
 }

@@ -374,6 +374,7 @@ export class GenerationOrchestratorService {
 
               return q;
             },
+            { maxWait: 60000, timeout: 120000 },
           );
 
           // Increment template usage cache

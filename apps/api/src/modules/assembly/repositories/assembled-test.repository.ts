@@ -58,7 +58,7 @@ export class AssembledTestRepository {
 
           return assembly.id;
         },
-        { maxWait: 10000, timeout: 60000 },
+        { maxWait: 60000, timeout: 180000 },
       );
 
       return result;
@@ -119,7 +119,7 @@ export class AssembledTestRepository {
             }
           }
         },
-        { maxWait: 10000, timeout: 60000 },
+        { maxWait: 60000, timeout: 180000 },
       );
     } catch (error) {
       throw new InternalServerErrorException(

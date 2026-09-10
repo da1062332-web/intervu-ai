@@ -593,8 +593,8 @@ export class TemplateService {
         return variable;
       },
       {
-        maxWait: 15000,
-        timeout: 30000,
+        maxWait: 60000,
+        timeout: 120000,
       },
     );
   }
@@ -661,8 +661,8 @@ export class TemplateService {
         return updated;
       },
       {
-        maxWait: 15000,
-        timeout: 30000,
+        maxWait: 60000,
+        timeout: 120000,
       },
     );
   }
@@ -714,8 +714,8 @@ export class TemplateService {
         return { id };
       },
       {
-        maxWait: 15000,
-        timeout: 30000,
+        maxWait: 60000,
+        timeout: 120000,
       },
     );
   }
@@ -769,8 +769,8 @@ export class TemplateService {
         return rule;
       },
       {
-        maxWait: 15000,
-        timeout: 30000,
+        maxWait: 60000,
+        timeout: 120000,
       },
     );
   }
@@ -822,8 +822,8 @@ export class TemplateService {
         return updated;
       },
       {
-        maxWait: 15000,
-        timeout: 30000,
+        maxWait: 60000,
+        timeout: 120000,
       },
     );
   }
@@ -853,8 +853,8 @@ export class TemplateService {
         return { id };
       },
       {
-        maxWait: 15000,
-        timeout: 30000,
+        maxWait: 60000,
+        timeout: 120000,
       },
     );
   }

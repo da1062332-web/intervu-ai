@@ -54,6 +54,7 @@ export const executionService = {
       currentQuestionIndex: response.currentQuestionIndex ?? 0,
       serverTime: response.serverTime ?? new Date().toISOString(),
       sandboxUi: response.sandboxUi ?? 'DEFAULT',
+      allowSectionNavigation: response.allowSectionNavigation ?? true,
 
       sections:
         response.sections?.map((section: any) => ({

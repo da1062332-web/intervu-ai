@@ -44,6 +44,7 @@ export interface AssessmentSnapshotResponse {
   candidateName?: string;
   assessmentName?: string;
   sandboxUi?: string;
+  allowSectionNavigation?: boolean;
   sections: SectionSnapshot[];
 }
 
@@ -112,8 +113,9 @@ export class ExecutionService {
     }
     this.logger.info(`[EXECUTION ✅] Deep snapshot loaded from DB in ${Date.now() - tDb}ms (Sections: ${snapshot.sections?.length})`);
 
-    // 4. Determine sectionTimingEnabled and sandboxUi from ExamConfig -> RuleFlags
+    // 4. Determine sectionTimingEnabled, allowSectionNavigation and sandboxUi from ExamConfig -> RuleFlags
     let sectionTimingEnabled = false;
+    let allowSectionNavigation = false;
     let sandboxUi = "DEFAULT";
     const configId =
       (testInstance as any).examConfigId ||
@@ -129,6 +131,8 @@ export class ExecutionService {
       });
       sectionTimingEnabled =
         examConfig?.ruleFlags?.sectionTimingEnabled ?? false;
+      allowSectionNavigation =
+        examConfig?.ruleFlags?.allowSectionNavigation ?? false;
       sandboxUi = (examConfig as any)?.sandboxUi ?? "DEFAULT";
     } else if (snapshot.examConfig?.sandboxUi) {
       sandboxUi = snapshot.examConfig.sandboxUi;
@@ -157,9 +161,10 @@ export class ExecutionService {
       }
     }
 
-    // Fallback to fetch templateId and mcqData from Question model if missing in snapshot
+    // Fallback to fetch templateId, mcqData, and codingData from Question model if missing in snapshot
     const questionTemplateMap = new Map<string, string>();
     const questionMcqDataMap = new Map<string, any>();
+    const questionCodingDataMap = new Map<string, any>();
     const questionMetaMap = new Map<string, any>();
     if (questionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
@@ -168,6 +173,7 @@ export class ExecutionService {
           id: true,
           templateId: true,
           mcqData: true,
+          codingData: true,
           metadata: true,
           questionStatement: true,
           instructions: true,
@@ -180,6 +186,10 @@ export class ExecutionService {
         }
         if (q.mcqData) {
           questionMcqDataMap.set(q.id, q.mcqData);
+        }
+        const coding = q.codingData || (q.metadata as any)?.codingData || q.metadata;
+        if (coding && (coding.publicTests || coding.oracleKey || coding.hiddenTests)) {
+          questionCodingDataMap.set(q.id, coding);
         }
         questionMetaMap.set(q.id, {
           questionStatement: q.questionStatement,
@@ -308,6 +318,11 @@ export class ExecutionService {
                   meta.questionStatement;
               if (meta?.instructions)
                 candidateSafeSnapshot.instructions = meta.instructions;
+            }
+
+            // If candidate snapshot is missing codingData, populate from DB map
+            if (!candidateSafeSnapshot.codingData && questionCodingDataMap.has(q.questionId)) {
+              candidateSafeSnapshot.codingData = questionCodingDataMap.get(q.questionId);
             }
 
             // Sanitize codingData for Candidate API boundary (strip hidden/stress/boundary test data & expected outputs)
@@ -463,6 +478,7 @@ export class ExecutionService {
         snapshot.testConfig?.name ||
         "Candidate Assessment",
       sandboxUi,
+      allowSectionNavigation,
       sections: sectionsWithStatus,
     };
 

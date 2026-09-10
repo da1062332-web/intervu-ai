@@ -287,8 +287,8 @@ export class QuestionRotationService {
         expiresAt: expiresAt.toISOString(),
       };
     }, {
-      maxWait: 15000,
-      timeout: 30000,
+      maxWait: 60000,
+      timeout: 120000,
     });
   }
 

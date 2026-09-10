@@ -125,7 +125,7 @@ export class ResultStorageService {
           },
         });
       },
-      { timeout: 30000 },
+      { timeout: 120000, maxWait: 60000 },
     );
   }
 

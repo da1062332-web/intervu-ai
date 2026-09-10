@@ -76,7 +76,41 @@ export class CodingContextResolverService {
       const snapshot =
         testInstanceQuestion.questionSnapshot || testInstanceQuestion;
 
-      const codingData = this.extractOrSynthesizeCodingData(snapshot);
+      let codingData = this.extractOrSynthesizeCodingData(snapshot);
+
+      // Fallback 1: If snapshot is missing codingData, check master Question table
+      const actualQuestionId = testInstanceQuestion.questionId || questionId;
+      if (!codingData && actualQuestionId) {
+        const masterQuestion = await this.prisma.question.findUnique({
+          where: { id: actualQuestionId },
+        });
+        if (masterQuestion) {
+          codingData = this.extractOrSynthesizeCodingData(masterQuestion);
+          if (codingData) {
+            snapshot.codingData = codingData;
+            if (!snapshot.questionText && masterQuestion.questionText) {
+              snapshot.questionText = masterQuestion.questionText;
+            }
+          }
+        }
+      }
+
+      // Fallback 2: Check GeneratedQuestion table
+      if (!codingData && actualQuestionId && this.prisma.generatedQuestion) {
+        const genQ = await this.prisma.generatedQuestion.findUnique({
+          where: { id: actualQuestionId },
+        });
+        if (genQ) {
+          codingData = this.extractOrSynthesizeCodingData(genQ);
+          if (codingData) {
+            snapshot.codingData = codingData;
+            if (!snapshot.questionText && genQ.questionText) {
+              snapshot.questionText = genQ.questionText;
+            }
+          }
+        }
+      }
+
       if (!codingData) {
         throw new BadRequestException(
           `Question ${questionId} is missing coding test data.`,
@@ -154,9 +188,21 @@ export class CodingContextResolverService {
       snapshot.codingData || (snapshot.metadata as any)?.codingData;
     if (
       codingData &&
-      (Array.isArray(codingData.publicTests) || codingData.oracleKey)
+      (Array.isArray(codingData.publicTests) ||
+        codingData.oracleKey ||
+        Array.isArray(codingData.hiddenTests))
     ) {
       return codingData;
+    }
+
+    // Check if metadata itself contains coding test definition
+    if (
+      snapshot.metadata &&
+      (Array.isArray(snapshot.metadata.publicTests) ||
+        snapshot.metadata.oracleKey ||
+        Array.isArray(snapshot.metadata.hiddenTests))
+    ) {
+      return snapshot.metadata;
     }
 
     // Attempt fallback from instructions or testCases in metadata for legacy questions
