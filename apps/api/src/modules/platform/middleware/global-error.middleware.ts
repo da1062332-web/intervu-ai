@@ -75,11 +75,17 @@ export class GlobalErrorFilter implements ExceptionFilter {
       }
     }
 
-    const stack = exception instanceof Error ? exception.stack : undefined;
-    this.logger.error(
-      `[GlobalErrorFilter] Error details: Status: ${status}, Code: ${errorCode}, Message: ${message}, TraceId: ${traceId}`,
-      stack,
-    );
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+      const stack = exception instanceof Error ? exception.stack : undefined;
+      this.logger.error(
+        `[GlobalErrorFilter] Server Error: Status: ${status}, Code: ${errorCode}, Message: ${message}, TraceId: ${traceId}`,
+        stack,
+      );
+    } else {
+      this.logger.warn(
+        `[GlobalErrorFilter] Client Warning: Status: ${status}, Code: ${errorCode}, Message: ${message}, TraceId: ${traceId}`,
+      );
+    }
 
     // SEC-003: Mask internal server error messages in production to prevent information disclosure
     const isProduction =

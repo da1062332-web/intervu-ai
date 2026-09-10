@@ -25,9 +25,9 @@ export class AppLogger {
     const isDev =
       options.isDevelopment ?? process.env.NODE_ENV === "development";
 
-    this.logger = pino({
+    const pinoOptions: pino.LoggerOptions = {
       name: options.name,
-      level: options.level || "info",
+      level: options.level || process.env.LOG_LEVEL || "info",
       redact: {
         paths: [
           "password",
@@ -53,7 +53,12 @@ export class AppLogger {
             },
           }
         : undefined,
-    });
+    };
+
+    // Explicitly write to process.stdout (file descriptor 1) in production so hosting environments (e.g. Render) treat logs as standard output
+    this.logger = isDev
+      ? pino(pinoOptions)
+      : pino(pinoOptions, pino.destination(1));
   }
 
   setContext(context: Partial<LogContext>): void {
@@ -65,7 +70,7 @@ export class AppLogger {
   }
 
   info(message: string, data?: Record<string, unknown>): void {
-    this.logger.info({ ...this.getContext(), ...data }, message);
+    this.logger.info({ ...this.getContext(), ...(data || {}) }, message);
   }
 
   error(
@@ -73,25 +78,57 @@ export class AppLogger {
     error?: Error | unknown,
     data?: Record<string, unknown>,
   ): void {
-    const errorData =
-      error instanceof Error
-        ? { error: error.message, stack: error.stack }
-        : typeof error === "object" && error !== null
-          ? error
-          : { error };
-    this.logger.error({ ...this.getContext(), ...errorData, ...data }, message);
+    const errorData: Record<string, unknown> = {};
+    if (error instanceof Error) {
+      errorData.error = {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      };
+    } else if (typeof error === "object" && error !== null) {
+      errorData.error = error;
+    } else if (error !== undefined) {
+      errorData.error = { message: String(error) };
+    }
+
+    this.logger.error(
+      { ...this.getContext(), ...errorData, ...(data || {}) },
+      message,
+    );
   }
 
-  warn(message: string, data?: Record<string, unknown>): void {
-    this.logger.warn({ ...this.getContext(), ...data }, message);
+  warn(
+    message: string,
+    dataOrError?: Record<string, unknown> | Error | unknown,
+    data?: Record<string, unknown>,
+  ): void {
+    if (dataOrError instanceof Error) {
+      const errorData = {
+        error: {
+          message: dataOrError.message,
+          name: dataOrError.name,
+        },
+      };
+      this.logger.warn(
+        { ...this.getContext(), ...errorData, ...(data || {}) },
+        message,
+      );
+    } else if (typeof dataOrError === "object" && dataOrError !== null) {
+      this.logger.warn(
+        { ...this.getContext(), ...dataOrError, ...(data || {}) },
+        message,
+      );
+    } else {
+      this.logger.warn({ ...this.getContext(), ...(data || {}) }, message);
+    }
   }
 
   debug(message: string, data?: Record<string, unknown>): void {
-    this.logger.debug({ ...this.getContext(), ...data }, message);
+    this.logger.debug({ ...this.getContext(), ...(data || {}) }, message);
   }
 
   trace(message: string, data?: Record<string, unknown>): void {
-    this.logger.trace({ ...this.getContext(), ...data }, message);
+    this.logger.trace({ ...this.getContext(), ...(data || {}) }, message);
   }
 
   fatal(
@@ -99,13 +136,23 @@ export class AppLogger {
     error?: Error | unknown,
     data?: Record<string, unknown>,
   ): void {
-    const errorData =
-      error instanceof Error
-        ? { error: error.message, stack: error.stack }
-        : typeof error === "object" && error !== null
-          ? error
-          : { error };
-    this.logger.fatal({ ...this.getContext(), ...errorData, ...data }, message);
+    const errorData: Record<string, unknown> = {};
+    if (error instanceof Error) {
+      errorData.error = {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      };
+    } else if (typeof error === "object" && error !== null) {
+      errorData.error = error;
+    } else if (error !== undefined) {
+      errorData.error = { message: String(error) };
+    }
+
+    this.logger.fatal(
+      { ...this.getContext(), ...errorData, ...(data || {}) },
+      message,
+    );
   }
 
   generateCorrelationId(): string {
