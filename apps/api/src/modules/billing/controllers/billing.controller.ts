@@ -87,6 +87,7 @@ export class BillingController {
   ) {
     const planSlug = body?.planSlug || body?.plan || "FREE";
     const subscription = await this.subscriptionService.subscribeFree(user.id, planSlug);
+    this.entitlementService.invalidateCache(user.id);
     const entitlements = await this.entitlementService.getUserEntitlements(user.id);
     
     // FIX-04: Invalidate dashboard cache immediately after subscription to prevent stale refetches

@@ -109,7 +109,7 @@ async function main() {
     data: {
       questionTitle: "Fuel Consumption Calculation",
       questionText: "Fuel Consumption Calculation",
-      questionStatement: "### Problem Statement\nWrite a program to calculate fuel consumption. Given the distance travelled in kilometers and the fuel consumed in liters, calculate the fuel consumption in liters per 100 km. If fuel consumed is <= 0 or distance <= 0, return -1.\n\n### Examples\n#### Example 1\n**Input:** `{\"distance\": 500, \"fuel\": 50}`\n**Output:** `{\"result\": 10}`\n\n#### Example 2\n**Input:** `{\"distance\": -10, \"fuel\": 20}`\n**Output:** `{\"result\": -1}`",
+      questionStatement: "### Problem Statement\nWrite a program to calculate fuel consumption. Given the distance travelled in kilometers and the fuel consumed in liters, calculate the fuel consumption in liters per 100 km. If fuel consumed is <= 0 or distance <= 0, return -1.\n\n### Examples\n#### Example 1\n**Input:** `distance = 500, fuel = 50`\n**Output:** `10`\n\n#### Example 2\n**Input:** `distance = -10, fuel = 20`\n**Output:** `-1`",
       answer: "return (distance > 0 && fuel > 0) ? (fuel / distance) * 100 : -1",
       explanation: "Calculate (fuel/distance)*100.",
       topicId: topicIds["CODING_BASIC_IO"], // Basic Programming / Mathematics / Conditions
@@ -151,7 +151,7 @@ async function main() {
     data: {
       questionTitle: "Billing Calculation",
       questionText: "Billing Calculation",
-      questionStatement: "### Problem Statement\nWrite a program to calculate the total bill amount. Given an array of item prices and an array of quantities, compute the total bill. Apply a 10% discount if the total exceeds 1000.\n\n### Examples\n#### Example 1\n**Input:** `{\"prices\": [100, 200], \"quantities\": [2, 3]}`\n**Output:** `{\"result\": 800}`\n\n#### Example 2\n**Input:** `{\"prices\": [500, 600], \"quantities\": [1, 1]}`\n**Output:** `{\"result\": 990}`",
+      questionStatement: "### Problem Statement\nWrite a program to calculate the total bill amount. Given an array of item prices and an array of quantities, compute the total bill. Apply a 10% discount if the total exceeds 1000.\n\n### Examples\n#### Example 1\n**Input:** `prices = [100, 200], quantities = [2, 3]`\n**Output:** `800`\n\n#### Example 2\n**Input:** `prices = [500, 600], quantities = [1, 1]`\n**Output:** `990`",
       answer: "let total = 0; for(let i=0;i<prices.length;i++) total += prices[i]*quantities[i]; return total > 1000 ? total * 0.9 : total;",
       explanation: "Calculate sum of products and apply discount if > 1000",
       topicId: topicIds["CODING_ARRAYS"], // Arrays / Strings / Logical Problem Solving

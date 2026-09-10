@@ -320,7 +320,25 @@ export class AssemblyPersistenceService {
         }),
       );
 
-      for (const section of sections) {
+      // Randomize question and option order for candidate test instance so no two candidates get identical sequences
+      let candidateSections = sections;
+      if (this.finalShuffler) {
+        const ruleFlags = await this.prisma.ruleFlags.findUnique({
+          where: { examConfigId: configId },
+        });
+        const shuffleQuestions = ruleFlags?.shuffleQuestionsEnabled !== false;
+        const shuffleOptions = ruleFlags?.shuffleOptionsEnabled !== false;
+
+        if (shuffleQuestions || shuffleOptions) {
+          candidateSections = this.finalShuffler.shuffleSections(
+            sections as any,
+            { shuffleQuestionsEnabled: shuffleQuestions, shuffleOptionsEnabled: shuffleOptions },
+          ) as any;
+          this.logger.log(`    [SAVE-ASSEMBLY 🔀] Applied candidate shuffle (Questions: ${shuffleQuestions}, Options: ${shuffleOptions})`);
+        }
+      }
+
+      for (const section of candidateSections) {
         const sectionId = `sec_inst_${assemblyId}_${section.sectionKey}`;
         queries.push(
           this.prisma.testInstanceSection.create({
@@ -364,6 +382,9 @@ export class AssemblyPersistenceService {
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(id);
+      if (assembly) {
+        assembly.sourceType = "ASSEMBLED_TEST";
+      }
     } catch {
       console.warn(`Fallback to testInstance in persistence for ${id}`);
     }
@@ -372,6 +393,10 @@ export class AssemblyPersistenceService {
       const fallback = await this.testInstanceRepository.findById(id);
       if (fallback && fallback.sections && fallback.sections.length > 0) {
         assembly = fallback;
+        // Candidate test instances are not master assemblies: they have no
+        // AssembledTest row, so anything that writes against that FK (version
+        // snapshots, publish) must refuse to run against this id.
+        assembly.sourceType = "TEST_INSTANCE";
       }
     }
 

@@ -12,6 +12,7 @@ import {
 } from "@intervu/shared";
 import { GlobalErrorFilter } from "./modules/platform/middleware/global-error.middleware";
 import { ObservabilityInterceptor } from "./common/monitoring/observability.interceptor";
+import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor";
 import { RedisConnectionManager } from "./cache";
 import { AppConfigService } from "./config";
 
@@ -63,6 +64,7 @@ async function bootstrap() {
   // Global Interceptors
   const reflector = app.get(Reflector);
   app.useGlobalInterceptors(
+    new TimeoutInterceptor(),
     new ResponseInterceptor(),
     new ResponseValidationInterceptor(reflector),
     new ObservabilityInterceptor(),

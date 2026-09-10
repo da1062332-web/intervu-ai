@@ -25,6 +25,12 @@ export class AssemblyVersionService {
     // 1. Get the current snapshot
     const assembly = await this.persistenceService.getAssembly(assemblyId);
 
+    if (assembly.sourceType === "TEST_INSTANCE") {
+      throw new BadRequestException(
+        `"${assemblyId}" is a candidate test instance, not a master assembly. Version snapshots and publishing only apply to master assemblies created via "Save Assembly" — there is nothing to version here.`,
+      );
+    }
+
     let nextVersion = 1;
     try {
       nextVersion =
@@ -71,15 +77,14 @@ export class AssemblyVersionService {
       });
     } catch (error) {
       console.error(`Version creation failed for ${assemblyId}:`, error);
-      console.warn(
-        `Skipping version creation for ${assemblyId} due to missing table or TestInstance mismatch`,
+      // Never fake success here: a caller relying on a fabricated version
+      // record would see a "created" toast for a snapshot that was never
+      // persisted, then find it silently missing from listVersions().
+      throw new BadRequestException(
+        `Failed to create version snapshot for assembly ${assemblyId}: ${
+          error instanceof Error ? error.message : "Unknown database error"
+        }`,
       );
-      versionRecord = {
-        id: `mock-version-${Date.now()}`,
-        version: nextVersion,
-        assemblyId,
-        createdAt: new Date(),
-      };
     }
 
     return versionRecord;

@@ -36,6 +36,16 @@ export class QuestionBankSource implements IQuestionSource {
   >();
   private readonly CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
+  private readonly poolCountCache = new Map<
+    string,
+    {
+      manualCount: number;
+      templateCount: number;
+      cachedAt: number;
+    }
+  >();
+  private readonly POOL_COUNT_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+
   constructor(
     private readonly rotationService: QuestionRotationService,
     private readonly legacyPool: QuestionPoolRepository,
@@ -129,38 +139,56 @@ export class QuestionBankSource implements IQuestionSource {
     const conceptCodes =
       (topic as any)?.concepts?.map((c: any) => c.code) || [];
 
-    const [manualCount, templateCount] = await Promise.all([
-      this.prisma.question.count({
-        where: {
-          status: "ACTIVE",
-          ...(hasExplicitDifficulty ? { difficulty } : {}),
-          OR: [
-            ...(isCodingTopic ? [{ questionType: "CODING" }] : []),
-            { topicId: topicId },
-            { topicId: resolvedCode },
-            { concept: { topicId: topicId } },
-            { concept: { code: resolvedCode.toUpperCase() } },
-          ],
-          ...(effectiveExcludeIds.length > 0 ? { id: { notIn: effectiveExcludeIds } } : {}),
-        },
-      }),
-      this.prisma.template.count({
-        where: {
-          isActive: true,
-          deletedAt: null,
-          ...(hasExplicitDifficulty ? { difficultyLevel: difficulty } : {}),
-          OR: [
-            {
-              conceptKey: {
-                in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode],
+    const countCacheKey = `${topicId}_${hasExplicitDifficulty ? difficulty : "ALL"}_${isCodingTopic}`;
+    let manualCount = 0;
+    let templateCount = 0;
+    const cachedCounts = this.poolCountCache.get(countCacheKey);
+
+    if (effectiveExcludeIds.length === 0 && cachedCounts && (Date.now() - cachedCounts.cachedAt < this.POOL_COUNT_CACHE_TTL_MS)) {
+      manualCount = cachedCounts.manualCount;
+      templateCount = cachedCounts.templateCount;
+    } else {
+      [manualCount, templateCount] = await Promise.all([
+        this.prisma.question.count({
+          where: {
+            status: "ACTIVE",
+            ...(hasExplicitDifficulty ? { difficulty } : {}),
+            OR: [
+              ...(isCodingTopic ? [{ questionType: "CODING" }] : []),
+              { topicId: topicId },
+              { topicId: resolvedCode },
+              { concept: { topicId: topicId } },
+              { concept: { code: resolvedCode.toUpperCase() } },
+            ],
+            ...(effectiveExcludeIds.length > 0 ? { id: { notIn: effectiveExcludeIds } } : {}),
+          },
+        }),
+        this.prisma.template.count({
+          where: {
+            isActive: true,
+            deletedAt: null,
+            ...(hasExplicitDifficulty ? { difficultyLevel: difficulty } : {}),
+            OR: [
+              {
+                conceptKey: {
+                  in: conceptCodes.length > 0 ? conceptCodes : [resolvedCode],
+                },
               },
-            },
-            { conceptKey: resolvedCode },
-            { conceptKey: topicId },
-          ],
-        },
-      }),
-    ]);
+              { conceptKey: resolvedCode },
+              { conceptKey: topicId },
+            ],
+          },
+        }),
+      ]);
+
+      if (effectiveExcludeIds.length === 0) {
+        this.poolCountCache.set(countCacheKey, {
+          manualCount,
+          templateCount,
+          cachedAt: Date.now(),
+        });
+      }
+    }
 
     const totalPool = manualCount + templateCount;
 
@@ -251,7 +279,9 @@ export class QuestionBankSource implements IQuestionSource {
           };
 
           const response =
-            await this.rotationService.retrieveAndReserve(actualReq);
+            await this.rotationService.retrieveAndReserve(actualReq, {
+              skipAvailabilityCheck: true,
+            });
           const mapped = response.questions.map((q) =>
             this.mapToGeneratedQuestion(q, q.difficulty || difficulty),
           );

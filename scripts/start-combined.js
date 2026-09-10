@@ -59,6 +59,9 @@ if (missingEnv.length > 0) {
 }
 console.log("✅ Environment variables validated.");
 
+process.env.INTERNAL_SERVICE_TOKEN =
+  process.env.INTERNAL_SERVICE_TOKEN || "internal_secret_token";
+
 const dbUrl = process.env.DATABASE_URL || "";
 if (dbUrl.includes(":6543")) {
   console.log("⚡ [Database] Supabase Transaction Pooler (:6543) detected — pooling enabled.");
@@ -117,6 +120,8 @@ function retry() {
 
 function startWorker() {
   try {
+    process.env.INTERNAL_API_URL =
+      process.env.INTERNAL_API_URL || `http://127.0.0.1:${port}/api/v1`;
     require(path.join(__dirname, "../apps/worker/dist/apps/worker/src/main"));
     console.log("🚀 Worker bootstrapped successfully.");
     global.isWorkerInitialized = true; // Sets flag for readiness checks

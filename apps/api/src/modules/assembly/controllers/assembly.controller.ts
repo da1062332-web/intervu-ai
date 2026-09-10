@@ -270,10 +270,17 @@ export class AssemblyController {
       examConfig?: any;
       testConfig?: any;
       name?: string;
+      sourceType?: string;
     } = {
       id: instance.id,
       configId: instance.configId ?? instance.testConfigId,
       status: instance.status ?? "CREATED",
+      // Lets the admin UI tell a master assembly (versionable/publishable)
+      // apart from a per-candidate TestInstance (neither applies to it).
+      // Falls back to inferring from userId when this came from the
+      // secondary assemblyRepository.findById fallback above, which
+      // doesn't go through persistenceService.getAssembly's tagging.
+      sourceType: instance.sourceType ?? (instance.userId ? "TEST_INSTANCE" : "ASSEMBLED_TEST"),
       name:
         instance.examConfig?.name ||
         instance.testConfig?.displayName ||

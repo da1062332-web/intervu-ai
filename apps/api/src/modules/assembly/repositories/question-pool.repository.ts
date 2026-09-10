@@ -9,6 +9,12 @@ import {
 
 @Injectable()
 export class QuestionPoolRepository implements IQuestionSource {
+  private readonly questionByIdCache = new Map<
+    string,
+    { question: GeneratedQuestion; cachedAt: number }
+  >();
+  private readonly CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async fetchQuestions(filters: QuestionFilters): Promise<GeneratedQuestion[]> {
@@ -146,21 +152,68 @@ export class QuestionPoolRepository implements IQuestionSource {
     return Array.from(recentIds);
   }
 
+  seedQuestions(questions: any[]) {
+    const now = Date.now();
+    for (const q of questions) {
+      if (!q || !q.id) continue;
+      const mapped =
+        q.questionText !== undefined && q.questionHash !== undefined
+          ? q
+          : this.mapQuestionToGeneratedQuestion(q);
+      this.questionByIdCache.set(q.id, { question: mapped, cachedAt: now });
+    }
+  }
+
   async getQuestionsByIds(ids: string[]) {
     if (ids.length === 0) return [];
 
+    const now = Date.now();
+    const result: GeneratedQuestion[] = [];
+    const missingIds: string[] = [];
+
+    for (const id of ids) {
+      const cached = this.questionByIdCache.get(id);
+      if (cached && now - cached.cachedAt < this.CACHE_TTL_MS) {
+        if (cached.question) {
+          result.push(cached.question);
+        }
+      } else {
+        missingIds.push(id);
+      }
+    }
+
+    if (missingIds.length === 0) {
+      return result;
+    }
+
     const [generatedQuestions, realQuestions] = await Promise.all([
       this.prisma.generatedQuestion.findMany({
-        where: { id: { in: ids } },
+        where: { id: { in: missingIds } },
       }),
       this.prisma.question.findMany({
-        where: { id: { in: ids } },
+        where: { id: { in: missingIds } },
       }),
     ]);
 
-    return [
+    const fetched = [
       ...generatedQuestions,
       ...realQuestions.map((q) => this.mapQuestionToGeneratedQuestion(q)),
     ];
+
+    const foundIds = new Set<string>();
+    for (const q of fetched) {
+      foundIds.add(q.id);
+      this.questionByIdCache.set(q.id, { question: q, cachedAt: now });
+      result.push(q);
+    }
+
+    // Negative caching: mark unfound IDs so subsequent iterations never re-query WAN
+    for (const id of missingIds) {
+      if (!foundIds.has(id)) {
+        this.questionByIdCache.set(id, { question: null as any, cachedAt: now });
+      }
+    }
+
+    return result;
   }
 }

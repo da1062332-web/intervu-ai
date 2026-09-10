@@ -10,13 +10,23 @@ export class KeepAliveService {
 
   @Cron("*/10 * * * *")
   async handleCron() {
-    const healthUrl = this.configService.get<string>("BACKEND_HEALTH_URL");
+    let healthUrl =
+      this.configService.get<string>("BACKEND_HEALTH_URL") ||
+      process.env.BACKEND_HEALTH_URL;
 
-    if (!healthUrl) {
-      this.logger.warn(
-        "BACKEND_HEALTH_URL is not set. Keep-alive ping skipped.",
-      );
-      return;
+    if (healthUrl) {
+      healthUrl = healthUrl.replace(/\/+$/, "");
+      if (!healthUrl.endsWith("/api/v1/health") && !healthUrl.endsWith("/health")) {
+        healthUrl = `${healthUrl}/api/v1/health`;
+      }
+    } else {
+      const renderExternalUrl = process.env.RENDER_EXTERNAL_URL;
+      if (renderExternalUrl) {
+        healthUrl = `${renderExternalUrl.replace(/\/+$/, "")}/api/v1/health`;
+      } else {
+        const port = process.env.PORT || 7860;
+        healthUrl = `http://127.0.0.1:${port}/api/v1/health`;
+      }
     }
 
     // Get current hour in IST timezone

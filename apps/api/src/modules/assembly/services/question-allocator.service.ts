@@ -7,8 +7,8 @@ import {
 import { BlueprintSectionDto } from "@intervu/shared";
 import { AllocatedQuestionDto } from "@intervu/shared";
 
-import { AntiRepetitionService } from "./anti-repetition.service";
-import { DifficultyLevel } from "@prisma/client";
+import { AntiRepetitionService, PoolQuestion } from "./anti-repetition.service";
+import { DifficultyLevel, GeneratedQuestion } from "@prisma/client";
 import {
   IQuestionSource,
   QUESTION_SOURCE_TOKEN,
@@ -22,6 +22,7 @@ import {
   extractAndNormalizeOptions,
   extractStringFromOption,
 } from "../../generation-ai/utils/display-value-formatter";
+import { shuffleArray } from "../../tests/utils/shuffle.util";
 
 export interface AllocationConfig {
   distribution: {
@@ -30,6 +31,16 @@ export interface AllocationConfig {
     HARD: number;
   };
 }
+
+export type PreloadedTopicPool = Map<
+  string,
+  {
+    EASY: GeneratedQuestion[];
+    MEDIUM: GeneratedQuestion[];
+    HARD: GeneratedQuestion[];
+    ALL: GeneratedQuestion[];
+  }
+>;
 
 interface DifficultyTargetMap {
   EASY: number;
@@ -312,11 +323,13 @@ export class QuestionAllocatorService {
     historyIds: string[],
     fallbackConfig: AllocationConfig,
     examId?: string,
+    preloadedPool?: PreloadedTopicPool,
   ): Promise<AllocatedQuestionDto[]> {
     const totalQuestions = section.questionCount;
     if (totalQuestions <= 0) return [];
 
     const allocatedQuestions: AllocatedQuestionDto[] = [];
+    const allocatedPoolQuestions: PoolQuestion[] = [];
     let orderCounter = 1;
 
     const diffConfig =
@@ -357,29 +370,39 @@ export class QuestionAllocatorService {
         const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
         const selectedForTopic: AllocatedQuestionDto[] = [];
 
-        const tFetch = Date.now();
-        const questions = await this.questionSource.fetchQuestions({
-          conceptKey: topicAlloc.topicId,
-          difficultyLevel: undefined,
-          limit: topicCount * 5,
-          excludeIds: Array.from(currentlyExcludedIds),
-          examId,
-          questionType: "",
-        });
-        const fetchMs = Date.now() - tFetch;
+        let questions: GeneratedQuestion[] = [];
+        const bucket = preloadedPool?.get(topicAlloc.topicId);
+        if (bucket && bucket.ALL.length > 0) {
+          questions = bucket.ALL.filter((q) => !currentlyExcludedIds.has(q.id));
+        }
+
+        if (!preloadedPool && questions.length === 0) {
+          const tFetch = Date.now();
+          questions = await this.questionSource.fetchQuestions({
+            conceptKey: topicAlloc.topicId,
+            difficultyLevel: undefined,
+            limit: topicCount * 5,
+            excludeIds: Array.from(currentlyExcludedIds),
+            examId,
+            questionType: "",
+          });
+          const fetchMs = Date.now() - tFetch;
+          this.logger.log(`      [TOPIC ⏱️] Topic "${topicAlloc.topicId}": fetched ${questions.length} questions in ${fetchMs}ms (Needed: ${topicCount})`);
+        }
 
         const tFilt = Date.now();
         const filtered = await this.antiRepetitionService.filterPool(
           questions,
           historyIds,
           Array.from(allocatedQuestionIds),
+          allocatedPoolQuestions,
         );
         const filtMs = Date.now() - tFilt;
-        this.logger.log(`      [TOPIC ⏱️] Topic "${topicAlloc.topicId}": fetched ${questions.length} questions in ${fetchMs}ms, filtered to ${filtered.length} in ${filtMs}ms (Needed: ${topicCount})`);
-
-        const selected = filtered.slice(0, topicCount);
+        const candidateQuestions = shuffleArray(filtered);
+        const selected = candidateQuestions.slice(0, topicCount);
         for (const q of selected) {
           allocatedQuestionIds.add(q.id);
+          allocatedPoolQuestions.push(q);
           const allocatedQ = {
             questionId: q.id,
             questionHash: q.questionHash || "hash",
@@ -470,8 +493,44 @@ export class QuestionAllocatorService {
         const currentlyExcludedIds = new Set<string>(allocatedQuestionIds);
         const selectedForTopic: AllocatedQuestionDto[] = [];
 
+        // Fast in-memory check from preloadedPool
+        const bucket = preloadedPool?.get(topicAlloc.topicId);
+        if (bucket) {
+          const poolTier = (bucket[diff.level] || []).filter(
+            (q) => !currentlyExcludedIds.has(q.id),
+          );
+          if (poolTier.length > 0) {
+            const filteredQuestions = await this.antiRepetitionService.filterPool(
+              poolTier,
+              historyIds,
+              Array.from(allocatedQuestionIds),
+              allocatedPoolQuestions,
+            );
+            const shuffledQuestions = shuffleArray(filteredQuestions);
+            const toAddCount = Math.min(requiredForTopic, shuffledQuestions.length);
+            const selected = shuffledQuestions.slice(0, toAddCount);
+            for (const q of selected) {
+              allocatedQuestionIds.add(q.id);
+              currentlyExcludedIds.add(q.id);
+              allocatedPoolQuestions.push(q);
+              const allocatedQ = {
+                questionId: q.id,
+                questionHash: q.questionHash || "hash",
+                conceptKey: q.conceptKey,
+                difficultyLevel: q.difficultyLevel,
+                questionType: q.questionType,
+                questionOrder: orderCounter++,
+                questionSnapshot: this.buildNormalizedSnapshot(q),
+              };
+              selectedForTopic.push(allocatedQ);
+              allocatedQuestions.push(allocatedQ);
+            }
+          }
+        }
+
         const tDiff = Date.now();
         while (
+          !preloadedPool &&
           selectedForTopic.length < requiredForTopic &&
           attempts < maxAttempts
         ) {
@@ -502,6 +561,7 @@ export class QuestionAllocatorService {
             questions,
             historyIds,
             Array.from(allocatedQuestionIds),
+            allocatedPoolQuestions,
           );
           const filtMs = Date.now() - tFilt;
 
@@ -510,6 +570,7 @@ export class QuestionAllocatorService {
 
           for (const q of selected) {
             allocatedQuestionIds.add(q.id);
+            allocatedPoolQuestions.push(q);
             const allocatedQ = {
               questionId: q.id,
               questionHash: q.questionHash || "hash",
@@ -539,15 +600,26 @@ export class QuestionAllocatorService {
             const shortage = requiredForTopic - selectedForTopic.length;
 
             try {
-              const fallbackQuestions =
-                await this.questionSource.fetchQuestions({
-                  conceptKey: topicAlloc.topicId,
-                  difficultyLevel: fallbackLevel,
-                  limit: shortage * 5,
-                  excludeIds: Array.from(currentlyExcludedIds),
-                  examId,
-                  questionType: "",
-                });
+              let fallbackQuestions: GeneratedQuestion[] = [];
+              const fbBucket = preloadedPool?.get(topicAlloc.topicId);
+              if (fbBucket) {
+                const fbList = (fbBucket[fallbackLevel] || []).filter(
+                  (q) => !currentlyExcludedIds.has(q.id),
+                );
+                fallbackQuestions = fbList;
+              }
+
+              if (!preloadedPool && fallbackQuestions.length === 0) {
+                fallbackQuestions =
+                  await this.questionSource.fetchQuestions({
+                    conceptKey: topicAlloc.topicId,
+                    difficultyLevel: fallbackLevel,
+                    limit: shortage * 5,
+                    excludeIds: Array.from(currentlyExcludedIds),
+                    examId,
+                    questionType: "",
+                  });
+              }
 
               for (const q of fallbackQuestions) {
                 currentlyExcludedIds.add(q.id);
@@ -557,12 +629,15 @@ export class QuestionAllocatorService {
                 fallbackQuestions,
                 historyIds,
                 Array.from(allocatedQuestionIds),
+                allocatedPoolQuestions,
               );
 
+              const shuffled = shuffleArray(filtered);
               const bucketCap = Math.max(1, shortage);
-              const toAdd = filtered.slice(0, Math.min(shortage, bucketCap));
+              const toAdd = shuffled.slice(0, Math.min(shortage, bucketCap));
               for (const q of toAdd) {
                 allocatedQuestionIds.add(q.id);
+                allocatedPoolQuestions.push(q);
                 const allocatedQ = {
                   questionId: q.id,
                   questionHash: q.questionHash || "hash",
@@ -725,6 +800,43 @@ export class QuestionAllocatorService {
         }
       }
 
+      // For MCQ/general questions: check if active questions already exist in Question Bank for this topic before invoking AI
+      const existingBankQuestions = await this.prisma.question.findMany({
+        where: {
+          status: "ACTIVE",
+          id: { notIn: Array.from(allocatedQuestionIds) },
+          OR: [
+            { topicId: topicRecord?.id || topicId },
+            { topicId: topicRecord?.code || topicId },
+            { concept: { topicId: topicRecord?.id || topicId } },
+            { concept: { code: (topicRecord?.code || topicId).toUpperCase() } },
+          ],
+        },
+        take: deficit,
+      });
+
+      const generatedAllocations: AllocatedQuestionDto[] = [];
+
+      if (existingBankQuestions.length > 0) {
+        for (const q of existingBankQuestions) {
+          allocatedQuestionIds.add(q.id);
+          generatedAllocations.push({
+            questionId: q.id,
+            questionHash: q.id,
+            conceptKey: q.topicId || topicId,
+            difficultyLevel: (q.difficulty || difficulty) as any,
+            questionType: (q.questionType || "MULTIPLE_CHOICE") as any,
+            questionOrder: orderCounter++,
+            questionSnapshot: this.buildNormalizedSnapshot(q),
+          });
+        }
+      }
+
+      const remainingDeficit = deficit - generatedAllocations.length;
+      if (remainingDeficit <= 0) {
+        return generatedAllocations;
+      }
+
       const ruleFlags = await this.prisma.ruleFlags.findUnique({
         where: { examConfigId: examId },
       });
@@ -741,8 +853,8 @@ export class QuestionAllocatorService {
         !isCandidateNoRepeat &&
         !isCodingTopic
       ) {
-        // If explicitly both turned off by admin, return empty array
-        return [];
+        // If explicitly both turned off by admin, return what we have
+        return generatedAllocations;
       }
 
       let styleProfile = null;
@@ -764,21 +876,27 @@ export class QuestionAllocatorService {
         });
       }
 
-      const generatedAllocations: AllocatedQuestionDto[] = [];
+      // Pre-fetch template and concept records once before the loop
+      const [defaultTemplate, conceptRecord] = await Promise.all([
+        this.prisma.template.findFirst({
+          select: { id: true },
+        }),
+        topicRecord
+          ? this.prisma.concept.findFirst({
+              where: { topicId: topicRecord.id },
+            })
+          : Promise.resolve(null),
+      ]);
 
       // ── Single-batch AI generation ─────────────────────────────────────────
-      // Previously this looped `deficit` times calling count:1 each iteration.
-      // That caused 82 sequential HTTP round-trips to the LLM (~120s total).
-      // Now we issue ONE call with count:deficit and expand the results below (~2s).
-      // ──────────────────────────────────────────────────────────────────────
       let batchQuestions: any[] = [];
-      if (this.orchestrator && deficit > 0) {
+      if (this.orchestrator && remainingDeficit > 0) {
         const tAiCall = Date.now();
-        this.logger.log(`        [AI-GEN 🤖 ⏱️] Requesting ${deficit} question(s) for topic "${topicDisplayName}" (${difficulty}) from AI Orchestrator...`);
+        this.logger.log(`        [AI-GEN 🤖 ⏱️] Requesting ${remainingDeficit} question(s) for topic "${topicDisplayName}" (${difficulty}) from AI Orchestrator...`);
         try {
           const aiRes = await this.orchestrator.generateQuestions({
             topic: topicDisplayName,
-            count: deficit, // ← single batch instead of loop
+            count: remainingDeficit,
             difficulty: difficulty,
             styleProfile,
           } as any);
@@ -789,7 +907,7 @@ export class QuestionAllocatorService {
         }
       }
 
-      for (let i = 0; i < deficit; i++) {
+      for (let i = 0; i < remainingDeficit; i++) {
         const currentQuestionNumber = orderCounter + i + 1;
         const uniqueHash = `runtime_gen_${topicId}_${difficulty}_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 7)}`;
 
@@ -856,10 +974,6 @@ export class QuestionAllocatorService {
 
         const options: string[] = distinctOptions.slice(0, 4);
 
-        const defaultTemplate = await this.prisma.template.findFirst({
-          select: { id: true },
-        });
-
         const newQ = await this.prisma.generatedQuestion.create({
           data: {
             templateId: defaultTemplate ? defaultTemplate.id : "",
@@ -881,15 +995,7 @@ export class QuestionAllocatorService {
 
         // Dual-persistence to Question bank table for full downstream module compatibility
         try {
-          const topicRecord = await this.prisma.topic.findFirst({
-            where: { OR: [{ id: topicId }, { code: topicId }] },
-          });
-
           if (topicRecord) {
-            const conceptRecord = await this.prisma.concept.findFirst({
-              where: { topicId: topicRecord.id },
-            });
-
             await this.prisma.question.create({
               data: {
                 id: newQ.id,

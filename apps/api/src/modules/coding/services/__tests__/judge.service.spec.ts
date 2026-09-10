@@ -165,5 +165,24 @@ describe("JudgeService", () => {
         }),
       ).rejects.toThrow(InternalServerErrorException);
     });
+
+    it("should fast-fail immediately when ngrok tunnel is offline (ERR_NGROK_3200)", async () => {
+      const ngrokErrHtml =
+        "<html><body>tunnel marbled-fifty-unraveled.ngrok-free.dev not found. ERR_NGROK_3200</body></html>";
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        text: jest.fn().mockResolvedValue(ngrokErrHtml),
+      } as any);
+
+      await expect(
+        judgeService.submitAndPoll({
+          sourceCode: "print(1)",
+          language: "python",
+        }),
+      ).rejects.toThrow("Coding evaluation engine is temporarily offline");
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
   });
 });

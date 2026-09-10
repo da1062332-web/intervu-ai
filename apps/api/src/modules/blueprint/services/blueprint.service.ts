@@ -29,12 +29,23 @@ export interface BlueprintWithRelations extends Blueprint {
 
 @Injectable()
 export class BlueprintService {
+  private templateCache: { templates: any[]; cachedAt: number } | null = null;
+
   constructor(
     private readonly repository: BlueprintRepository,
     private readonly topicRegistryLoader: TopicRegistryLoader,
     private readonly templateRepository: TemplateRepository,
     private readonly prisma: PrismaService,
   ) {}
+
+  private async getCachedTemplates(): Promise<any[]> {
+    if (this.templateCache && Date.now() - this.templateCache.cachedAt < 60000) {
+      return this.templateCache.templates;
+    }
+    const templates = await this.templateRepository.findAll();
+    this.templateCache = { templates, cachedAt: Date.now() };
+    return templates;
+  }
 
   async create(dto: CreateBlueprintDto) {
     let { configId, styleProfileId, sections } = dto;
@@ -415,8 +426,82 @@ export class BlueprintService {
       return { valid: errors.length === 0, errors };
     }
 
-    // Load active templates from template library to verify availability
-    const templates = await this.templateRepository.findAll();
+    // Pre-fetch all topics for all allocations in all sections
+    const allTopicAllocations = sections.flatMap(
+      (s) => s.topicAllocations || [],
+    );
+    const uniqueTopicIds = Array.from(
+      new Set(allTopicAllocations.map((a) => a.topicId)),
+    );
+
+    const topicMap = new Map<string, any>();
+    await Promise.all(
+      uniqueTopicIds.map(async (tid) => {
+        const t = await this.topicRegistryLoader.getTopicById(tid);
+        if (t) topicMap.set(tid, t);
+      }),
+    );
+
+    // Collect all concept codes from all allocated topics
+    const allConceptCodes = Array.from(
+      new Set(Array.from(topicMap.values()).flatMap((t: any) => t.concepts || [])),
+    );
+
+    // Batch fetch concepts AND lightweight templates matching these codes concurrently
+    const [dbConcepts, templates] = await Promise.all([
+      allConceptCodes.length > 0
+        ? this.prisma.concept.findMany({
+            where: { code: { in: allConceptCodes } },
+            select: { id: true, code: true },
+          })
+        : [],
+      allConceptCodes.length > 0
+        ? this.prisma.template.findMany({
+            where: {
+              conceptKey: { in: allConceptCodes },
+              isActive: true,
+              deletedAt: null,
+            },
+            select: {
+              conceptKey: true,
+              difficultyLevel: true,
+              isActive: true,
+            },
+          })
+        : [],
+    ]);
+
+    const conceptIdByCode = new Map<string, string>();
+    const allConceptIds = dbConcepts.map((c: any) => {
+      conceptIdByCode.set(c.code, c.id);
+      return c.id;
+    });
+
+    // Batch count manual questions by conceptId and difficulty
+    const manualQuestionCounts =
+      allConceptIds.length > 0
+        ? await this.prisma.question.groupBy({
+            by: ["conceptId", "difficulty"],
+            where: {
+              conceptId: { in: allConceptIds },
+              status: "ACTIVE",
+            },
+            _count: { id: true },
+          })
+        : [];
+
+    const questionCountMap = new Map<string, number>();
+    const availableDifficultiesByConcept = new Map<string, Set<string>>();
+    for (const q of manualQuestionCounts) {
+      if (q.conceptId) {
+        questionCountMap.set(`${q.conceptId}:${q.difficulty}`, q._count.id);
+        const set =
+          availableDifficultiesByConcept.get(q.conceptId) ||
+          new Set<string>();
+        set.add(q.difficulty);
+        availableDifficultiesByConcept.set(q.conceptId, set);
+      }
+    }
 
     for (const section of sections) {
       const sectionName = section.sectionId || "Unnamed Section";
@@ -449,9 +534,7 @@ export class BlueprintService {
 
       // 3. Topic Existence Check
       for (const alloc of topicAllocations) {
-        const topic = await this.topicRegistryLoader.getTopicById(
-          alloc.topicId,
-        );
+        const topic = topicMap.get(alloc.topicId);
         if (!topic) {
           errors.push(
             `Section "${sectionName}": Topic "${alloc.topicId}" does not exist in Topic Registry`,
@@ -459,15 +542,17 @@ export class BlueprintService {
           continue;
         }
 
-        // 4. Template Availability Check
-        // If a topic is allocated and a difficulty is allocated, verify there is at least one active template in the DB
-        const checkDifficulty = async (
+        const topicConceptIds = (topic.concepts || [])
+          .map((code: string) => conceptIdByCode.get(code))
+          .filter((id: string | undefined): id is string => Boolean(id));
+
+        // 4. Template Availability Check (in-memory O(1) checks)
+        const checkDifficulty = (
           diffKey: "easy" | "medium" | "hard",
           level: DifficultyLevel,
         ) => {
           const allocPct = diffAlloc[diffKey] || 0;
           if (allocPct > 0) {
-            // Find templates that match the topic's concepts and the required difficulty level
             const matchingTemplates = templates.filter(
               (t) =>
                 t.isActive &&
@@ -475,25 +560,13 @@ export class BlueprintService {
                 topic.concepts.includes(t.conceptKey),
             );
 
-            // Fetch DB concepts matching topic concept codes
-            const dbConcepts = await this.prisma.concept.findMany({
-              where: {
-                code: { in: topic.concepts },
-              },
-            });
-            const conceptIds = dbConcepts.map((c: any) => c.id);
-
-            // Count available manual questions matching concepts and required difficulty
-            const availableManualCount = await this.prisma.question.count({
-              where: {
-                conceptId: { in: conceptIds },
-                status: "ACTIVE",
-                difficulty: level,
-              },
-            });
+            let availableManualCount = 0;
+            for (const cid of topicConceptIds) {
+              availableManualCount +=
+                questionCountMap.get(`${cid}:${level}`) || 0;
+            }
 
             if (matchingTemplates.length === 0 && availableManualCount === 0) {
-              // Find what other difficulties have templates or manual questions for this topic
               const availableDifficulties = new Set<string>();
 
               templates
@@ -502,16 +575,12 @@ export class BlueprintService {
                 )
                 .forEach((t) => availableDifficulties.add(t.difficultyLevel));
 
-              const questions = await this.prisma.question.findMany({
-                where: {
-                  conceptId: { in: conceptIds },
-                  status: "ACTIVE",
-                },
-                select: { difficulty: true },
-              });
-              questions.forEach((q: any) =>
-                availableDifficulties.add(q.difficulty),
-              );
+              for (const cid of topicConceptIds) {
+                const diffs = availableDifficultiesByConcept.get(cid);
+                if (diffs) {
+                  diffs.forEach((d) => availableDifficulties.add(d));
+                }
+              }
 
               const suggestion =
                 availableDifficulties.size > 0
@@ -525,9 +594,9 @@ export class BlueprintService {
           }
         };
 
-        await checkDifficulty("easy", DifficultyLevel.EASY);
-        await checkDifficulty("medium", DifficultyLevel.MEDIUM);
-        await checkDifficulty("hard", DifficultyLevel.HARD);
+        checkDifficulty("easy", DifficultyLevel.EASY);
+        checkDifficulty("medium", DifficultyLevel.MEDIUM);
+        checkDifficulty("hard", DifficultyLevel.HARD);
       }
     }
 

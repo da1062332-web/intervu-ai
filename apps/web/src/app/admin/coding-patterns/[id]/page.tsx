@@ -34,7 +34,7 @@ import {
   Sliders,
   Layers,
 } from 'lucide-react';
-import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { MarkdownRenderer, formatNormalInput, formatNormalOutput } from '@/components/ui/markdown-renderer';
 import {
   useCodingPattern,
   useCreateCodingPattern,
@@ -1078,7 +1078,11 @@ export default function CodingPatternBuilderPage() {
                                   Input
                                 </div>
                                 <pre className='p-2.5 bg-slate-900 text-slate-100 rounded-lg text-[11px] overflow-x-auto'>
-                                  {JSON.stringify(tc.input, null, 2)}
+                                  {formatNormalInput(
+                                    typeof tc.input === 'object' && tc.input !== null
+                                      ? JSON.stringify(tc.input)
+                                      : String(tc.input ?? '')
+                                  )}
                                 </pre>
                               </div>
                               <div className='space-y-1 font-mono text-[11px]'>
@@ -1086,7 +1090,11 @@ export default function CodingPatternBuilderPage() {
                                   Expected Output
                                 </div>
                                 <pre className='p-2.5 bg-slate-900 text-slate-100 rounded-lg text-[11px] overflow-x-auto'>
-                                  {JSON.stringify(tc.expectedOutput, null, 2)}
+                                  {formatNormalOutput(
+                                    typeof tc.expectedOutput === 'object' && tc.expectedOutput !== null
+                                      ? JSON.stringify(tc.expectedOutput)
+                                      : String(tc.expectedOutput ?? '')
+                                  )}
                                 </pre>
                               </div>
                               {tc.explanation && (

@@ -157,4 +157,11 @@ export interface BlueprintDto {
   totalDurationSeconds: number;
   difficultyDistribution?: DifficultyDistributionDto;
   sections: BlueprintSectionDto[];
+  /**
+   * Content hash of the substantive blueprint fields (section question counts,
+   * topic allocations, difficulty split). Changes whenever an admin edits the
+   * exam's sections, so anything that pre-generates content off this blueprint
+   * (the test pool) can detect it has gone stale relative to the current config.
+   */
+  versionHash?: string;
 }

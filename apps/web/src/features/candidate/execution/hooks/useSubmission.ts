@@ -3,6 +3,7 @@ import { useExecutionStore } from '../stores/execution.store';
 import { executionService } from '../services/execution.service';
 import { clearAssessmentSandboxStorage } from '@/components/candidate/sandbox/useCalculator';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const STORAGE_KEY = 'SkillitriX_execution_autosave';
 
@@ -48,8 +49,14 @@ export function useSubmission(testId: string) {
         document.exitFullscreen().catch(console.error);
       }
 
-      // Redirect to the Results Page
-      router.push(`/candidate/results/${testId}`);
+      // Show a toast letting the candidate know results are being generated
+      toast.success('Assessment submitted successfully!', {
+        description: 'Your results are being generated in the background. You can view them from your dashboard shortly.',
+        duration: 6000,
+      });
+
+      // Redirect to the dashboard — results are generated in the background
+      router.push('/candidate/dashboard');
     } catch (error: any) {
       const isAlreadySubmitted =
         (error?.status === 409 || error?.response?.status === 409) &&
@@ -70,7 +77,11 @@ export function useSubmission(testId: string) {
         if (typeof document !== 'undefined' && document.fullscreenElement) {
           document.exitFullscreen().catch(console.error);
         }
-        router.push(`/candidate/results/${testId}`);
+        toast.info('Assessment already submitted.', {
+          description: 'Your results are being generated. Check your dashboard for updates.',
+          duration: 5000,
+        });
+        router.push('/candidate/dashboard');
         return;
       }
 

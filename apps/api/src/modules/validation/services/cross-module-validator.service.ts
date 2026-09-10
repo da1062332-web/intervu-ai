@@ -54,9 +54,8 @@ export class CrossModuleValidatorService {
 
   private validateRuleConfigAndCompatibility(
     ruleType: string,
-
     config: any,
-    variables: TemplateVariable[],
+    variables: Array<Pick<TemplateVariable, "variableName" | "variableType">>,
   ): string | null {
     if (ruleType === "DIFFICULTY") {
       if (
@@ -133,8 +132,18 @@ export class CrossModuleValidatorService {
   ): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
-    // 1. Exam Config Exists
-    const config = await this.examConfigRepository.findById(configId);
+    // Batch fetch config, sections, rule flags, and difficulty distribution concurrently
+    const [config, sections, ruleFlags, diffDist] = await Promise.all([
+      this.examConfigRepository.findById(configId),
+      this.examSectionRepository.findManyByConfigId(configId),
+      this.prisma.ruleFlags.findUnique({
+        where: { examConfigId: configId },
+      }),
+      this.prisma.difficultyDistribution.findUnique({
+        where: { examConfigId: configId },
+      }),
+    ]);
+
     if (
       !config ||
       config.isArchived ||
@@ -147,8 +156,6 @@ export class CrossModuleValidatorService {
     }
 
     // 2. Sections Exist
-    const sections =
-      await this.examSectionRepository.findManyByConfigId(configId);
     if (sections.length === 0) {
       errors.push("No sections have been configured for this exam config");
     } else {
@@ -164,17 +171,11 @@ export class CrossModuleValidatorService {
     }
 
     // 3. Rules Exist
-    const ruleFlags = await this.prisma.ruleFlags.findUnique({
-      where: { examConfigId: configId },
-    });
     if (!ruleFlags) {
       errors.push("Rule flags configuration is missing");
     }
 
     // 4. Difficulty Exists
-    const diffDist = await this.prisma.difficultyDistribution.findUnique({
-      where: { examConfigId: configId },
-    });
     if (!diffDist) {
       errors.push("Difficulty distribution configuration is missing");
     } else {
@@ -207,12 +208,44 @@ export class CrossModuleValidatorService {
       return { valid: false, errors };
     }
 
+    const sectionIds = sections.map((s) => s.id);
+
+    // Batch fetch all mappings and their topics + active concepts in ONE query
+    const [allMappings, weightageSums] = await Promise.all([
+      this.prisma.sectionTopic.findMany({
+        where: { sectionId: { in: sectionIds } },
+        include: {
+          topic: {
+            include: {
+              concepts: {
+                where: { status: "ACTIVE" },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.topicWeightage.groupBy({
+        by: ["sectionId"],
+        where: { sectionId: { in: sectionIds } },
+        _sum: { weightagePercentage: true },
+      }),
+    ]);
+
+    const mappingsBySection = new Map<string, typeof allMappings>();
+    for (const m of allMappings) {
+      const list = mappingsBySection.get(m.sectionId) || [];
+      list.push(m);
+      mappingsBySection.set(m.sectionId, list);
+    }
+
+    const weightageMap = new Map<string, number>();
+    for (const w of weightageSums) {
+      weightageMap.set(w.sectionId, w._sum.weightagePercentage || 0);
+    }
+
     for (const section of sections) {
       // 1. Topics Assigned
-      const mappings =
-        await this.topicSectionMappingRepository.findMappingsBySection(
-          section.id,
-        );
+      const mappings = mappingsBySection.get(section.id) || [];
       if (mappings.length === 0) {
         errors.push(`Section '${section.name}' has no topics assigned`);
         continue;
@@ -220,11 +253,8 @@ export class CrossModuleValidatorService {
 
       // 2. Concepts Exist
       for (const mapping of mappings) {
-        const topic = await this.topicRepository.findById(mapping.topicId);
-        const concepts = await this.conceptMappingRepository.findManyByTopicId(
-          mapping.topicId,
-          true,
-        );
+        const topic = mapping.topic;
+        const concepts = topic?.concepts || [];
         if (concepts.length === 0) {
           errors.push(
             `Topic '${topic?.name || mapping.topicId}' has no active concepts`,
@@ -233,8 +263,7 @@ export class CrossModuleValidatorService {
       }
 
       // 3. Weightages Valid
-      const weightageSum =
-        await this.topicWeightageRepository.sumWeightagesBySection(section.id);
+      const weightageSum = weightageMap.get(section.id) || 0;
       if (weightageSum !== 100) {
         errors.push(
           `Section '${section.name}' topic weightages total is ${weightageSum}%, must be exactly 100%`,
@@ -260,48 +289,127 @@ export class CrossModuleValidatorService {
       return { valid: false, errors };
     }
 
-    const uniqueTopicIds = new Set<string>();
-    for (const section of sections) {
-      const mappings =
-        await this.topicSectionMappingRepository.findMappingsBySection(
-          section.id,
-        );
-      mappings.forEach((m) => uniqueTopicIds.add(m.topicId));
-    }
+    const sectionIds = sections.map((s) => s.id);
+    const mappings = await this.prisma.sectionTopic.findMany({
+      where: { sectionId: { in: sectionIds } },
+      select: { topicId: true },
+    });
+    const uniqueTopicIds = Array.from(new Set(mappings.map((m) => m.topicId)));
 
-    if (uniqueTopicIds.size === 0) {
+    if (uniqueTopicIds.length === 0) {
       errors.push("No topics assigned to configuration sections");
       return { valid: false, errors };
     }
 
-    const allConcepts = [];
-    for (const topicId of uniqueTopicIds) {
-      const concepts = await this.conceptMappingRepository.findManyByTopicId(
-        topicId,
-        true,
-      );
-      allConcepts.push(...concepts);
-    }
+    const allConcepts = await this.prisma.concept.findMany({
+      where: {
+        topicId: { in: uniqueTopicIds },
+        status: "ACTIVE",
+      },
+    });
 
     if (allConcepts.length === 0) {
       errors.push("No active concepts found for assigned topics");
       return { valid: false, errors };
     }
 
-    const templates = await this.templateRepository.findAll();
+    // Batch pre-fetch manual question counts for all concepts
+    const conceptIds = allConcepts.map((c) => c.id);
+    const manualQuestionCounts = await this.prisma.question.groupBy({
+      by: ["conceptId"],
+      where: {
+        status: "ACTIVE",
+        conceptId: { in: conceptIds },
+      },
+      _count: { id: true },
+    });
+    const manualCountMap = new Map<string, number>();
+    for (const item of manualQuestionCounts) {
+      if (item.conceptId) {
+        manualCountMap.set(item.conceptId, item._count.id);
+      }
+    }
+
+    const assignedConceptCodes = new Set(allConcepts.map((c) => c.code));
+    const activeTemplates =
+      assignedConceptCodes.size > 0
+        ? await this.prisma.template.findMany({
+            where: {
+              isActive: true,
+              conceptKey: { in: Array.from(assignedConceptCodes) },
+              deletedAt: null,
+            },
+            select: {
+              id: true,
+              name: true,
+              conceptKey: true,
+            },
+          })
+        : [];
+    const activeTemplateIds = activeTemplates.map((t) => t.id);
+
+    // Batch pre-fetch variables, rules, and solution templates only for relevant active templates
+    const [allVariables, allRules, allSolTemplates] = await Promise.all([
+      activeTemplateIds.length > 0
+        ? this.prisma.templateVariable.findMany({
+            where: { templateId: { in: activeTemplateIds } },
+            select: {
+              id: true,
+              templateId: true,
+              variableName: true,
+              defaultValue: true,
+              variableType: true,
+            },
+          })
+        : [],
+      activeTemplateIds.length > 0
+        ? this.prisma.templateRule.findMany({
+            where: { templateId: { in: activeTemplateIds } },
+            select: {
+              id: true,
+              templateId: true,
+              ruleType: true,
+              ruleConfig: true,
+            },
+          })
+        : [],
+      activeTemplateIds.length > 0
+        ? this.prisma.solutionTemplate.findMany({
+            where: { templateId: { in: activeTemplateIds } },
+            select: {
+              id: true,
+              templateId: true,
+            },
+          })
+        : [],
+    ]);
+
+    const variablesByTemplate = new Map<string, typeof allVariables>();
+    for (const v of allVariables) {
+      const list = variablesByTemplate.get(v.templateId) || [];
+      list.push(v);
+      variablesByTemplate.set(v.templateId, list);
+    }
+
+    const rulesByTemplate = new Map<string, typeof allRules>();
+    for (const r of allRules) {
+      const list = rulesByTemplate.get(r.templateId) || [];
+      list.push(r);
+      rulesByTemplate.set(r.templateId, list);
+    }
+
+    const solTemplateByTemplate = new Map<string, (typeof allSolTemplates)[0]>();
+    for (const s of allSolTemplates) {
+      solTemplateByTemplate.set(s.templateId, s);
+    }
 
     for (const concept of allConcepts) {
-      const matchingTemplates = templates.filter(
-        (t) => t.isActive && t.conceptKey === concept.code,
+      const matchingTemplates = activeTemplates.filter(
+        (t) => t.conceptKey === concept.code,
       );
 
       // 1. Templates or Manual Questions Exist
-      const availableManualCount = await this.prisma.question.count({
-        where: {
-          status: "ACTIVE",
-          conceptId: concept.id,
-        },
-      });
+      const availableManualCount = manualCountMap.get(concept.id) || 0;
 
       if (matchingTemplates.length === 0 && availableManualCount === 0) {
         errors.push(
@@ -312,9 +420,7 @@ export class CrossModuleValidatorService {
 
       for (const template of matchingTemplates) {
         // 2. Variables Exist & Valid
-        const variables = await this.templateVariableRepository.findAll({
-          templateId: template.id,
-        });
+        const variables = variablesByTemplate.get(template.id) || [];
 
         // Basic verification of variables integrity
         const varNames = variables.map((v) => v.variableName);
@@ -344,9 +450,7 @@ export class CrossModuleValidatorService {
         }
 
         // 3. Rules Exist & Valid
-        const rules = await this.templateRuleRepository.findAll({
-          templateId: template.id,
-        });
+        const rules = rulesByTemplate.get(template.id) || [];
 
         for (const rule of rules) {
           const ruleErrMsg = this.validateRuleConfigAndCompatibility(
@@ -362,9 +466,7 @@ export class CrossModuleValidatorService {
         }
 
         // 4. Solution Templates Exist
-        const solTemplate = await this.prisma.solutionTemplate.findUnique({
-          where: { templateId: template.id },
-        });
+        const solTemplate = solTemplateByTemplate.get(template.id);
         if (!solTemplate) {
           errors.push(
             `Template '${template.name}' has no solution template configured`,

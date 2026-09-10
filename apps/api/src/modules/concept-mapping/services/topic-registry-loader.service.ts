@@ -18,7 +18,8 @@ export interface TopicRegistryItem {
 
 @Injectable()
 export class TopicRegistryLoader implements OnModuleInit {
-  private registryCache = new Map<string, TopicRegistryItem>();
+  private registryCache = new Map<string, TopicRegistryItem | null>();
+  private loadingPromise: Promise<TopicRegistryItem[]> | null = null;
   private readonly logger = new Logger(TopicRegistryLoader.name);
 
   constructor(private readonly prisma: PrismaService) {}
@@ -50,6 +51,16 @@ export class TopicRegistryLoader implements OnModuleInit {
   }
 
   async loadTopics(): Promise<TopicRegistryItem[]> {
+    if (this.loadingPromise) {
+      return this.loadingPromise;
+    }
+    this.loadingPromise = this._doLoadTopics().finally(() => {
+      this.loadingPromise = null;
+    });
+    return this.loadingPromise;
+  }
+
+  private async _doLoadTopics(): Promise<TopicRegistryItem[]> {
     try {
       if (!this.prisma || !this.prisma.topic) {
         return [];
@@ -88,8 +99,17 @@ export class TopicRegistryLoader implements OnModuleInit {
       });
 
       this.registryCache.clear();
-      for (const item of items) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const dbTopic = dbTopics[i];
         this.registryCache.set(item.id, item);
+        if (dbTopic.code) {
+          this.registryCache.set(dbTopic.code, item);
+        }
+        if (dbTopic.name) {
+          this.registryCache.set(dbTopic.name, item);
+          this.registryCache.set(dbTopic.name.toLowerCase(), item);
+        }
       }
       return items;
     } catch (error: unknown) {
@@ -102,14 +122,19 @@ export class TopicRegistryLoader implements OnModuleInit {
 
   async getTopicById(id: string): Promise<TopicRegistryItem | null> {
     let item = this.registryCache.get(id);
-    if (!item) {
+    if (item === undefined) {
       await this.loadTopics();
       item = this.registryCache.get(id);
+      if (item === undefined) {
+        this.registryCache.set(id, null);
+      }
     }
     return item ?? null;
   }
 
   async getAllTopics(): Promise<TopicRegistryItem[]> {
-    return Array.from(this.registryCache.values());
+    return Array.from(this.registryCache.values()).filter(
+      (item): item is TopicRegistryItem => item !== null,
+    );
   }
 }

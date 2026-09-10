@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/services/api/client';
 import { useExecutionStore } from '../stores/execution.store';
+import { formatNormalInput, formatNormalOutput } from '@/components/ui/markdown-renderer';
 
 // Dynamically import Monaco Editor to ensure SSR safety
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -763,9 +764,11 @@ export function EmbeddedCompiler({
                                   : 'bg-slate-950 border-slate-800 text-slate-300'
                               }`}
                             >
-                              {typeof res.input === 'object'
-                                ? JSON.stringify(res.input, null, 2)
-                                : String(res.input)}
+                              {formatNormalInput(
+                                typeof res.input === 'object' && res.input !== null
+                                  ? JSON.stringify(res.input)
+                                  : String(res.input ?? '')
+                              )}
                             </pre>
                           </div>
 
@@ -780,9 +783,11 @@ export function EmbeddedCompiler({
                                   : 'bg-slate-950 border-slate-800 text-slate-300'
                               }`}
                             >
-                              {typeof res.expectedOutput === 'object'
-                                ? JSON.stringify(res.expectedOutput, null, 2)
-                                : String(res.expectedOutput)}
+                              {formatNormalOutput(
+                                typeof res.expectedOutput === 'object' && res.expectedOutput !== null
+                                  ? JSON.stringify(res.expectedOutput)
+                                  : String(res.expectedOutput ?? '')
+                              )}
                             </pre>
                           </div>
 
@@ -802,7 +807,7 @@ export function EmbeddedCompiler({
                               }`}
                             >
                               {res.actualOutput !== null && res.actualOutput !== ''
-                                ? res.actualOutput
+                                ? formatNormalOutput(res.actualOutput)
                                 : '(no output)'}
                             </pre>
                           </div>

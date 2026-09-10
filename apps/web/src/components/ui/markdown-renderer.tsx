@@ -23,6 +23,169 @@ interface MarkdownRendererProps {
  */
 
 // ---------------------------------------------------------------------------
+// Helpers: Normalise Input / Output from JSON to standard coding problem format
+// ---------------------------------------------------------------------------
+export function formatNormalValue(val: any): string {
+  if (val === null) return 'null';
+  if (val === undefined) return '';
+  if (typeof val === 'string') return `"${val}"`;
+  if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+  if (Array.isArray(val)) {
+    return JSON.stringify(val);
+  }
+  if (typeof val === 'object') {
+    return JSON.stringify(val);
+  }
+  return String(val);
+}
+
+export function formatNormalInput(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  let str = raw.trim();
+
+  // Strip wrapping backticks or quotes if they wrap the whole value
+  if (
+    (str.startsWith('`') && str.endsWith('`') && str.length >= 2) ||
+    (str.startsWith('"') && str.endsWith('"') && str.length >= 2) ||
+    (str.startsWith("'") && str.endsWith("'") && str.length >= 2)
+  ) {
+    const unquoted = str.slice(1, -1).trim();
+    if (!unquoted.includes('`')) {
+      str = unquoted;
+    }
+  }
+
+  // Parse JSON object if present
+  if (str.startsWith('{') && str.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(str);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const entries = Object.entries(parsed);
+        if (entries.length > 0) {
+          return entries
+            .map(([k, v]) => `${k} = ${formatNormalValue(v)}`)
+            .join(', ');
+        }
+      }
+    } catch {
+      try {
+        const parsed = JSON.parse(str.replace(/'/g, '"'));
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          const entries = Object.entries(parsed);
+          if (entries.length > 0) {
+            return entries
+              .map(([k, v]) => `${k} = ${formatNormalValue(v)}`)
+              .join(', ');
+          }
+        }
+      } catch {}
+    }
+  }
+
+  // If array: [1, 2, 3]
+  if (str.startsWith('[') && str.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(str);
+      if (Array.isArray(parsed)) {
+        return JSON.stringify(parsed);
+      }
+    } catch {}
+  }
+
+  return str;
+}
+
+export function formatNormalOutput(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  let str = raw.trim();
+
+  // Strip wrapping backticks or quotes
+  if (
+    (str.startsWith('`') && str.endsWith('`') && str.length >= 2) ||
+    (str.startsWith('"') && str.endsWith('"') && str.length >= 2) ||
+    (str.startsWith("'") && str.endsWith("'") && str.length >= 2)
+  ) {
+    const unquoted = str.slice(1, -1).trim();
+    if (!unquoted.includes('`')) {
+      str = unquoted;
+    }
+  }
+
+  // Parse JSON object if present: e.g. {"result": 20} or {"output": 20}
+  if (str.startsWith('{') && str.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(str);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const wrapperKeys = [
+          'result',
+          'output',
+          'answer',
+          'res',
+          'ans',
+          'expected',
+          'expectedOutput',
+          'return',
+          'returnValue',
+        ];
+        for (const k of wrapperKeys) {
+          if (k in parsed) {
+            return formatNormalValue(parsed[k]);
+          }
+        }
+        const entries = Object.entries(parsed);
+        if (entries.length === 1) {
+          return formatNormalValue(entries[0][1]);
+        }
+        return entries
+          .map(([k, v]) => `${k} = ${formatNormalValue(v)}`)
+          .join(', ');
+      }
+    } catch {
+      try {
+        const parsed = JSON.parse(str.replace(/'/g, '"'));
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          const wrapperKeys = [
+            'result',
+            'output',
+            'answer',
+            'res',
+            'ans',
+            'expected',
+            'expectedOutput',
+            'return',
+            'returnValue',
+          ];
+          for (const k of wrapperKeys) {
+            if (k in parsed) {
+              return formatNormalValue(parsed[k]);
+            }
+          }
+          const entries = Object.entries(parsed);
+          if (entries.length === 1) {
+            return formatNormalValue(entries[0][1]);
+          }
+          return entries
+            .map(([k, v]) => `${k} = ${formatNormalValue(v)}`)
+            .join(', ');
+        }
+      } catch {}
+    }
+  }
+
+  // If array: [1, 2, 3]
+  if (str.startsWith('[') && str.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(str);
+      if (Array.isArray(parsed)) {
+        return JSON.stringify(parsed);
+      }
+    } catch {}
+  }
+
+  return str;
+}
+
+// ---------------------------------------------------------------------------
 // Tokeniser
 // ---------------------------------------------------------------------------
 type Token =
@@ -51,10 +214,34 @@ function normalizeMarkdown(rawMarkdown: string): string {
     '#### Example $1',
   );
 
+  // Normalize bulleted items: "- **Input**:" -> "**Input:**"
+  text = text.replace(
+    /^\s*[-*+]\s*(?:\*\*)?(Input|Output|Explanation):?(?:\*\*)?:?\s*/gim,
+    '**$1:** ',
+  );
+
   // Ensure "Input:", "Output:", "Explanation:" on single lines are separated nicely
   text = text.replace(
     /([^\n])\s*(\*\*(?:Input|Output|Explanation):\*\*|(?:Input|Output|Explanation):)/gi,
     '$1\n$2',
+  );
+
+  // Normalize JSON in Input lines: e.g. **Input:** `{"a": 12, "b": 8}` -> **Input:** `a = 12, b = 8`
+  text = text.replace(
+    /^(\s*(?:\*\*)?Input:?(?:\*\*)?:?\s*)(.+)$/gim,
+    (match, prefix, val) => {
+      const formatted = formatNormalInput(val);
+      return `${prefix}\`${formatted}\``;
+    },
+  );
+
+  // Normalize JSON in Output lines: e.g. **Output:** `{"result": 20}` -> **Output:** `20`
+  text = text.replace(
+    /^(\s*(?:\*\*)?Output:?(?:\*\*)?:?\s*)(.+)$/gim,
+    (match, prefix, val) => {
+      const formatted = formatNormalOutput(val);
+      return `${prefix}\`${formatted}\``;
+    },
   );
 
   // 1. Format Pseudo-tables: "The table below shows ...: Course A: 120 students Course B: 150 students..."
@@ -325,15 +512,16 @@ function renderParagraphLines(lines: string[]): React.ReactNode {
     const trimmed = line.trim();
 
     // Check if line starts with Input: or **Input:**
-    const inputMatch = trimmed.match(/^(?:\*\*)?Input:?(?:\*\*)?:?\s*(.*)$/i);
+    const inputMatch = trimmed.match(/^(?:[-*+]\s*)?(?:\*\*)?Input:?(?:\*\*)?:?\s*(.*)$/i);
     if (inputMatch) {
       const rest = inputMatch[1]?.trim();
+      const formatted = formatNormalInput(rest || '');
       return (
         <div key={lIdx} className="mt-2.5 mb-1 flex items-baseline gap-2 flex-wrap text-xs sm:text-sm">
           <span className="font-bold text-slate-900 dark:text-slate-100 font-mono">Input:</span>
-          {rest ? (
+          {formatted ? (
             <code className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 font-mono text-xs">
-              {renderInline(rest)}
+              {formatted}
             </code>
           ) : null}
         </div>
@@ -341,15 +529,16 @@ function renderParagraphLines(lines: string[]): React.ReactNode {
     }
 
     // Check if line starts with Output: or **Output:**
-    const outputMatch = trimmed.match(/^(?:\*\*)?Output:?(?:\*\*)?:?\s*(.*)$/i);
+    const outputMatch = trimmed.match(/^(?:[-*+]\s*)?(?:\*\*)?Output:?(?:\*\*)?:?\s*(.*)$/i);
     if (outputMatch) {
       const rest = outputMatch[1]?.trim();
+      const formatted = formatNormalOutput(rest || '');
       return (
         <div key={lIdx} className="mt-1.5 mb-1 flex items-baseline gap-2 flex-wrap text-xs sm:text-sm">
           <span className="font-bold text-slate-900 dark:text-slate-100 font-mono">Output:</span>
-          {rest ? (
+          {formatted ? (
             <code className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 font-mono text-xs">
-              {renderInline(rest)}
+              {formatted}
             </code>
           ) : null}
         </div>
@@ -357,7 +546,7 @@ function renderParagraphLines(lines: string[]): React.ReactNode {
     }
 
     // Check if line starts with Explanation: or **Explanation:**
-    const expMatch = trimmed.match(/^(?:\*\*)?Explanation:?(?:\*\*)?:?\s*(.*)$/i);
+    const expMatch = trimmed.match(/^(?:[-*+]\s*)?(?:\*\*)?Explanation:?(?:\*\*)?:?\s*(.*)$/i);
     if (expMatch) {
       const rest = expMatch[1]?.trim();
       return (
@@ -379,7 +568,7 @@ function renderParagraphLines(lines: string[]): React.ReactNode {
       return (
         <div key={lIdx} className="my-1.5">
           <code className="inline-block bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs font-mono px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 shadow-2xs">
-            {trimmed}
+            {formatNormalInput(trimmed)}
           </code>
         </div>
       );

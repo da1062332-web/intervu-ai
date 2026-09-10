@@ -34,7 +34,45 @@ export class EntitlementService {
     }
   }
 
+  private readonly entitlementsCache = new Map<
+    string,
+    { data: UserEntitlements; expiresAt: number }
+  >();
+  private readonly inflightEntitlements = new Map<
+    string,
+    Promise<UserEntitlements>
+  >();
+  private readonly CACHE_TTL_MS = 10 * 1000; // 10s cache to coalesce simultaneous frontend requests
+
+  invalidateCache(userId: string): void {
+    this.entitlementsCache.delete(userId);
+    this.inflightEntitlements.delete(userId);
+  }
+
   async getUserEntitlements(userId: string): Promise<UserEntitlements> {
+    const cached = this.entitlementsCache.get(userId);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
+    if (this.inflightEntitlements.has(userId)) {
+      return this.inflightEntitlements.get(userId)!;
+    }
+
+    const promise = this.computeUserEntitlements(userId).finally(() => {
+      this.inflightEntitlements.delete(userId);
+    });
+
+    this.inflightEntitlements.set(userId, promise);
+    const result = await promise;
+    this.entitlementsCache.set(userId, {
+      data: result,
+      expiresAt: Date.now() + this.CACHE_TTL_MS,
+    });
+    return result;
+  }
+
+  private async computeUserEntitlements(userId: string): Promise<UserEntitlements> {
     if (await this.isVipUser(userId)) {
       const proDef = PLAN_ENTITLEMENT_DEFINITIONS.PRO || PLAN_ENTITLEMENT_DEFINITIONS.TEAMS || {};
       return {
@@ -624,6 +662,7 @@ export class EntitlementService {
     const limit = entitlements.features.monthlyRoundsLimit;
     const subscription = await this.subscriptionService.getUserSubscription(userId);
     const result = await this.usageQuotaService.consumeRoundQuota(userId, limit, subscription?.id);
+    this.invalidateCache(userId);
     return { allowed: result.allowed, remaining: result.remaining };
   }
 }

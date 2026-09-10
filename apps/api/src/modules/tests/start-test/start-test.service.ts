@@ -165,13 +165,15 @@ export class StartTestService {
     // Dynamic candidate-unique assembly ONLY when candidateNoRepeatEnabled flag is active AND candidate is taking a Retest attempt
     const t2 = Date.now();
     this.logger.log(`[START-TEST ⏱️] Step 3/5: Checking attempt history & candidateNoRepeat rule flags...`);
-    const previousAttempts = await this.prisma.testInstance.findMany({
-      where: {
-        userId,
-        OR: [{ examConfigId: targetConfigId }, { testConfigId: targetConfigId }],
-        status: { in: [TestInstanceStatus.SUBMITTED, TestInstanceStatus.COMPLETED] },
-      },
-    });
+    const previousAttempts = this.prisma?.testInstance?.findMany
+      ? await this.prisma.testInstance.findMany({
+          where: {
+            userId,
+            OR: [{ examConfigId: targetConfigId }, { testConfigId: targetConfigId }],
+            status: { in: [TestInstanceStatus.SUBMITTED, TestInstanceStatus.COMPLETED] },
+          },
+        })
+      : [];
 
     const isRetest = previousAttempts.length > 0;
     const isCandidateNoRepeat = config.ruleFlags?.candidateNoRepeatEnabled ?? false;

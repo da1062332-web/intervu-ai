@@ -24,10 +24,15 @@ export class EvaluationQueueProcessor {
 
   constructor(connection: ConnectionOptions, logger: AppLogger) {
     this.logger = logger;
-    this.apiBaseUrl =
-      process.env.INTERNAL_API_URL || "http://localhost:4000";
+    const defaultPort = process.env.PORT || 4000;
+    const raw = (
+      process.env.INTERNAL_API_URL ||
+      process.env.RENDER_EXTERNAL_URL ||
+      `http://127.0.0.1:${defaultPort}`
+    ).replace(/\/+$/, "");
+    this.apiBaseUrl = raw.endsWith("/api/v1") ? raw : `${raw}/api/v1`;
     this.internalServiceToken =
-      process.env.INTERNAL_SERVICE_TOKEN || "";
+      process.env.INTERNAL_SERVICE_TOKEN || "internal_secret_token";
 
     this.worker = new Worker("evaluation", this.processJob.bind(this), {
       connection,
@@ -79,10 +84,7 @@ export class EvaluationQueueProcessor {
           headers: {
             "Content-Type": "application/json",
             // Internal service token bypasses JWT guard on this admin-only endpoint.
-            // The API's JwtAuthGuard must check x-internal-service-token header.
-            ...(this.internalServiceToken
-              ? { "x-internal-service-token": this.internalServiceToken }
-              : {}),
+            "x-internal-service-token": this.internalServiceToken,
           },
         },
       );
