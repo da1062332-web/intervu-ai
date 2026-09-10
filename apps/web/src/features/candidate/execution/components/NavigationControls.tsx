@@ -73,8 +73,12 @@ export const NavigationControls = memo(function NavigationControls({
     if (isFinalAssessmentQuestion) {
       if (onSubmitClick) onSubmitClick();
     } else if (isLastQuestionOfSection && !isLastSection) {
-      // Trigger section advance modal
-      requestNextSection();
+      if (testInstance?.allowSectionNavigation !== false) {
+        goNext();
+      } else {
+        // Trigger section advance modal
+        requestNextSection();
+      }
     } else {
       goNext();
     }

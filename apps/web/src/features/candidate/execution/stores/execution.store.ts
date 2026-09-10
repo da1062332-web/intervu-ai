@@ -317,9 +317,34 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     if (!state.testInstance) return;
     if (targetSectionIndex < 0 || targetSectionIndex >= state.testInstance.sections.length) return;
     const targetSectionKey = state.testInstance.sections[targetSectionIndex]?.sectionKey;
-    if (targetSectionKey && state.lockedSectionKeys.includes(targetSectionKey)) return;
-    if (state.sectionTimingEnabled && targetSectionIndex < state.currentSectionIndex) return;
+    const allowNav = state.testInstance.allowSectionNavigation !== false;
+
+    if (!allowNav) {
+      if (targetSectionKey && state.lockedSectionKeys.includes(targetSectionKey)) return;
+      if (state.sectionTimingEnabled && targetSectionIndex < state.currentSectionIndex) return;
+    }
     if (targetSectionIndex === state.currentSectionIndex) return;
+
+    if (allowNav) {
+      let targetQIdx = 0;
+      for (let i = 0; i < targetSectionIndex; i++) {
+        targetQIdx += state.testInstance.sections[i]?.questions?.length || 0;
+      }
+      set((s) => ({
+        ...applyPaletteUpdate(
+          s.palette,
+          s.currentQuestionIndex,
+          targetQIdx,
+          s.answers,
+          s.questions,
+        ),
+        currentSectionIndex: targetSectionIndex,
+        currentQuestionIndex: targetQIdx,
+        currentQuestion: s.questions[targetQIdx],
+        pendingSectionChangeTarget: null,
+      }));
+      return;
+    }
 
     set({ pendingSectionChangeTarget: targetSectionIndex });
   },
@@ -333,23 +358,27 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       const currentSectionIdx = getSectionIndex(state.testInstance, state.currentQuestionIndex);
       const targetSectionIdx = getSectionIndex(state.testInstance, index);
       const targetSectionKey = state.testInstance?.sections[targetSectionIdx]?.sectionKey;
+      const allowNav = state.testInstance?.allowSectionNavigation !== false;
 
-      // Feature 7: Prevent navigation to locked sections
-      if (targetSectionKey && state.lockedSectionKeys.includes(targetSectionKey)) {
+      // Prevent navigation to locked sections if restricted
+      if (!allowNav && targetSectionKey && state.lockedSectionKeys.includes(targetSectionKey)) {
         return;
       }
 
-      // If changing sections (forward direction), intercept with a confirmation modal
+      // If changing sections, check navigation rules
       if (
         currentSectionIdx !== -1 &&
         targetSectionIdx !== -1 &&
         currentSectionIdx !== targetSectionIdx
       ) {
-        if (state.sectionTimingEnabled && targetSectionIdx < currentSectionIdx) {
+        if (!allowNav) {
+          if (state.sectionTimingEnabled && targetSectionIdx < currentSectionIdx) {
+            return;
+          }
+          set({ pendingSectionChangeTarget: targetSectionIdx });
           return;
         }
-        set({ pendingSectionChangeTarget: targetSectionIdx });
-        return;
+        set({ currentSectionIndex: targetSectionIdx });
       }
 
       set((state) => ({

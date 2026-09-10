@@ -40,78 +40,84 @@ export class PromptManagerService {
     category: string;
     content: string;
   }): Promise<GenerationPrompt> {
-    return (this.prisma as any).$transaction(async (tx: any) => {
-      // Find max version
-      const latest = await tx.generationPrompt.findFirst({
-        where: { name: data.name },
-        orderBy: { version: "desc" },
-      });
+    return (this.prisma as any).$transaction(
+      async (tx: any) => {
+        // Find max version
+        const latest = await tx.generationPrompt.findFirst({
+          where: { name: data.name },
+          orderBy: { version: "desc" },
+        });
 
-      const nextVersion = latest ? latest.version + 1 : 1;
+        const nextVersion = latest ? latest.version + 1 : 1;
 
-      // Deactivate all older versions of this prompt
-      await tx.generationPrompt.updateMany({
-        where: { name: data.name, isActive: true },
-        data: { isActive: false },
-      });
+        // Deactivate all older versions of this prompt
+        await tx.generationPrompt.updateMany({
+          where: { name: data.name, isActive: true },
+          data: { isActive: false },
+        });
 
-      return tx.generationPrompt.create({
-        data: {
-          name: data.name,
-          category: data.category,
-          content: data.content,
-          version: nextVersion,
-          isActive: true,
-        },
-      });
-    });
+        return tx.generationPrompt.create({
+          data: {
+            name: data.name,
+            category: data.category,
+            content: data.content,
+            version: nextVersion,
+            isActive: true,
+          },
+        });
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 
   async updatePrompt(
     id: string,
     data: { content?: string; isActive?: boolean },
   ): Promise<GenerationPrompt> {
-    return (this.prisma as any).$transaction(async (tx: any) => {
-      const existing = await tx.generationPrompt.findUnique({
-        where: { id },
-      });
-      if (!existing) {
-        throw new NotFoundException(`Prompt with ID ${id} not found`);
-      }
-
-      if (data.content !== undefined && data.content !== existing.content) {
-        // If content is changing, we create a new version of the prompt!
-        const latest = await tx.generationPrompt.findFirst({
-          where: { name: existing.name },
-          orderBy: { version: "desc" },
-        });
-        const nextVersion = latest ? latest.version + 1 : 1;
-
-        // Deactivate all versions of this prompt
-        await tx.generationPrompt.updateMany({
-          where: { name: existing.name, isActive: true },
-          data: { isActive: false },
-        });
-
-        return tx.generationPrompt.create({
-          data: {
-            name: existing.name,
-            category: existing.category,
-            content: data.content,
-            version: nextVersion,
-            isActive: data.isActive !== undefined ? data.isActive : true,
-          },
-        });
-      } else {
-        // Just standard update (e.g. toggling isActive)
-        return tx.generationPrompt.update({
+    return (this.prisma as any).$transaction(
+      async (tx: any) => {
+        const existing = await tx.generationPrompt.findUnique({
           where: { id },
-          data: {
-            isActive:
-              data.isActive !== undefined ? data.isActive : existing.isActive,
-          },
         });
-      }
-    });
+        if (!existing) {
+          throw new NotFoundException(`Prompt with ID ${id} not found`);
+        }
+
+        if (data.content !== undefined && data.content !== existing.content) {
+          // If content is changing, we create a new version of the prompt!
+          const latest = await tx.generationPrompt.findFirst({
+            where: { name: existing.name },
+            orderBy: { version: "desc" },
+          });
+          const nextVersion = latest ? latest.version + 1 : 1;
+
+          // Deactivate all versions of this prompt
+          await tx.generationPrompt.updateMany({
+            where: { name: existing.name, isActive: true },
+            data: { isActive: false },
+          });
+
+          return tx.generationPrompt.create({
+            data: {
+              name: existing.name,
+              category: existing.category,
+              content: data.content,
+              version: nextVersion,
+              isActive: data.isActive !== undefined ? data.isActive : true,
+            },
+          });
+        } else {
+          // Just standard update (e.g. toggling isActive)
+          return tx.generationPrompt.update({
+            where: { id },
+            data: {
+              isActive:
+                data.isActive !== undefined ? data.isActive : existing.isActive,
+            },
+          });
+        }
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 }

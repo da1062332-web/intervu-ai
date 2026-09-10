@@ -87,25 +87,38 @@ export class AutosaveService {
     }
 
     // 4a. Validate that the question's section is not locked
-    const questionSection = await this.prisma.testInstanceQuestion.findFirst({
-      where: { testInstanceId, questionId: dto.questionId },
-      include: { section: true },
-    });
-    if (
-      questionSection?.section?.status === "LOCKED" ||
-      questionSection?.section?.status === "COMPLETED" ||
-      questionSection?.section?.status === "EXPIRED"
-    ) {
-      this.logger.warn("Autosave rejected: section is locked", {
-        testInstanceId,
-        questionId: dto.questionId,
-        sectionStatus: questionSection?.section?.status,
+    const configId =
+      testInstance.examConfigId || (testInstance as any).testConfigId;
+    let allowSectionNav = false;
+    if (configId) {
+      const examConfig = await this.prisma.examConfig.findUnique({
+        where: { id: configId },
+        include: { ruleFlags: true },
       });
-      return {
-        status: "locked",
-        saved: false,
-        message: "This section is locked and no longer accepts answers.",
-      };
+      allowSectionNav = examConfig?.ruleFlags?.allowSectionNavigation ?? false;
+    }
+
+    if (!allowSectionNav) {
+      const questionSection = await this.prisma.testInstanceQuestion.findFirst({
+        where: { testInstanceId, questionId: dto.questionId },
+        include: { section: true },
+      });
+      if (
+        questionSection?.section?.status === "LOCKED" ||
+        questionSection?.section?.status === "COMPLETED" ||
+        questionSection?.section?.status === "EXPIRED"
+      ) {
+        this.logger.warn("Autosave rejected: section is locked", {
+          testInstanceId,
+          questionId: dto.questionId,
+          sectionStatus: questionSection?.section?.status,
+        });
+        return {
+          status: "locked",
+          saved: false,
+          message: "This section is locked and no longer accepts answers.",
+        };
+      }
     }
 
     // 5. Validate question

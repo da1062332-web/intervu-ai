@@ -76,6 +76,7 @@ export class AssemblyRepository {
 
           return testInstance.id;
         },
+        { maxWait: 60000, timeout: 180000 },
       );
 
       return result;

@@ -312,13 +312,18 @@ class ApiClient {
           // Refresh returned null (invalid token) — genuine unauthorized
           apiAuthHooks.onUnauthorized?.();
         } catch (refreshError) {
-          // Refresh failed due to network error — do NOT logout
-          // Just return the original response so the caller gets a network error
+          // Refresh failed due to network or server error — do NOT logout
+          // Just return the original response so the caller gets a temporary error
           const normalized = normalizeApiError(refreshError);
-          if (normalized.code === 'NETWORK_ERROR' || normalized.status === 0) {
+          if (
+            normalized.code === 'NETWORK_ERROR' ||
+            normalized.status === 0 ||
+            normalized.status === 408 ||
+            (normalized.status >= 500 && normalized.status < 600)
+          ) {
             throw normalized;
           }
-          // Non-network refresh failure — treat as unauthorized
+          // Genuine 401/403 unauthenticated response — treat as unauthorized
           apiAuthHooks.onUnauthorized?.();
         }
       }

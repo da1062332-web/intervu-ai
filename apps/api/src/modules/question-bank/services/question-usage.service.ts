@@ -93,7 +93,10 @@ export class QuestionUsageService {
     if (tx) {
       return execute(tx);
     } else {
-      return this.prisma.$transaction(execute);
+      return this.prisma.$transaction(execute, {
+        maxWait: 60000,
+        timeout: 120000,
+      });
     }
   }
 }

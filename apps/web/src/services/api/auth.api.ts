@@ -108,9 +108,16 @@ export async function refreshSession(): Promise<string | null> {
     return payload.accessToken;
   } catch (error) {
     const normalized = normalizeApiError(error);
-    if (normalized.code === 'NETWORK_ERROR' || normalized.status === 0) {
+    // Transient network issues, request timeouts, or server-side 5xx errors should NOT logout candidate
+    if (
+      normalized.code === 'NETWORK_ERROR' ||
+      normalized.status === 0 ||
+      normalized.status === 408 ||
+      (normalized.status >= 500 && normalized.status < 600)
+    ) {
       throw error;
     }
+    // Genuine auth rejection (401/403) — credentials revoked or expired
     clearAuthData();
     return null;
   }

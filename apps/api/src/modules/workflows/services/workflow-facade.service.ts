@@ -447,146 +447,14 @@ export class WorkflowFacadeService {
 
   async approveQuestion(questionId: string, userId: string) {
     const prisma = this.repository["prisma"];
-    return await prisma.$transaction(async (tx) => {
-      const q = await tx.question.findUnique({
-        where: { id: questionId },
-        include: { versions: { orderBy: { version: "desc" }, take: 1 } },
-      });
-      if (!q) throw new NotFoundException(`Question not found`);
+    return await prisma.$transaction(
+      async (tx) => {
+        const q = await tx.question.findUnique({
+          where: { id: questionId },
+          include: { versions: { orderBy: { version: "desc" }, take: 1 } },
+        });
+        if (!q) throw new NotFoundException(`Question not found`);
 
-      let options: string[] = [];
-      if (q.metadata && typeof q.metadata === "object") {
-        const metadata = q.metadata as Record<string, unknown>;
-        if (Array.isArray(metadata.options)) {
-          options = metadata.options as string[];
-        }
-      }
-      if (options.length === 0 && q.versions.length > 0) {
-        const snapshot = q.versions[0].snapshot as Record<string, unknown>;
-        if (snapshot && Array.isArray(snapshot.options)) {
-          options = snapshot.options as string[];
-        }
-      }
-
-      const updated = await tx.question.update({
-        where: { id: questionId },
-        data: {
-          status: "VALIDATED",
-          version: { increment: 1 },
-        },
-      });
-
-      // Create snapshot
-      const snapshot = {
-        id: updated.id,
-        questionText: updated.questionText,
-        answer: updated.answer,
-        explanation: updated.explanation,
-        topicId: updated.topicId,
-        sectionId: updated.sectionId,
-        difficulty: updated.difficulty,
-        difficultyScore: updated.difficultyScore,
-        source: updated.source,
-        templateId: updated.templateId,
-        status: updated.status,
-        options,
-      };
-      await tx.questionVersion.create({
-        data: {
-          questionId: updated.id,
-          version: updated.version,
-          snapshot: snapshot,
-        },
-      });
-
-      await tx.questionReview.create({
-        data: {
-          questionId,
-          status: "APPROVED",
-          notes: `Approved by ${userId}`,
-        },
-      });
-
-      return { success: true };
-    });
-  }
-
-  async rejectQuestion(questionId: string, userId: string, reason?: string) {
-    const prisma = this.repository["prisma"];
-    return await prisma.$transaction(async (tx) => {
-      const q = await tx.question.findUnique({
-        where: { id: questionId },
-        include: { versions: { orderBy: { version: "desc" }, take: 1 } },
-      });
-      if (!q) throw new NotFoundException(`Question not found`);
-
-      let options: string[] = [];
-      if (q.metadata && typeof q.metadata === "object") {
-        const metadata = q.metadata as Record<string, unknown>;
-        if (Array.isArray(metadata.options)) {
-          options = metadata.options as string[];
-        }
-      }
-      if (options.length === 0 && q.versions.length > 0) {
-        const snapshot = q.versions[0].snapshot as Record<string, unknown>;
-        if (snapshot && Array.isArray(snapshot.options)) {
-          options = snapshot.options as string[];
-        }
-      }
-
-      const updated = await tx.question.update({
-        where: { id: questionId },
-        data: {
-          status: "ARCHIVED",
-          version: { increment: 1 },
-        },
-      });
-
-      // Create snapshot
-      const snapshot = {
-        id: updated.id,
-        questionText: updated.questionText,
-        answer: updated.answer,
-        explanation: updated.explanation,
-        topicId: updated.topicId,
-        sectionId: updated.sectionId,
-        difficulty: updated.difficulty,
-        difficultyScore: updated.difficultyScore,
-        source: updated.source,
-        templateId: updated.templateId,
-        status: updated.status,
-        options,
-      };
-      await tx.questionVersion.create({
-        data: {
-          questionId: updated.id,
-          version: updated.version,
-          snapshot: snapshot,
-        },
-      });
-
-      await tx.questionReview.create({
-        data: {
-          questionId,
-          status: "REJECTED",
-          notes: reason ?? `Rejected by ${userId}`,
-        },
-      });
-
-      return { success: true };
-    });
-  }
-
-  async bulkApproveQuestions(questionIds: string[], userId: string) {
-    const prisma = this.repository["prisma"];
-    return await prisma.$transaction(async (tx) => {
-      const questions = await tx.question.findMany({
-        where: { id: { in: questionIds } },
-        include: { versions: { orderBy: { version: "desc" }, take: 1 } },
-      });
-
-      const updatedCount = questions.length;
-      for (const q of questions) {
         let options: string[] = [];
         if (q.metadata && typeof q.metadata === "object") {
           const metadata = q.metadata as Record<string, unknown>;
@@ -602,13 +470,14 @@ export class WorkflowFacadeService {
         }
 
         const updated = await tx.question.update({
-          where: { id: q.id },
+          where: { id: questionId },
           data: {
             status: "VALIDATED",
             version: { increment: 1 },
           },
         });
 
+        // Create snapshot
         const snapshot = {
           id: updated.id,
           questionText: updated.questionText,
@@ -633,14 +502,154 @@ export class WorkflowFacadeService {
 
         await tx.questionReview.create({
           data: {
-            questionId: q.id,
+            questionId,
             status: "APPROVED",
-            notes: `Bulk approved by ${userId}`,
+            notes: `Approved by ${userId}`,
           },
         });
-      }
-      return { success: true, count: updatedCount };
-    });
+
+        return { success: true };
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
+  }
+
+  async rejectQuestion(questionId: string, userId: string, reason?: string) {
+    const prisma = this.repository["prisma"];
+    return await prisma.$transaction(
+      async (tx) => {
+        const q = await tx.question.findUnique({
+          where: { id: questionId },
+          include: { versions: { orderBy: { version: "desc" }, take: 1 } },
+        });
+        if (!q) throw new NotFoundException(`Question not found`);
+
+        let options: string[] = [];
+        if (q.metadata && typeof q.metadata === "object") {
+          const metadata = q.metadata as Record<string, unknown>;
+          if (Array.isArray(metadata.options)) {
+            options = metadata.options as string[];
+          }
+        }
+        if (options.length === 0 && q.versions.length > 0) {
+          const snapshot = q.versions[0].snapshot as Record<string, unknown>;
+          if (snapshot && Array.isArray(snapshot.options)) {
+            options = snapshot.options as string[];
+          }
+        }
+
+        const updated = await tx.question.update({
+          where: { id: questionId },
+          data: {
+            status: "ARCHIVED",
+            version: { increment: 1 },
+          },
+        });
+
+        // Create snapshot
+        const snapshot = {
+          id: updated.id,
+          questionText: updated.questionText,
+          answer: updated.answer,
+          explanation: updated.explanation,
+          topicId: updated.topicId,
+          sectionId: updated.sectionId,
+          difficulty: updated.difficulty,
+          difficultyScore: updated.difficultyScore,
+          source: updated.source,
+          templateId: updated.templateId,
+          status: updated.status,
+          options,
+        };
+        await tx.questionVersion.create({
+          data: {
+            questionId: updated.id,
+            version: updated.version,
+            snapshot: snapshot,
+          },
+        });
+
+        await tx.questionReview.create({
+          data: {
+            questionId,
+            status: "REJECTED",
+            notes: reason ?? `Rejected by ${userId}`,
+          },
+        });
+
+        return { success: true };
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
+  }
+
+  async bulkApproveQuestions(questionIds: string[], userId: string) {
+    const prisma = this.repository["prisma"];
+    return await prisma.$transaction(
+      async (tx) => {
+        const questions = await tx.question.findMany({
+          where: { id: { in: questionIds } },
+          include: { versions: { orderBy: { version: "desc" }, take: 1 } },
+        });
+
+        const updatedCount = questions.length;
+        for (const q of questions) {
+          let options: string[] = [];
+          if (q.metadata && typeof q.metadata === "object") {
+            const metadata = q.metadata as Record<string, unknown>;
+            if (Array.isArray(metadata.options)) {
+              options = metadata.options as string[];
+            }
+          }
+          if (options.length === 0 && q.versions.length > 0) {
+            const snapshot = q.versions[0].snapshot as Record<string, unknown>;
+            if (snapshot && Array.isArray(snapshot.options)) {
+              options = snapshot.options as string[];
+            }
+          }
+
+          const updated = await tx.question.update({
+            where: { id: q.id },
+            data: {
+              status: "VALIDATED",
+              version: { increment: 1 },
+            },
+          });
+
+          const snapshot = {
+            id: updated.id,
+            questionText: updated.questionText,
+            answer: updated.answer,
+            explanation: updated.explanation,
+            topicId: updated.topicId,
+            sectionId: updated.sectionId,
+            difficulty: updated.difficulty,
+            difficultyScore: updated.difficultyScore,
+            source: updated.source,
+            templateId: updated.templateId,
+            status: updated.status,
+            options,
+          };
+          await tx.questionVersion.create({
+            data: {
+              questionId: updated.id,
+              version: updated.version,
+              snapshot: snapshot,
+            },
+          });
+
+          await tx.questionReview.create({
+            data: {
+              questionId: q.id,
+              status: "APPROVED",
+              notes: `Bulk approved by ${userId}`,
+            },
+          });
+        }
+        return { success: true, count: updatedCount };
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 
   // Stubs for Bulk Operations

@@ -187,7 +187,7 @@ export class ConfigPublisherService {
           },
         });
       },
-      { timeout: 30000, maxWait: 10000 },
+      { timeout: 120000, maxWait: 60000 },
     );
 
     await this.cacheService.delete("dashboard:examConfigs:available:v2");

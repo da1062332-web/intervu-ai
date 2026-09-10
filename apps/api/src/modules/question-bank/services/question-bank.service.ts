@@ -29,77 +29,81 @@ export class QuestionBankService {
    * Creates a single question in the bank, generating version snapshot and usage slot.
    */
   async createQuestion(dto: CreateQuestionDto): Promise<Question> {
-    return this.prisma.$transaction(async (tx) => {
-      const mcqData =
-        dto.mcqData ||
-        (dto.options && dto.options.length > 0
-          ? { options: dto.options }
-          : null);
+    return this.prisma.$transaction(
+      async (tx) => {
+        const mcqData =
+          dto.mcqData ||
+          (dto.options && dto.options.length > 0
+            ? { options: dto.options }
+            : null);
 
-      // 1. Create the question record (starts as DRAFT)
-      const question = await this.questionRepo.create(
-        {
-          questionText: dto.questionText,
-          answer: dto.answer,
-          explanation: dto.explanation || "",
-          topicId: dto.topicId,
-          sectionId: dto.sectionId,
-          conceptId: dto.conceptId || null,
-          difficulty: dto.difficulty,
-          source: dto.source || "MANUAL",
-          questionSource: (dto.questionSource as any) || "MANUAL",
-          questionType: dto.questionType || "MCQ",
-          estimatedTime: dto.estimatedTime || null,
-          questionTitle: dto.questionTitle || null,
-          questionStatement: dto.questionStatement || null,
-          instructions: dto.instructions || null,
-          questionImage: dto.questionImage || null,
-          attachments: dto.attachments || null,
-          mcqData: mcqData,
-          codingData: dto.codingData || null,
-          templateId: dto.templateId || null,
-          version: 1,
-          status: dto.status || QuestionStatus.ACTIVE,
-          metadata: dto.metadata || {},
-        },
-        tx,
-      );
-
-      // 2. Create initial version snapshot
-      await this.versionService.createVersionSnapshot(question, tx);
-
-      // 3. Create initial usage tracking record
-      await tx.questionUsage.create({
-        data: {
-          questionId: question.id,
-          timesUsed: 0,
-          lastUsed: null,
-          sectionUsage: {},
-          examUsage: {},
-        },
-      });
-
-      // 4. Legacy compatibility write (only if templateId is provided)
-      if (dto.templateId) {
-        await tx.generatedQuestion.create({
-          data: {
-            templateId: dto.templateId,
-            questionHash: createId(), // Satisfy unique key constraint
-            conceptKey: dto.topicId, // fallback to topicId
-
-            difficultyLevel: dto.difficulty as any,
-            questionType: "mcq",
+        // 1. Create the question record (starts as DRAFT)
+        const question = await this.questionRepo.create(
+          {
             questionText: dto.questionText,
-            options: dto.options || [dto.answer],
-            correctAnswer: dto.answer,
-            solution: dto.explanation || "",
-            metadata: {},
+            answer: dto.answer,
+            explanation: dto.explanation || "",
+            topicId: dto.topicId,
+            sectionId: dto.sectionId,
+            conceptId: dto.conceptId || null,
+            difficulty: dto.difficulty,
+            source: dto.source || "MANUAL",
+            questionSource: (dto.questionSource as any) || "MANUAL",
+            questionType: dto.questionType || "MCQ",
+            estimatedTime: dto.estimatedTime || null,
+            questionTitle: dto.questionTitle || null,
+            questionStatement: dto.questionStatement || null,
+            instructions: dto.instructions || null,
+            questionImage: dto.questionImage || null,
+            attachments: dto.attachments || null,
+            mcqData: mcqData,
+            codingData: dto.codingData || null,
+            templateId: dto.templateId || null,
+            version: 1,
+            status: QuestionStatus.DRAFT,
+          },
+          tx,
+        );
+
+        // 2. Create initial version snapshot
+        await this.versionService.createVersionSnapshot(
+          { ...question, options: dto.options },
+          tx,
+        );
+
+        // 4. Create empty usage tracking slot
+        await tx.questionUsage.create({
+          data: {
+            questionId: question.id,
+            timesUsed: 0,
+            lastUsed: null,
+            sectionUsage: {},
+            examUsage: {},
           },
         });
-      }
 
-      return question;
-    });
+        // 5. If manual question created from template, record in legacy GeneratedQuestion table
+        if (dto.templateId) {
+          await tx.generatedQuestion.create({
+            data: {
+              templateId: dto.templateId,
+              questionHash: createId(),
+              conceptKey: dto.topicId,
+              difficultyLevel: dto.difficulty as any,
+              questionType: "mcq",
+              questionText: dto.questionText,
+              options: dto.options || [dto.answer],
+              correctAnswer: dto.answer,
+              solution: dto.explanation || "",
+              metadata: {},
+            },
+          });
+        }
+
+        return question;
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 
   /**
@@ -113,103 +117,106 @@ export class QuestionBankService {
     }
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
-        const questionsData: Prisma.QuestionCreateManyInput[] = [];
-        const versionsData: Prisma.QuestionVersionCreateManyInput[] = [];
-        const usagesData: Prisma.QuestionUsageCreateManyInput[] = [];
-        const legacyData: Prisma.GeneratedQuestionCreateManyInput[] = [];
+      return await this.prisma.$transaction(
+        async (tx) => {
+          const questionsData: Prisma.QuestionCreateManyInput[] = [];
+          const versionsData: Prisma.QuestionVersionCreateManyInput[] = [];
+          const usagesData: Prisma.QuestionUsageCreateManyInput[] = [];
+          const legacyData: Prisma.GeneratedQuestionCreateManyInput[] = [];
 
-        const now = new Date();
+          const now = new Date();
 
-        for (const q of dto.questions) {
-          const qId = createId();
-          const versionId = createId();
-          const usageId = createId();
+          for (const q of dto.questions) {
+            const qId = createId();
+            const versionId = createId();
+            const usageId = createId();
 
-          // 1. Question base data
-          questionsData.push({
-            id: qId,
-            questionText: q.questionText,
-            answer: q.answer,
-            explanation: q.explanation || "",
-            topicId: q.topicId,
-            sectionId: q.sectionId,
-            difficulty: q.difficulty,
-            source: q.source || "MANUAL",
-            templateId: q.templateId || null,
-            version: 1,
-            status: QuestionStatus.DRAFT,
-            createdAt: now,
-            updatedAt: now,
-          });
-
-          // 2. Snapshot JSON for version history
-          const snapshot = {
-            id: qId,
-            questionText: q.questionText,
-            answer: q.answer,
-            explanation: q.explanation || "",
-            topicId: q.topicId,
-            sectionId: q.sectionId,
-            difficulty: q.difficulty,
-            difficultyScore: null,
-            source: q.source || "MANUAL",
-            templateId: q.templateId || null,
-            status: QuestionStatus.DRAFT,
-            options: q.options || [],
-          };
-
-          versionsData.push({
-            id: versionId,
-            questionId: qId,
-            version: 1,
-            snapshot: snapshot as Prisma.InputJsonValue,
-            createdAt: now,
-          });
-
-          // 3. Usage tracking slot
-          usagesData.push({
-            id: usageId,
-            questionId: qId,
-            timesUsed: 0,
-            lastUsed: null,
-            sectionUsage: {},
-            examUsage: {},
-            createdAt: now,
-            updatedAt: now,
-          });
-
-          // 4. Legacy GeneratedQuestion (only if templateId is provided)
-          if (q.templateId) {
-            legacyData.push({
-              id: createId(),
-              templateId: q.templateId,
-              questionHash: createId(),
-              conceptKey: q.topicId,
-
-              difficultyLevel: q.difficulty as any,
-              questionType: "mcq",
+            // 1. Question base data
+            questionsData.push({
+              id: qId,
               questionText: q.questionText,
-              options: q.options || [q.answer],
-              correctAnswer: q.answer,
-              solution: q.explanation || "",
-              metadata: {},
+              answer: q.answer,
+              explanation: q.explanation || "",
+              topicId: q.topicId,
+              sectionId: q.sectionId,
+              difficulty: q.difficulty,
+              source: q.source || "MANUAL",
+              templateId: q.templateId || null,
+              version: 1,
+              status: QuestionStatus.DRAFT,
+              createdAt: now,
+              updatedAt: now,
             });
+
+            // 2. Snapshot JSON for version history
+            const snapshot = {
+              id: qId,
+              questionText: q.questionText,
+              answer: q.answer,
+              explanation: q.explanation || "",
+              topicId: q.topicId,
+              sectionId: q.sectionId,
+              difficulty: q.difficulty,
+              difficultyScore: null,
+              source: q.source || "MANUAL",
+              templateId: q.templateId || null,
+              status: QuestionStatus.DRAFT,
+              options: q.options || [],
+            };
+
+            versionsData.push({
+              id: versionId,
+              questionId: qId,
+              version: 1,
+              snapshot: snapshot as Prisma.InputJsonValue,
+              createdAt: now,
+            });
+
+            // 3. Usage tracking slot
+            usagesData.push({
+              id: usageId,
+              questionId: qId,
+              timesUsed: 0,
+              lastUsed: null,
+              sectionUsage: {},
+              examUsage: {},
+              createdAt: now,
+              updatedAt: now,
+            });
+
+            // 4. Legacy GeneratedQuestion (only if templateId is provided)
+            if (q.templateId) {
+              legacyData.push({
+                id: createId(),
+                templateId: q.templateId,
+                questionHash: createId(),
+                conceptKey: q.topicId,
+
+                difficultyLevel: q.difficulty as any,
+                questionType: "mcq",
+                questionText: q.questionText,
+                options: q.options || [q.answer],
+                correctAnswer: q.answer,
+                solution: q.explanation || "",
+                metadata: {},
+              });
+            }
           }
-        }
 
-        const count = await this.questionRepo.bulkInsert(
-          {
-            questions: questionsData,
-            versions: versionsData,
-            usages: usagesData,
-            legacyQuestions: legacyData,
-          },
-          tx,
-        );
+          const count = await this.questionRepo.bulkInsert(
+            {
+              questions: questionsData,
+              versions: versionsData,
+              usages: usagesData,
+              legacyQuestions: legacyData,
+            },
+            tx,
+          );
 
-        return { saved: count, failed: 0 };
-      });
+          return { saved: count, failed: 0 };
+        },
+        { maxWait: 60000, timeout: 120000 },
+      );
     } catch (error: any) {
       // Transaction automatically rolls back on error
       throw new BadRequestException({
@@ -226,89 +233,99 @@ export class QuestionBankService {
    * Updates question properties, increments version, and writes version snapshot.
    */
   async updateQuestion(id: string, dto: UpdateQuestionDto): Promise<Question> {
-    return this.prisma.$transaction(async (tx) => {
-      const existing = await this.questionRepo.findById(id);
-      if (!existing) {
-        throw new NotFoundException(`Question with ID ${id} not found`);
-      }
-
-      // Check if status needs state check
-      if (dto.status && dto.status !== existing.status) {
-        // Handled by workflow services, but validate if update forces it
-        if (
-          dto.status === QuestionStatus.ACTIVE &&
-          existing.status !== QuestionStatus.VALIDATED
-        ) {
-          throw new BadRequestException(
-            `Cannot activate question from state ${existing.status}`,
-          );
+    return this.prisma.$transaction(
+      async (tx) => {
+        const existing = await this.questionRepo.findById(id);
+        if (!existing) {
+          throw new NotFoundException(`Question with ID ${id} not found`);
         }
-      }
 
-      const mcqData =
-        dto.mcqData ||
-        (dto.options && dto.options.length > 0
-          ? { options: dto.options }
-          : undefined);
-      const cleanDto: any = { ...dto };
-      delete cleanDto.options;
+        // Check if status needs state check
+        if (dto.status && dto.status !== existing.status) {
+          // Handled by workflow services, but validate if update forces it
+          if (
+            dto.status === QuestionStatus.ACTIVE &&
+            existing.status !== QuestionStatus.VALIDATED
+          ) {
+            throw new BadRequestException(
+              `Cannot activate question from state ${existing.status}`,
+            );
+          }
+        }
 
-      if (cleanDto.conceptId === "" || cleanDto.conceptId === undefined) {
-        delete cleanDto.conceptId;
-      }
-      if (cleanDto.sectionId === "" || cleanDto.sectionId === undefined) {
-        delete cleanDto.sectionId;
-      }
-      if (cleanDto.topicId === "" || cleanDto.topicId === undefined) {
-        delete cleanDto.topicId;
-      }
+        const mcqData =
+          dto.mcqData ||
+          (dto.options && dto.options.length > 0
+            ? { options: dto.options }
+            : undefined);
+        const cleanDto: any = { ...dto };
+        delete cleanDto.options;
 
-      const updateData: Prisma.QuestionUncheckedUpdateInput = {
-        ...cleanDto,
-        ...(mcqData !== undefined ? { mcqData } : {}),
-        questionSource: dto.questionSource
-          ? (dto.questionSource as any)
-          : undefined,
-        version: { increment: 1 },
-      };
+        if (cleanDto.conceptId === "" || cleanDto.conceptId === undefined) {
+          delete cleanDto.conceptId;
+        }
+        if (cleanDto.sectionId === "" || cleanDto.sectionId === undefined) {
+          delete cleanDto.sectionId;
+        }
+        if (cleanDto.topicId === "" || cleanDto.topicId === undefined) {
+          delete cleanDto.topicId;
+        }
 
-      const updated = await this.questionRepo.update(id, updateData as any, tx);
+        const updateData: Prisma.QuestionUncheckedUpdateInput = {
+          ...cleanDto,
+          ...(mcqData !== undefined ? { mcqData } : {}),
+          questionSource: dto.questionSource
+            ? (dto.questionSource as any)
+            : undefined,
+          version: { increment: 1 },
+        };
 
-      // Save snapshot of updated question state
-      await this.versionService.createVersionSnapshot(updated, tx);
+        const updated = await this.questionRepo.update(
+          id,
+          updateData as any,
+          tx,
+        );
 
-      return updated;
-    });
+        // Save snapshot of updated question state
+        await this.versionService.createVersionSnapshot(updated, tx);
+
+        return updated;
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 
   /**
    * Soft-deletes a question by setting status to ARCHIVED.
    */
   async archiveQuestion(id: string): Promise<Question> {
-    return this.prisma.$transaction(async (tx) => {
-      const existing = await this.questionRepo.findById(id);
-      if (!existing) {
-        throw new NotFoundException(`Question with ID ${id} not found`);
-      }
+    return this.prisma.$transaction(
+      async (tx) => {
+        const existing = await this.questionRepo.findById(id);
+        if (!existing) {
+          throw new NotFoundException(`Question with ID ${id} not found`);
+        }
 
-      if (existing.status === QuestionStatus.ARCHIVED) {
-        return existing;
-      }
+        if (existing.status === QuestionStatus.ARCHIVED) {
+          return existing;
+        }
 
-      const updated = await this.questionRepo.update(
-        id,
-        {
-          status: QuestionStatus.ARCHIVED,
-          version: { increment: 1 },
-        },
-        tx,
-      );
+        const updated = await this.questionRepo.update(
+          id,
+          {
+            status: QuestionStatus.ARCHIVED,
+            version: { increment: 1 },
+          },
+          tx,
+        );
 
-      // Create snapshot
-      await this.versionService.createVersionSnapshot(updated, tx);
+        // Create snapshot
+        await this.versionService.createVersionSnapshot(updated, tx);
 
-      return updated;
-    });
+        return updated;
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 
   /**

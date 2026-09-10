@@ -15,23 +15,28 @@ export class TimeoutInterceptor implements NestInterceptor {
   constructor(timeoutMs?: number) {
     this.defaultTimeoutMs =
       timeoutMs ||
-      parseInt(process.env.HTTP_REQUEST_TIMEOUT_MS || "60000", 10);
+      parseInt(process.env.HTTP_REQUEST_TIMEOUT_MS || "300000", 10);
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
     const url = req?.url || "";
 
-    // Allow extended timeout (180s) for heavy generation, config validation, and pool refill operations
+    // Allow extended timeout (900s / 15 mins) for heavy generation, evaluation, validation, execution sync, and pool refill operations
     const isHeavyOperation =
-      url.includes("/system/validate-config") ||
-      url.includes("/assembly/tests/generate") ||
-      url.includes("/assembly/pools") ||
-      url.includes("/blueprint/simulate") ||
-      url.includes("/assembly/build");
+      url.includes("/system/") ||
+      url.includes("/assembly/") ||
+      url.includes("/blueprint/") ||
+      url.includes("/evaluations/") ||
+      url.includes("/generation") ||
+      url.includes("/reports/") ||
+      url.includes("/tests/") ||
+      url.includes("/coding/") ||
+      url.includes("/execution/") ||
+      url.includes("/submissions/");
 
     const timeoutDuration = isHeavyOperation
-      ? Math.max(this.defaultTimeoutMs, 180000)
+      ? Math.max(this.defaultTimeoutMs, 900000)
       : this.defaultTimeoutMs;
 
     return next.handle().pipe(

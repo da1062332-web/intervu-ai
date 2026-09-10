@@ -8,6 +8,19 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
 
+  constructor() {
+    super({
+      transactionOptions: {
+        maxWait: 60000, // Wait up to 60s to acquire transaction from database pool
+        timeout: 180000, // Allow up to 3 mins for transaction execution
+      },
+      log:
+        process.env.NODE_ENV === "development"
+          ? ["warn", "error"]
+          : ["error"],
+    });
+  }
+
   async onModuleInit() {
     // Add automatic retry middleware for transient connection drops (e.g. Supabase socket resets)
     this.$use(async (params, next) => {

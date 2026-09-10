@@ -44,6 +44,7 @@ export interface AssessmentSnapshotResponse {
   candidateName?: string;
   assessmentName?: string;
   sandboxUi?: string;
+  allowSectionNavigation?: boolean;
   sections: SectionSnapshot[];
 }
 
@@ -112,8 +113,9 @@ export class ExecutionService {
     }
     this.logger.info(`[EXECUTION ✅] Deep snapshot loaded from DB in ${Date.now() - tDb}ms (Sections: ${snapshot.sections?.length})`);
 
-    // 4. Determine sectionTimingEnabled and sandboxUi from ExamConfig -> RuleFlags
+    // 4. Determine sectionTimingEnabled, allowSectionNavigation and sandboxUi from ExamConfig -> RuleFlags
     let sectionTimingEnabled = false;
+    let allowSectionNavigation = false;
     let sandboxUi = "DEFAULT";
     const configId =
       (testInstance as any).examConfigId ||
@@ -129,6 +131,8 @@ export class ExecutionService {
       });
       sectionTimingEnabled =
         examConfig?.ruleFlags?.sectionTimingEnabled ?? false;
+      allowSectionNavigation =
+        examConfig?.ruleFlags?.allowSectionNavigation ?? false;
       sandboxUi = (examConfig as any)?.sandboxUi ?? "DEFAULT";
     } else if (snapshot.examConfig?.sandboxUi) {
       sandboxUi = snapshot.examConfig.sandboxUi;
@@ -463,6 +467,7 @@ export class ExecutionService {
         snapshot.testConfig?.name ||
         "Candidate Assessment",
       sandboxUi,
+      allowSectionNavigation,
       sections: sectionsWithStatus,
     };
 

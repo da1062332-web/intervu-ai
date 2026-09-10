@@ -84,14 +84,27 @@ export class SectionAdvanceService {
 
     const now = new Date();
 
+    const configId =
+      testInstance.examConfigId || (testInstance as any).testConfigId;
+    let allowSectionNavigation = false;
+    if (configId) {
+      const examConfig = await this.prisma.examConfig.findUnique({
+        where: { id: configId },
+        include: { ruleFlags: true },
+      });
+      allowSectionNavigation =
+        examConfig?.ruleFlags?.allowSectionNavigation ?? false;
+    }
+
     // CON-002: Idempotency check — if the section was already advanced by another
     // concurrent request that completed between our Redis lock acquisition and now,
     // return the current state without double-advancing.
     // This is detected when the current section is already COMPLETED or LOCKED
     // and the next section already exists.
     if (
-      currentSection.status === "COMPLETED" ||
-      currentSection.status === "LOCKED"
+      !allowSectionNavigation &&
+      (currentSection.status === "COMPLETED" ||
+        currentSection.status === "LOCKED")
     ) {
       const nextSectionIndex = currentSectionIndex + 1;
       const nextSection = sections[nextSectionIndex];
@@ -112,19 +125,22 @@ export class SectionAdvanceService {
       };
     }
 
-    // 4. Mark current section as COMPLETED
+    // 4. Mark current section status (COMPLETED if linear, ACTIVE if free navigation)
     await this.prisma.testInstanceSection.update({
       where: { id: currentSection.id },
       data: {
-        status: "COMPLETED",
+        status: allowSectionNavigation ? "ACTIVE" : "COMPLETED",
         updatedAt: now,
       },
     });
 
-    this.logger.info(`Section ${currentSection.sectionName} marked COMPLETED`, {
-      testInstanceId,
-      sectionIndex: currentSectionIndex,
-    });
+    this.logger.info(
+      `Section ${currentSection.sectionName} updated (status: ${allowSectionNavigation ? "ACTIVE" : "COMPLETED"})`,
+      {
+        testInstanceId,
+        sectionIndex: currentSectionIndex,
+      },
+    );
 
     const isLastSection = currentSectionIndex >= sections.length - 1;
 
@@ -238,17 +254,19 @@ export class SectionAdvanceService {
       }
     }
 
-    // 6. Lock previous sections (all sections before nextSectionIndex become LOCKED)
-    const previousSectionIds = sections
-      .slice(0, nextSectionIndex)
-      .filter((s) => s.status !== "LOCKED")
-      .map((s) => s.id);
+    // 6. Lock previous sections if section navigation is restricted
+    if (!allowSectionNavigation) {
+      const previousSectionIds = sections
+        .slice(0, nextSectionIndex)
+        .filter((s) => s.status !== "LOCKED")
+        .map((s) => s.id);
 
-    if (previousSectionIds.length > 0) {
-      await this.prisma.testInstanceSection.updateMany({
-        where: { id: { in: previousSectionIds } },
-        data: { status: "LOCKED" },
-      });
+      if (previousSectionIds.length > 0) {
+        await this.prisma.testInstanceSection.updateMany({
+          where: { id: { in: previousSectionIds } },
+          data: { status: "LOCKED" },
+        });
+      }
     }
 
     // 7. Activate next section
@@ -261,9 +279,9 @@ export class SectionAdvanceService {
     });
 
     // 8. Update ExecutionState with new section index and startedAt
-    const lockedSectionKeys = sections
-      .slice(0, nextSectionIndex)
-      .map((s) => s.sectionKey);
+    const lockedSectionKeys = allowSectionNavigation
+      ? []
+      : sections.slice(0, nextSectionIndex).map((s) => s.sectionKey);
 
     await this.prisma.executionState.upsert({
       where: { testInstanceId },

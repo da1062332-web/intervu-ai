@@ -169,8 +169,8 @@ export class ReferralEngineService {
         reward: refereeRewardConfig,
       };
     }, {
-      maxWait: 30000,
-      timeout: 90000,
+      maxWait: 60000,
+      timeout: 180000,
     });
 
     ReferralEngineService.invalidateCandidateReferralCache(userId);
@@ -319,7 +319,7 @@ export class ReferralEngineService {
               isActive: true,
             },
           });
-        });
+        }, { maxWait: 60000, timeout: 120000 });
       }
 
       if (existingCode) {

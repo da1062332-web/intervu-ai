@@ -66,4 +66,5 @@ export interface TestInstance {
   /** Server timestamp (ISO string) — used for clock-sync on section timers */
   serverTime?: string;
   sandboxUi?: string;
+  allowSectionNavigation?: boolean;
 }

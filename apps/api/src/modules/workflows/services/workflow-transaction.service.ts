@@ -45,75 +45,81 @@ export class WorkflowTransactionService {
       historyEntry,
     } = params;
 
-    return this.prisma.$transaction(async (tx) => {
-      // Optimistic concurrency control using version
-      const updateResult = await tx.examWorkflow.updateMany({
-        where: { id: workflowId, version: expectedVersion },
-        data: {
-          currentStep: newStep,
-          status: newStatus,
-          completionPercentage: newPercentage,
-          version: { increment: 1 },
-        },
-      });
+    return this.prisma.$transaction(
+      async (tx) => {
+        // Optimistic concurrency control using version
+        const updateResult = await tx.examWorkflow.updateMany({
+          where: { id: workflowId, version: expectedVersion },
+          data: {
+            currentStep: newStep,
+            status: newStatus,
+            completionPercentage: newPercentage,
+            version: { increment: 1 },
+          },
+        });
 
-      if (updateResult.count === 0) {
-        this.logger.warn(
-          `Concurrency conflict detected on workflow ${workflowId} (expected version ${expectedVersion})`,
-        );
-        throw new ConflictException(
-          "Workflow was concurrently modified. Please reload and retry.",
-        );
-      }
+        if (updateResult.count === 0) {
+          this.logger.warn(
+            `Concurrency conflict detected on workflow ${workflowId} (expected version ${expectedVersion})`,
+          );
+          throw new ConflictException(
+            "Workflow was concurrently modified. Please reload and retry.",
+          );
+        }
 
-      const workflow = await tx.examWorkflow.findUniqueOrThrow({
-        where: { id: workflowId },
-      });
+        const workflow = await tx.examWorkflow.findUniqueOrThrow({
+          where: { id: workflowId },
+        });
 
-      await tx.examWorkflowHistory.create({
-        data: {
-          ...historyEntry,
-          workflowId: workflow.id,
-        },
-      });
+        await tx.examWorkflowHistory.create({
+          data: {
+            ...historyEntry,
+            workflowId: workflow.id,
+          },
+        });
 
-      return workflow;
-    });
+        return workflow;
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 
   async executeFailure(params: FailureParams): Promise<ExamWorkflow> {
     const { workflowId, expectedVersion, reason, historyEntry } = params;
 
-    return this.prisma.$transaction(async (tx) => {
-      const updateResult = await tx.examWorkflow.updateMany({
-        where: { id: workflowId, version: expectedVersion },
-        data: {
-          status: WorkflowStatus.FAILED,
-          metadata: { failureReason: reason },
-          version: { increment: 1 },
-        },
-      });
+    return this.prisma.$transaction(
+      async (tx) => {
+        const updateResult = await tx.examWorkflow.updateMany({
+          where: { id: workflowId, version: expectedVersion },
+          data: {
+            status: WorkflowStatus.FAILED,
+            metadata: { failureReason: reason },
+            version: { increment: 1 },
+          },
+        });
 
-      if (updateResult.count === 0) {
-        throw new ConflictException(
-          "Workflow was concurrently modified. Please reload and retry.",
-        );
-      }
+        if (updateResult.count === 0) {
+          throw new ConflictException(
+            "Workflow was concurrently modified. Please reload and retry.",
+          );
+        }
 
-      const workflow = await tx.examWorkflow.findUniqueOrThrow({
-        where: { id: workflowId },
-      });
+        const workflow = await tx.examWorkflow.findUniqueOrThrow({
+          where: { id: workflowId },
+        });
 
-      await tx.examWorkflowHistory.create({
-        data: {
-          ...historyEntry,
-          workflowId: workflow.id,
-          reason,
-        },
-      });
+        await tx.examWorkflowHistory.create({
+          data: {
+            ...historyEntry,
+            workflowId: workflow.id,
+            reason,
+          },
+        });
 
-      return workflow;
-    });
+        return workflow;
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 
   async executeRetry(
@@ -125,34 +131,37 @@ export class WorkflowTransactionService {
       "workflow" | "workflowId"
     >,
   ): Promise<ExamWorkflow> {
-    return this.prisma.$transaction(async (tx) => {
-      const updateResult = await tx.examWorkflow.updateMany({
-        where: { id: workflowId, version: expectedVersion },
-        data: {
-          status: WorkflowStatus.IN_PROGRESS,
-          currentStep: step,
-          version: { increment: 1 },
-        },
-      });
+    return this.prisma.$transaction(
+      async (tx) => {
+        const updateResult = await tx.examWorkflow.updateMany({
+          where: { id: workflowId, version: expectedVersion },
+          data: {
+            status: WorkflowStatus.IN_PROGRESS,
+            currentStep: step,
+            version: { increment: 1 },
+          },
+        });
 
-      if (updateResult.count === 0) {
-        throw new ConflictException(
-          "Workflow was concurrently modified. Please reload and retry.",
-        );
-      }
+        if (updateResult.count === 0) {
+          throw new ConflictException(
+            "Workflow was concurrently modified. Please reload and retry.",
+          );
+        }
 
-      const workflow = await tx.examWorkflow.findUniqueOrThrow({
-        where: { id: workflowId },
-      });
+        const workflow = await tx.examWorkflow.findUniqueOrThrow({
+          where: { id: workflowId },
+        });
 
-      await tx.examWorkflowHistory.create({
-        data: {
-          ...historyEntry,
-          workflowId: workflow.id,
-        },
-      });
+        await tx.examWorkflowHistory.create({
+          data: {
+            ...historyEntry,
+            workflowId: workflow.id,
+          },
+        });
 
-      return workflow;
-    });
+        return workflow;
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
   }
 }

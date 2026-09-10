@@ -180,15 +180,28 @@ export class AssemblyPersistenceService {
       sectionsJson: any;
     },
     userId: string,
-    durationSeconds: number = 3600,
+    durationSeconds?: number,
   ): Promise<string> {
     const t0 = Date.now();
     const testInstanceId = createId();
-    const expiresAt = new Date(Date.now() + (durationSeconds || 3600) * 1000);
 
     const rawSections = Array.isArray(claimedInstance.sectionsJson)
       ? claimedInstance.sectionsJson
       : (claimedInstance.sectionsJson as any)?.sections || [];
+
+    // Calculate total duration from pool sections if durationSeconds not provided or invalid
+    const poolSectionsDurationTotal = rawSections.reduce(
+      (sum: number, s: any) => sum + (Number(s.durationSeconds) || 0),
+      0,
+    );
+    const effectiveDurationSeconds =
+      durationSeconds && durationSeconds > 0
+        ? durationSeconds
+        : poolSectionsDurationTotal > 0
+          ? poolSectionsDurationTotal
+          : 3600;
+
+    const expiresAt = new Date(Date.now() + effectiveDurationSeconds * 1000);
 
     let sectionsToPersist = rawSections;
     if (this.finalShuffler) {

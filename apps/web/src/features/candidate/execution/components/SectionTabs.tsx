@@ -54,8 +54,9 @@ export function SectionTabs() {
         {testInstance.sections.map((section, idx) => {
           const isActive = idx === activeSectionIndex;
           const isLocked =
-            lockedSectionKeys.includes(section.sectionKey) ||
-            (sectionTimingEnabled && idx < currentSectionIndex);
+            testInstance.allowSectionNavigation !== true &&
+            (lockedSectionKeys.includes(section.sectionKey) ||
+              (sectionTimingEnabled && idx < currentSectionIndex));
           const isCurrentActive = idx === currentSectionIndex && sectionTimingEnabled;
 
           return (

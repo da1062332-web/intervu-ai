@@ -144,70 +144,74 @@ export class AIReviewService {
       recommendation: approval.recommendation,
     });
 
-    // 9. Update Database Entity States & Enrichment
-    await this.prisma.$transaction(async (tx) => {
-      let finalStatus: QuestionStatus = QuestionStatus.DRAFT;
-      let finalMetadata: Record<string, unknown> =
-        (question.metadata as Record<string, unknown>) || {};
+    // 9. Enrich Metadata if Approved (done before transaction to prevent holding DB connections)
+    let finalStatus: QuestionStatus = QuestionStatus.DRAFT;
+    let finalMetadata: Record<string, unknown> =
+      (question.metadata as Record<string, unknown>) || {};
 
-      if (approval.recommendation === "APPROVE") {
-        finalStatus = QuestionStatus.ACTIVE;
+    if (approval.recommendation === "APPROVE") {
+      finalStatus = QuestionStatus.ACTIVE;
 
-        // Enrich Metadata
-        const enrichment = await this.questionEnrichment.enrich({
-          questionText: question.questionText,
-          answer: question.answer,
-          explanation: question.explanation,
-          difficulty: question.difficulty,
-          difficultyConfidence: diffRes.confidence,
-          topicName,
+      // Enrich Metadata
+      const enrichment = await this.questionEnrichment.enrich({
+        questionText: question.questionText,
+        answer: question.answer,
+        explanation: question.explanation,
+        difficulty: question.difficulty,
+        difficultyConfidence: diffRes.confidence,
+        topicName,
+      });
+
+      finalMetadata = {
+        ...finalMetadata,
+        ...enrichment,
+      };
+    } else if (approval.recommendation === "REVIEW") {
+      finalStatus = QuestionStatus.VALIDATED;
+    } else {
+      finalStatus = QuestionStatus.DRAFT;
+    }
+
+    // 10. Update Database Entity States & Snapshot
+    await this.prisma.$transaction(
+      async (tx) => {
+        // Update question details
+        const updated = await tx.question.update({
+          where: { id: questionId },
+          data: {
+            status: finalStatus,
+            metadata: finalMetadata as Prisma.InputJsonValue,
+            version: { increment: 1 },
+          },
         });
 
-        finalMetadata = {
-          ...finalMetadata,
-          ...enrichment,
+        // Capture snapshot for version trail
+        const snapshot: Record<string, unknown> = {
+          id: updated.id,
+          questionText: updated.questionText,
+          answer: updated.answer,
+          explanation: updated.explanation,
+          topicId: updated.topicId,
+          sectionId: updated.sectionId,
+          difficulty: updated.difficulty,
+          difficultyScore: updated.difficultyScore,
+          source: updated.source,
+          templateId: updated.templateId,
+          status: updated.status,
+          options,
+          metadata: finalMetadata,
         };
-      } else if (approval.recommendation === "REVIEW") {
-        finalStatus = QuestionStatus.VALIDATED;
-      } else {
-        finalStatus = QuestionStatus.DRAFT;
-      }
 
-      // Update question details
-      const updated = await tx.question.update({
-        where: { id: questionId },
-        data: {
-          status: finalStatus,
-          metadata: finalMetadata as Prisma.InputJsonValue,
-          version: { increment: 1 },
-        },
-      });
-
-      // Capture snapshot for version trail
-      const snapshot: Record<string, unknown> = {
-        id: updated.id,
-        questionText: updated.questionText,
-        answer: updated.answer,
-        explanation: updated.explanation,
-        topicId: updated.topicId,
-        sectionId: updated.sectionId,
-        difficulty: updated.difficulty,
-        difficultyScore: updated.difficultyScore,
-        source: updated.source,
-        templateId: updated.templateId,
-        status: updated.status,
-        options,
-        metadata: finalMetadata,
-      };
-
-      await tx.questionVersion.create({
-        data: {
-          questionId,
-          version: updated.version,
-          snapshot: snapshot as Prisma.InputJsonValue,
-        },
-      });
-    });
+        await tx.questionVersion.create({
+          data: {
+            questionId,
+            version: updated.version,
+            snapshot: snapshot as Prisma.InputJsonValue,
+          },
+        });
+      },
+      { maxWait: 60000, timeout: 120000 },
+    );
 
     return {
       score,
