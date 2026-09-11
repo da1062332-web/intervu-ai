@@ -219,7 +219,7 @@ export class AuthService {
       },
       {
         jwtid: randomUUID(),
-        expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN as any) || "2h",
+        expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN as any) || "3h",
       },
     );
 
@@ -293,7 +293,7 @@ export class AuthService {
       },
       {
         jwtid: randomUUID(),
-        expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN as any) || "2h",
+        expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN as any) || "3h",
       },
     );
 

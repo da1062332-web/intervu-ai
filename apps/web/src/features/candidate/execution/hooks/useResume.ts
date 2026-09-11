@@ -25,17 +25,58 @@ export function useResume(testId: string | undefined) {
         if (sessionDto && (sessionDto as any).answers) {
           const formattedAnswers = ((sessionDto as any).answers as any[]).reduce(
             (acc: any, ans: any) => {
-              let parsedOptionIds;
-              try {
-                parsedOptionIds = ans.answer.startsWith('[') ? JSON.parse(ans.answer) : undefined;
-              } catch {
-                // Not an array
+              if (!ans || !ans.questionId) return acc;
+
+              let selectedOptionId: string | undefined;
+              let selectedOptionIds: string[] | undefined;
+              let textResponse: string | undefined;
+
+              const raw = ans.answer;
+
+              if (Array.isArray(raw)) {
+                selectedOptionIds = raw.map(String);
+              } else if (typeof raw === 'object' && raw !== null) {
+                textResponse = JSON.stringify(raw);
+              } else if (typeof raw === 'string') {
+                const trimmed = raw.trim();
+                if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                  try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed)) {
+                      selectedOptionIds = parsed.map(String);
+                    } else {
+                      selectedOptionId = trimmed;
+                    }
+                  } catch {
+                    selectedOptionId = trimmed;
+                  }
+                } else if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                  textResponse = trimmed;
+                } else if (trimmed.startsWith('opt-') || /^[A-Da-d]$/.test(trimmed)) {
+                  selectedOptionId = trimmed;
+                } else {
+                  textResponse = trimmed;
+                  selectedOptionId = trimmed;
+                }
+              } else if (typeof raw === 'number' || typeof raw === 'boolean') {
+                textResponse = String(raw);
               }
 
+              const hasAnswer = Boolean(
+                selectedOptionId ||
+                (selectedOptionIds && selectedOptionIds.length > 0) ||
+                (textResponse && textResponse !== '')
+              );
+
               acc[ans.questionId] = {
-                status: ans.isMarkedForReview ? 'MARKED_FOR_REVIEW' : 'ANSWERED',
-                selectedOptionId: !parsedOptionIds ? ans.answer : undefined,
-                selectedOptionIds: parsedOptionIds,
+                status: ans.isMarkedForReview
+                  ? 'MARKED_FOR_REVIEW'
+                  : hasAnswer
+                    ? 'ANSWERED'
+                    : 'UNANSWERED',
+                selectedOptionId,
+                selectedOptionIds,
+                textResponse,
                 timeSpentSeconds: ans.timeSpentSeconds || 0,
               };
               return acc;
@@ -67,7 +108,7 @@ export function useResume(testId: string | undefined) {
           const saved = localStorage.getItem(`${STORAGE_KEY}_${testId}`);
           if (saved) {
             const parsed = JSON.parse(saved);
-            if (parsed.answers && typeof parsed.currentQuestionIndex === 'number') {
+            if (parsed.answers && Object.keys(parsed.answers).length > 0 && typeof parsed.currentQuestionIndex === 'number') {
               restoreStateFromStorage(parsed);
             }
           }

@@ -28,6 +28,7 @@ import { StreamlinedQuestionRenderer } from './StreamlinedQuestionRenderer';
 import { SectionTabs } from './SectionTabs';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { isFaceDetectionDisabledForAssessment } from '@/lib/proctoring';
+import { ConnectionStatusBadge } from './ConnectionStatusBadge';
 
 export interface SandboxLayoutProps {
   onSubmit?: () => void;
@@ -272,7 +273,8 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
           </div>
         </div>
 
-        <div className='flex items-center gap-4'>
+        <div className='flex items-center gap-3 sm:gap-4'>
+          <ConnectionStatusBadge />
           <div className='w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden shrink-0'>
             <FaceTracker
               onSubmit={() => submitAssessment({ autoSubmit: true })}

@@ -30,6 +30,7 @@ interface ExecutionState {
   lastSavedAt: Date | null;
   connectionStatus: ConnectionStatus;
   ping: number | null;
+  isSlowConnection: boolean;
   submissionStatus: SubmissionStatus;
   isRecovered: boolean;
   hasAttemptedResume: boolean;
@@ -41,6 +42,9 @@ interface ExecutionState {
   // Fullscreen Block State
   isInteractionBlocked: boolean;
   setInteractionBlocked: (blocked: boolean) => void;
+
+  // Server Clock Offset (for clock skew correction)
+  serverClockOffsetMs: number;
 
   // Section Timing State (Feature 6, 7, 8)
   /** Index of the currently active section */
@@ -89,6 +93,7 @@ interface ExecutionState {
   setSubmissionStatus: (status: SubmissionStatus) => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
   setPing: (ping: number | null) => void;
+  setIsSlowConnection: (isSlow: boolean) => void;
   setUnsavedChanges: (unsaved: boolean) => void;
   restoreStateFromStorage: (savedState: {
     answers: Record<string, AnswerState>;
@@ -166,6 +171,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   pendingSectionChangeTarget: null,
   isInteractionBlocked: false,
   setInteractionBlocked: (blocked) => set({ isInteractionBlocked: blocked }),
+  serverClockOffsetMs: 0,
 
   // Section Timing Initial State
   currentSectionIndex: 0,
@@ -178,6 +184,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   lastSavedAt: null,
   connectionStatus: 'ONLINE',
   ping: null,
+  isSlowConnection: false,
   submissionStatus: 'IDLE',
   isRecovered: false,
   hasAttemptedResume: false,
@@ -203,6 +210,10 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       .map((s) => s.sectionKey)
       .filter(Boolean);
 
+    const serverClockOffsetMs = testInstance.serverTime
+      ? Date.now() - new Date(testInstance.serverTime).getTime()
+      : 0;
+
     // Compute initial section remaining time from server clock + startedAt
     let sectionRemainingTime = 0;
     if (testInstance.sectionTimingEnabled && sections.length > 0) {
@@ -210,7 +221,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       if (activeSection?.startedAt && typeof activeSection?.durationSeconds === 'number') {
         const serverNow = testInstance.serverTime
           ? new Date(testInstance.serverTime).getTime()
-          : Date.now();
+          : Date.now() - serverClockOffsetMs;
         const sectionStarted = new Date(activeSection.startedAt).getTime();
         if (!isNaN(sectionStarted)) {
           const elapsed = Math.floor((serverNow - sectionStarted) / 1000);
@@ -251,6 +262,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       error: null,
       submissionStatus: 'IDLE',
       isInteractionBlocked: false,
+      serverClockOffsetMs,
       isRecovered: false,
       hasAttemptedResume: false,
       currentSectionIndex: serverSectionIndex,
@@ -478,8 +490,15 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
         const nextSection = instance.sections[nextSectionIndex];
         if (nextSection?.durationSeconds) {
           if (sectionStartedAt) {
-            const elapsed = Math.floor((Date.now() - new Date(sectionStartedAt).getTime()) / 1000);
-            sectionRemainingTime = Math.max(0, nextSection.durationSeconds - elapsed);
+            const serverNow = Date.now() - (state.serverClockOffsetMs || 0);
+            const sectionStarted = new Date(sectionStartedAt).getTime();
+            const elapsed = !isNaN(sectionStarted) ? Math.floor((serverNow - sectionStarted) / 1000) : 0;
+            // If the section was just activated (elapsed is negative or tiny <= 2s), grant full section duration
+            if (elapsed <= 2) {
+              sectionRemainingTime = nextSection.durationSeconds;
+            } else {
+              sectionRemainingTime = Math.max(5, nextSection.durationSeconds - elapsed);
+            }
           } else {
             sectionRemainingTime = nextSection.durationSeconds;
           }
@@ -683,6 +702,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   setSubmissionStatus: (status) => set({ submissionStatus: status }),
   setConnectionStatus: (status) => set({ connectionStatus: status }),
   setPing: (ping) => set({ ping }),
+  setIsSlowConnection: (isSlow) => set({ isSlowConnection: isSlow }),
   setUnsavedChanges: (unsaved) => set({ hasUnsavedChanges: unsaved }),
 
   resetExecutionState: () =>
@@ -713,5 +733,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       isRecovered: false,
       hasAttemptedResume: false,
       hasUnsavedChanges: false,
+      isSlowConnection: false,
+      serverClockOffsetMs: 0,
     }),
 }));

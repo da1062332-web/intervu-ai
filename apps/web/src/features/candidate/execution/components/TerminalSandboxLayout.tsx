@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Wifi,
   WifiOff,
+  Activity,
   ChevronRight,
   ChevronLeft,
   Bookmark,
@@ -83,6 +84,7 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
     saveAnswer,
     toggleReview,
     connectionStatus,
+    isSlowConnection,
     autosaveStatus,
     hasUnsavedChanges,
     ping,
@@ -358,8 +360,15 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
             <div className='flex items-center gap-1.5'>
               {isOffline ? (
                 <>
-                  <WifiOff className='w-3.5 h-3.5 text-rose-400' />
-                  <span className='text-rose-400'>Offline</span>
+                  <WifiOff className='w-3.5 h-3.5 text-rose-400 animate-pulse' />
+                  <span className='text-rose-400 font-semibold'>Offline</span>
+                </>
+              ) : isSlowConnection ? (
+                <>
+                  <Activity className='w-3.5 h-3.5 text-amber-400 animate-pulse' />
+                  <span className='text-amber-400 font-semibold'>
+                    Slow {ping !== null ? `(${ping}ms)` : ''}
+                  </span>
                 </>
               ) : (
                 <>

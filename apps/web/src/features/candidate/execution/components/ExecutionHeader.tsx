@@ -1,7 +1,7 @@
 'use client';
 
 import { useExecutionStore } from '../stores/execution.store';
-import { Wifi, WifiOff, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, AlertCircle, CheckCircle2, RefreshCw, Activity } from 'lucide-react';
 import { BrandLogo } from '@/components/ui/brand-logo';
 
 export function ExecutionHeader() {
@@ -10,6 +10,7 @@ export function ExecutionHeader() {
     currentQuestionIndex,
     questions,
     connectionStatus,
+    isSlowConnection,
     autosaveStatus,
     hasUnsavedChanges,
     ping,
@@ -42,10 +43,30 @@ export function ExecutionHeader() {
           <div className='flex items-center gap-2.5 bg-[#1e6132] border border-[#348b4f] px-3 py-1 rounded-sm text-xs font-semibold text-green-100 shadow-inner'>
             {/* Online Connection Status */}
             <div className='flex items-center gap-1.5 text-white'>
-              <Wifi className='size-3.5 text-green-300' />
-              <span className='hidden md:inline text-xs'>{isOffline ? 'Offline' : 'Online'}</span>
-              {ping !== null && !isOffline && (
-                <span className='text-[11px] text-green-200 font-normal'>({ping}ms)</span>
+              {isOffline ? (
+                <>
+                  <WifiOff className='size-3.5 text-rose-300 animate-pulse' />
+                  <span className='hidden md:inline text-xs text-rose-200 font-semibold'>Offline</span>
+                  <span className='md:hidden text-[11px] text-rose-200 font-semibold'>Offline</span>
+                </>
+              ) : isSlowConnection ? (
+                <>
+                  <Activity className='size-3.5 text-amber-300 animate-pulse' />
+                  <span className='hidden md:inline text-xs text-amber-200 font-semibold'>
+                    Slow {ping !== null ? `(${ping}ms)` : ''}
+                  </span>
+                  <span className='md:hidden text-[11px] text-amber-200 font-semibold'>
+                    {ping !== null ? `${ping}ms` : 'Slow'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Wifi className='size-3.5 text-green-300' />
+                  <span className='hidden md:inline text-xs text-green-100'>Online</span>
+                  {ping !== null && (
+                    <span className='text-[11px] text-green-200 font-normal'>({ping}ms)</span>
+                  )}
+                </>
               )}
             </div>
 

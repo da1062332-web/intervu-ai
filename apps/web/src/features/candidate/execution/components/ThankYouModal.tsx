@@ -13,6 +13,27 @@ interface ThankYouModalProps {
 export function ThankYouModal({ isOpen }: ThankYouModalProps) {
   const router = useRouter();
   const { testInstance, questions, answers } = useExecutionStore();
+  const [countdown, setCountdown] = React.useState(5);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setCountdown(5);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          router.replace('/candidate/dashboard');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isOpen, router]);
 
   const total = questions.length;
   let answered = 0;
@@ -28,7 +49,7 @@ export function ThankYouModal({ isOpen }: ThankYouModalProps) {
   });
 
   const handleNavigateDashboard = () => {
-    router.push('/candidate/dashboard');
+    router.replace('/candidate/dashboard');
   };
 
   return (
@@ -77,16 +98,19 @@ export function ThankYouModal({ isOpen }: ThankYouModalProps) {
           </div>
         )}
 
-        {/* Action Button */}
-        <div className='mt-6 pt-2 flex items-center justify-center'>
+        {/* Action Button & Countdown Notice */}
+        <div className='mt-6 pt-2 flex flex-col items-center justify-center gap-2.5'>
           <button
             type='button'
             onClick={handleNavigateDashboard}
             className='w-full sm:w-auto bg-[#27783f] hover:bg-[#1f6333] active:bg-[#195028] text-white border border-[#195028] font-bold text-xs px-8 py-3 rounded-md shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex items-center justify-center gap-2'
           >
             <LayoutDashboard className='w-4 h-4' />
-            Go to Dashboard
+            Go to Dashboard {countdown > 0 ? `(${countdown}s)` : ''}
           </button>
+          <span className='text-[11px] text-slate-500 font-medium'>
+            Redirecting to dashboard automatically in <strong className='text-emerald-700 font-bold'>{countdown}s</strong>...
+          </span>
         </div>
       </div>
     </Modal>

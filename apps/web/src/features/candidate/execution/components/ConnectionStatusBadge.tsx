@@ -2,66 +2,69 @@
 
 import { useExecutionStore } from '../stores/execution.store';
 import { WifiOff, Wifi, Activity } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 
 export function ConnectionStatusBadge() {
-  const { connectionStatus, ping } = useExecutionStore();
+  const { connectionStatus, isSlowConnection, ping } = useExecutionStore();
   const [showRestored, setShowRestored] = useState(false);
-  const [wasOffline, setWasOffline] = useState(false);
+  const prevStatusRef = useRef(connectionStatus);
 
   useEffect(() => {
-    if (connectionStatus === 'OFFLINE') {
-      setWasOffline(true);
-      setShowRestored(false);
-    } else if (connectionStatus === 'ONLINE' && wasOffline) {
+    if (prevStatusRef.current === 'OFFLINE' && connectionStatus === 'ONLINE') {
       setShowRestored(true);
-      setWasOffline(false);
-      const timer = setTimeout(() => setShowRestored(false), 3000);
+      const timer = setTimeout(() => setShowRestored(false), 3500);
       return () => clearTimeout(timer);
     }
-  }, [connectionStatus, wasOffline]);
+    prevStatusRef.current = connectionStatus;
+  }, [connectionStatus]);
 
-  // If online, ping is available, and we are not showing the "restored" badge, show the ping badge.
-  if (connectionStatus === 'ONLINE' && !showRestored) {
-    if (ping !== null) {
-      // Color code based on ping
-      const isSlow = ping > 500;
-      return (
-        <Badge
-          variant='outline'
-          className={`flex items-center gap-1 font-medium shadow-sm border-gray-200 text-gray-600 bg-white`}
-        >
-          {isSlow ? (
-            <Activity className='w-3.5 h-3.5 text-yellow-500' />
-          ) : (
-            <Wifi className='w-3.5 h-3.5 text-green-500' />
-          )}
-          <span>{ping}ms</span>
-        </Badge>
-      );
-    }
-    return null;
+  if (connectionStatus === 'OFFLINE') {
+    return (
+      <Badge
+        variant='destructive'
+        className='flex items-center gap-1.5 font-medium shadow-xs bg-red-600 hover:bg-red-700 text-white animate-pulse'
+        title='Connection lost. Answers are saved locally.'
+      >
+        <WifiOff className='w-3.5 h-3.5' />
+        <span>Offline</span>
+      </Badge>
+    );
+  }
+
+  if (showRestored) {
+    return (
+      <Badge
+        className='flex items-center gap-1.5 font-medium shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white animate-in fade-in'
+        title='Internet restored. Syncing answers.'
+      >
+        <Wifi className='w-3.5 h-3.5' />
+        <span>Reconnected</span>
+      </Badge>
+    );
+  }
+
+  if (isSlowConnection) {
+    return (
+      <Badge
+        variant='outline'
+        className='flex items-center gap-1.5 font-medium shadow-xs border-amber-300 bg-amber-50 text-amber-900'
+        title='Slow internet connection detected. Local autosave active.'
+      >
+        <Activity className='w-3.5 h-3.5 text-amber-600 animate-pulse' />
+        <span>Slow {ping !== null ? `(${ping}ms)` : ''}</span>
+      </Badge>
+    );
   }
 
   return (
     <Badge
-      variant={connectionStatus === 'OFFLINE' ? 'destructive' : 'default'}
-      className={`flex items-center gap-1 font-medium shadow-sm transition-all animate-in fade-in ${
-        connectionStatus === 'ONLINE' ? 'bg-green-500 hover:bg-green-600' : ''
-      }`}
+      variant='outline'
+      className='flex items-center gap-1.5 font-medium shadow-xs border-emerald-200 bg-emerald-50 text-emerald-800'
+      title='Internet connection healthy.'
     >
-      {connectionStatus === 'OFFLINE' ? (
-        <>
-          <WifiOff className='w-3.5 h-3.5' />
-          <span>Offline</span>
-        </>
-      ) : showRestored ? (
-        <>
-          <Wifi className='w-3.5 h-3.5' />
-          <span>Reconnected</span>
-        </>
-      ) : null}
+      <Wifi className='w-3.5 h-3.5 text-emerald-600' />
+      <span>Online {ping !== null ? `(${ping}ms)` : ''}</span>
     </Badge>
   );
 }

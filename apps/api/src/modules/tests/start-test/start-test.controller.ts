@@ -6,7 +6,7 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-  HttpException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -67,47 +67,10 @@ export class StartTestController {
     @Req() req: Request & { user?: { id: string } },
     @Body() input: StartTestDto,
   ) {
-    try {
-      if (!req.user || !req.user.id) {
-        throw new Error("Unauthorized");
-      }
-      const userId = req.user.id;
-      const data = await this.startTestService.startTest(userId, input);
-      return { success: true, data, error: null, meta: {} };
-    } catch (error) {
-      let code = "TEST_CREATION_FAILED";
-      let message = "Failed to start test";
-
-      if (error instanceof HttpException) {
-        const response = error.getResponse();
-        if (response && typeof response === "object" && "code" in response) {
-          code = (response as { code: string }).code;
-          message = (response as { message?: string }).message || message;
-        } else if (
-          response &&
-          typeof response === "object" &&
-          "message" in response
-        ) {
-          const resMsg = (response as { message: string | string[] }).message;
-          message = Array.isArray(resMsg) ? resMsg.join(", ") : resMsg;
-          code = (response as { error?: string }).error || "BAD_REQUEST";
-        }
-      } else if (error instanceof Error) {
-        if (error.message === "Unauthorized") {
-          code = "UNAUTHORIZED";
-          message = "Unauthorized request";
-        } else {
-          message = error.message;
-          code = error.name;
-        }
-      }
-
-      return {
-        success: false,
-        data: null,
-        error: { code, message },
-        meta: {},
-      };
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException("Unauthorized");
     }
+    const userId = req.user.id;
+    return await this.startTestService.startTest(userId, input);
   }
 }

@@ -4,13 +4,13 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Logger,
 } from "@nestjs/common";
 import { Request, Response } from "express";
+import { AppLogger } from "@intervu-ai/shared-logger";
 
 @Catch()
 export class GlobalErrorFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GlobalErrorFilter.name);
+  private readonly logger = new AppLogger({ name: "GlobalErrorFilter" });
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -26,6 +26,11 @@ export class GlobalErrorFilter implements ExceptionFilter {
       request.headers["x-request-id"] ||
       "unknown") as string;
 
+    const method = request.method;
+    const url = request.originalUrl || request.url;
+    const userId =
+      (request as any).user?.id || (request as any).userId || undefined;
+
     const exceptionResponse =
       exception instanceof HttpException ? exception.getResponse() : null;
 
@@ -40,7 +45,10 @@ export class GlobalErrorFilter implements ExceptionFilter {
       const respObj = exceptionResponse as Record<string, unknown>;
       errorCode =
         (respObj.code as string) || (respObj.error as string) || "HTTP_ERROR";
-      message = (respObj.message as string) || message;
+      const respMsg = respObj.message;
+      message = Array.isArray(respMsg)
+        ? respMsg.join(", ")
+        : (respMsg as string) || message;
       details = respObj.details || null;
     } else if (exception && typeof exception === "object") {
       const excObj = exception as Record<string, unknown>;
@@ -76,14 +84,34 @@ export class GlobalErrorFilter implements ExceptionFilter {
     }
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      const stack = exception instanceof Error ? exception.stack : undefined;
+      const errorObj = exception instanceof Error ? exception : undefined;
       this.logger.error(
-        `[GlobalErrorFilter] Server Error: Status: ${status}, Code: ${errorCode}, Message: ${message}, TraceId: ${traceId}`,
-        stack,
+        `[SERVER ERROR 💥] [${method}] ${url} - Status: ${status} | Code: ${errorCode} | Message: ${message}`,
+        errorObj,
+        {
+          statusCode: status,
+          errorCode,
+          errorMessage: message,
+          traceId,
+          userId,
+          method,
+          url,
+          details,
+        },
       );
     } else {
       this.logger.warn(
-        `[GlobalErrorFilter] Client Warning: Status: ${status}, Code: ${errorCode}, Message: ${message}, TraceId: ${traceId}`,
+        `[CLIENT WARN ⚠️] [${method}] ${url} - Status: ${status} | Code: ${errorCode} | Message: ${message}`,
+        {
+          statusCode: status,
+          errorCode,
+          errorMessage: message,
+          traceId,
+          userId,
+          method,
+          url,
+          details,
+        },
       );
     }
 

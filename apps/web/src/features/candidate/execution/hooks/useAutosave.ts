@@ -16,6 +16,7 @@ export function useAutosave(testId: string) {
     remainingTime,
     hasUnsavedChanges,
     connectionStatus,
+    hasAttemptedResume,
     setAutosaveStatus,
     setUnsavedChanges,
   } = useExecutionStore();
@@ -31,6 +32,27 @@ export function useAutosave(testId: string) {
       // Still clear unsaved changes since network autosave (useAnswerPersistence) handles this
       setUnsavedChanges(false);
       return;
+    }
+
+    // Guard: Do not write empty state to localStorage before initial resume has run
+    if (!hasAttemptedResume) {
+      return;
+    }
+
+    // Guard against overwriting existing local backup with empty answers
+    if (Object.keys(answers).length === 0) {
+      const existing = localStorage.getItem(`${STORAGE_KEY}_${testId}`);
+      if (existing) {
+        try {
+          const parsed = JSON.parse(existing);
+          if (parsed.answers && Object.keys(parsed.answers).length > 0) {
+            setUnsavedChanges(false);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+      }
     }
 
     try {

@@ -79,6 +79,7 @@ export interface EmbeddedCompilerProps {
   onChange?: (data: any) => void;
   initialCode?: string;
   initialLanguage?: string;
+  initialCodeByLanguage?: Record<string, string>;
   initialRunResponse?: RunCodeResponse | null;
   initialSubmitResponse?: SubmitCodeResponse | null;
   initialActiveTab?: 'editor' | 'results';
@@ -96,12 +97,33 @@ const DEFAULT_STARTER_CODE: Record<string, string> = {
   cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your C++ solution here\n    return 0;\n}\n`,
 };
 
+function getQuestionStarterCode(question: any, lang: string): string {
+  const coding =
+    question?.codingData ||
+    question?.questionSnapshot?.codingData ||
+    (question?.metadata as any)?.codingData ||
+    question?.questionSnapshot?.metadata?.codingData;
+
+  const starterFromCoding = coding?.starterCode?.[lang] || coding?.starterCode?.[lang.toLowerCase()];
+  if (starterFromCoding && typeof starterFromCoding === 'string') {
+    return starterFromCoding;
+  }
+
+  const rawStarter = question?.starterCode?.[lang] || question?.questionSnapshot?.starterCode?.[lang];
+  if (rawStarter && typeof rawStarter === 'string') {
+    return rawStarter;
+  }
+
+  return DEFAULT_STARTER_CODE[lang] || '# Write your solution here\n';
+}
+
 export function EmbeddedCompiler({
   questionId: propQuestionId,
   testInstanceId: propTestInstanceId,
   onChange,
   initialCode,
   initialLanguage = 'java',
+  initialCodeByLanguage,
   initialRunResponse = null,
   initialSubmitResponse = null,
   initialActiveTab = 'editor',
@@ -112,11 +134,12 @@ export function EmbeddedCompiler({
   const activeTestInstanceId = propTestInstanceId || testInstance?.id || '';
 
   const [language, setLanguage] = useState<string>(initialLanguage || 'java');
-  const [code, setCode] = useState<string>(
-    initialCode !== undefined
-      ? initialCode
-      : DEFAULT_STARTER_CODE[initialLanguage || 'java'] || DEFAULT_STARTER_CODE.java,
-  );
+  const [codeByLanguage, setCodeByLanguage] = useState<Record<string, string>>(initialCodeByLanguage || {});
+  const [code, setCode] = useState<string>(() => {
+    if (initialCode !== undefined) return initialCode;
+    const lang = initialLanguage || 'java';
+    return (initialCodeByLanguage && initialCodeByLanguage[lang]) || getQuestionStarterCode(currentQuestion, lang);
+  });
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [runResponse, setRunResponse] = useState<RunCodeResponse | null>(initialRunResponse);
   const [executionError, setExecutionError] = useState<string | null>(null);
@@ -128,12 +151,19 @@ export function EmbeddedCompiler({
 
   // Synchronize state when switching questions or receiving persisted answer
   useEffect(() => {
-    if (initialCode !== undefined) {
-      setCode(initialCode);
-    } else {
-      setCode(DEFAULT_STARTER_CODE[initialLanguage || 'java'] || DEFAULT_STARTER_CODE.java);
+    const currentLang = initialLanguage || 'java';
+    setLanguage(currentLang);
+
+    const initialBuffers = initialCodeByLanguage || {};
+    let initialEditorCode = initialCode;
+    if (initialEditorCode === undefined) {
+      initialEditorCode = initialBuffers[currentLang] || getQuestionStarterCode(currentQuestion, currentLang);
     }
-    setLanguage(initialLanguage || 'java');
+    setCode(initialEditorCode);
+    setCodeByLanguage({
+      ...initialBuffers,
+      [currentLang]: initialEditorCode,
+    });
     setRunResponse(initialRunResponse || null);
     setSubmitResponse(initialSubmitResponse || null);
     setExecutionError(null);
@@ -142,26 +172,40 @@ export function EmbeddedCompiler({
     activeQuestionId,
     initialCode,
     initialLanguage,
+    initialCodeByLanguage,
     initialRunResponse,
     initialSubmitResponse,
     initialActiveTab,
   ]);
 
   const handleLanguageChange = (newLang: string) => {
+    if (newLang === language) return;
+
+    // Save current code under previous language
+    const updatedCodeByLanguage = {
+      ...codeByLanguage,
+      [language]: code,
+    };
+
+    // Check if target language already has code in buffer
+    let targetCode = updatedCodeByLanguage[newLang];
+    if (!targetCode || targetCode.trim() === '') {
+      targetCode = getQuestionStarterCode(currentQuestion, newLang);
+      updatedCodeByLanguage[newLang] = targetCode;
+    }
+
     setLanguage(newLang);
+    setCode(targetCode);
+    setCodeByLanguage(updatedCodeByLanguage);
     setRunResponse(null);
     setSubmitResponse(null);
     setExecutionError(null);
-    const starter = DEFAULT_STARTER_CODE[newLang] || '# Write your solution here\n';
-    let newCode = code;
-    if (!code || code === DEFAULT_STARTER_CODE[language]) {
-      newCode = starter;
-      setCode(starter);
-    }
+
     if (onChange) {
       onChange({
-        code: newCode,
+        code: targetCode,
         language: newLang,
+        codeByLanguage: updatedCodeByLanguage,
         runResponse: null,
         submitResponse: null,
         activeTab: 'editor',
@@ -172,10 +216,16 @@ export function EmbeddedCompiler({
   const handleCodeChange = (newCode: string | undefined) => {
     const val = newCode || '';
     setCode(val);
+    const updatedCodeByLanguage = {
+      ...codeByLanguage,
+      [language]: val,
+    };
+    setCodeByLanguage(updatedCodeByLanguage);
     if (onChange) {
       onChange({
         code: val,
         language,
+        codeByLanguage: updatedCodeByLanguage,
         runResponse,
         submitResponse,
         activeTab,

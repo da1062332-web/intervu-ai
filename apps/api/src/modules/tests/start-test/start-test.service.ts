@@ -3,10 +3,10 @@ import {
   BadRequestException,
   ForbiddenException,
   InternalServerErrorException,
-  Logger,
   Optional,
   Inject,
 } from "@nestjs/common";
+import { AppLogger } from "@intervu-ai/shared-logger";
 import { StartTestDto } from "./dto/start-test.dto";
 import { EligibilityService } from "../../lifecycle/eligibility.service";
 import { TestConfigRepository } from "../repositories/test-config.repository";
@@ -22,7 +22,7 @@ import { UsageQuotaService } from "../../billing/services/usage-quota.service";
 
 @Injectable()
 export class StartTestService {
-  private readonly logger = new Logger(StartTestService.name);
+  private readonly logger = new AppLogger({ name: "StartTestService" });
 
   constructor(
     private readonly eligibilityService: EligibilityService,
@@ -39,19 +39,33 @@ export class StartTestService {
 
   async startTest(userId: string, input: StartTestDto) {
     const startOverall = Date.now();
-    this.logger.log(`\n================================================================================`);
-    this.logger.log(`[START-TEST 🚀] START TEST INITIATED | User: ${userId} | Config: ${input.testConfigId}`);
-    this.logger.log(`================================================================================`);
+    this.logger.info(
+      `[START-TEST 🚀] START TEST INITIATED | User: ${userId} | Config: ${input.testConfigId}`,
+      { userId, testConfigId: input.testConfigId },
+    );
 
     // 1. validate(input) -> Fetch Dependencies
     const t0 = Date.now();
-    this.logger.log(`[START-TEST ⏱️] Step 1/5: Validating candidate eligibility...`);
+    this.logger.info(`[START-TEST ⏱️] Step 1/5: Validating candidate eligibility...`, {
+      userId,
+      testConfigId: input.testConfigId,
+    });
     const eligibility = await this.eligibilityService.validateEligibility(
       userId,
       input.testConfigId,
     );
     const targetConfigId = eligibility.resolvedConfigId || input.testConfigId;
-    this.logger.log(`[START-TEST ✅] Step 1/5: Eligibility validated in ${Date.now() - t0}ms (Eligible: ${eligibility.eligible}, isExamConfig: ${eligibility.isExamConfig})`);
+    this.logger.info(
+      `[START-TEST ✅] Step 1/5: Eligibility validated in ${Date.now() - t0}ms (Eligible: ${eligibility.eligible}, isExamConfig: ${eligibility.isExamConfig})`,
+      {
+        userId,
+        testConfigId: input.testConfigId,
+        targetConfigId,
+        eligible: eligibility.eligible,
+        isExamConfig: eligibility.isExamConfig,
+        durationMs: Date.now() - t0,
+      },
+    );
 
     if (!eligibility.eligible) {
       if (
@@ -70,7 +84,15 @@ export class StartTestService {
           if (config) durationSeconds = config.totalDurationSeconds;
         }
 
-        this.logger.log(`[START-TEST ℹ️] Active instance already exists: ${eligibility.activeTestId}. Returning existing instance in ${Date.now() - startOverall}ms.`);
+        this.logger.info(
+          `[START-TEST ℹ️] Active instance already exists: ${eligibility.activeTestId}. Returning existing instance in ${Date.now() - startOverall}ms.`,
+          {
+            userId,
+            testConfigId: targetConfigId,
+            activeTestId: eligibility.activeTestId,
+            durationMs: Date.now() - startOverall,
+          },
+        );
         return {
           testInstanceId: eligibility.activeTestId,
           status: TestInstanceStatus.IN_PROGRESS,
@@ -78,7 +100,16 @@ export class StartTestService {
           durationSeconds,
         };
       }
-      this.logger.warn(`[START-TEST ❌] Eligibility check failed: ${eligibility.reason || eligibility.errorCode}`);
+      this.logger.warn(
+        `[START-TEST ❌] Eligibility check failed for user ${userId}: ${eligibility.reason || eligibility.errorCode}`,
+        {
+          userId,
+          testConfigId: input.testConfigId,
+          targetConfigId,
+          errorCode: eligibility.errorCode,
+          reason: eligibility.reason,
+        },
+      );
       throw new BadRequestException({
         code: eligibility.errorCode || "USER_NOT_ELIGIBLE",
         message: eligibility.reason || "User not eligible",
@@ -89,7 +120,10 @@ export class StartTestService {
     if (this.entitlementService) {
       const quotaResult = await this.entitlementService.consumeRound(userId);
       if (!quotaResult.allowed) {
-        this.logger.warn(`[START-TEST ❌] User ${userId} has exhausted assessment quota`);
+        this.logger.warn(`[START-TEST ❌] User ${userId} has exhausted assessment quota`, {
+          userId,
+          targetConfigId,
+        });
         throw new ForbiddenException({
           code: "QUOTA_EXHAUSTED",
           message: "Your assessment quota has been exhausted. Purchase a new plan to continue.",
@@ -98,7 +132,10 @@ export class StartTestService {
     }
 
     const t1 = Date.now();
-    this.logger.log(`[START-TEST ⏱️] Step 2/5: Fetching test configuration and section blueprint...`);
+    this.logger.info(`[START-TEST ⏱️] Step 2/5: Fetching test configuration and section blueprint...`, {
+      userId,
+      targetConfigId,
+    });
     let config: any;
     if (eligibility.isExamConfig) {
       config = await this.prisma.examConfig.findUnique({
@@ -154,17 +191,34 @@ export class StartTestService {
     }
 
     if (!config) {
-      this.logger.error(`[START-TEST ❌] Test configuration not found for ID: ${targetConfigId}`);
+      this.logger.error(
+        `[START-TEST ❌] Test configuration not found for ID: ${targetConfigId}`,
+        undefined,
+        { userId, targetConfigId },
+      );
       throw new BadRequestException({
         code: "TEST_CONFIG_NOT_FOUND",
         message: "Test configuration not found",
       });
     }
-    this.logger.log(`[START-TEST ✅] Step 2/5: Config loaded in ${Date.now() - t1}ms ("${config.name || config.title}", Sections: ${config.sections?.length}, TotalDuration: ${config.totalDurationSeconds}s)`);
+    this.logger.info(
+      `[START-TEST ✅] Step 2/5: Config loaded in ${Date.now() - t1}ms ("${config.name || config.title}", Sections: ${config.sections?.length}, TotalDuration: ${config.totalDurationSeconds}s)`,
+      {
+        userId,
+        targetConfigId,
+        configName: config.name || config.title,
+        sectionsCount: config.sections?.length,
+        totalDurationSeconds: config.totalDurationSeconds,
+        durationMs: Date.now() - t1,
+      },
+    );
 
     // Dynamic candidate-unique assembly ONLY when candidateNoRepeatEnabled flag is active AND candidate is taking a Retest attempt
     const t2 = Date.now();
-    this.logger.log(`[START-TEST ⏱️] Step 3/5: Checking attempt history & candidateNoRepeat rule flags...`);
+    this.logger.info(`[START-TEST ⏱️] Step 3/5: Checking attempt history & candidateNoRepeat rule flags...`, {
+      userId,
+      targetConfigId,
+    });
     const previousAttempts = this.prisma?.testInstance?.findMany
       ? await this.prisma.testInstance.findMany({
           where: {
@@ -177,10 +231,23 @@ export class StartTestService {
 
     const isRetest = previousAttempts.length > 0;
     const isCandidateNoRepeat = config.ruleFlags?.candidateNoRepeatEnabled ?? false;
-    this.logger.log(`[START-TEST ℹ️] Step 3/5: Checked history in ${Date.now() - t2}ms (PreviousAttempts: ${previousAttempts.length}, isRetest: ${isRetest}, candidateNoRepeat: ${isCandidateNoRepeat})`);
+    this.logger.info(
+      `[START-TEST ℹ️] Step 3/5: Checked history in ${Date.now() - t2}ms (PreviousAttempts: ${previousAttempts.length}, isRetest: ${isRetest}, candidateNoRepeat: ${isCandidateNoRepeat})`,
+      {
+        userId,
+        targetConfigId,
+        previousAttemptsCount: previousAttempts.length,
+        isRetest,
+        isCandidateNoRepeat,
+        durationMs: Date.now() - t2,
+      },
+    );
 
     if (isCandidateNoRepeat && isRetest && this.assemblyService) {
-      this.logger.log(`[START-TEST 🤖] Flow 2 Active: Dynamic AI Retest Mode triggered. Assembling progressive test instance...`);
+      this.logger.info(
+        `[START-TEST 🤖] Flow 2 Active: Dynamic AI Retest Mode triggered. Assembling progressive test instance...`,
+        { userId, targetConfigId },
+      );
       const tAi = Date.now();
       const candidateInstanceId = await this.assemblyService.assembleTest(
         targetConfigId,
@@ -191,7 +258,16 @@ export class StartTestService {
       const instanceRecord = await this.prisma.testInstance.findUnique({
         where: { id: candidateInstanceId },
       });
-      this.logger.log(`[START-TEST 🚀] Flow 2 Completed in ${Date.now() - tAi}ms! Instance: ${candidateInstanceId} | Total start time: ${Date.now() - startOverall}ms`);
+      this.logger.info(
+        `[START-TEST 🚀] Flow 2 Completed in ${Date.now() - tAi}ms! Instance: ${candidateInstanceId} | Total start time: ${Date.now() - startOverall}ms`,
+        {
+          userId,
+          targetConfigId,
+          testInstanceId: candidateInstanceId,
+          assemblyDurationMs: Date.now() - tAi,
+          totalDurationMs: Date.now() - startOverall,
+        },
+      );
       return {
         testInstanceId: candidateInstanceId,
         status: instanceRecord?.status || TestInstanceStatus.CREATED,
@@ -202,6 +278,11 @@ export class StartTestService {
 
     // 2. Assembly
     if (!this.assemblyService) {
+      this.logger.error(
+        `[START-TEST ❌] Assembly service is unavailable in StartTestService`,
+        undefined,
+        { userId, targetConfigId },
+      );
       throw new InternalServerErrorException({
         code: "ASSEMBLY_SERVICE_UNAVAILABLE",
         message: "Assembly service is required for candidate test creation.",
@@ -209,7 +290,10 @@ export class StartTestService {
     }
 
     const t3 = Date.now();
-    this.logger.log(`[START-TEST ⏱️] Step 4/5: Invoking AssemblyService.assembleTest...`);
+    this.logger.info(`[START-TEST ⏱️] Step 4/5: Invoking AssemblyService.assembleTest...`, {
+      userId,
+      targetConfigId,
+    });
     let testInstanceId: string;
     try {
       testInstanceId = await this.assemblyService.assembleTest(
@@ -218,12 +302,21 @@ export class StartTestService {
         false,
         { progressive: true },
       );
-      this.logger.log(`[START-TEST ✅] Step 4/5: AssemblyService completed in ${Date.now() - t3}ms -> Instance ID: ${testInstanceId}`);
+      this.logger.info(
+        `[START-TEST ✅] Step 4/5: AssemblyService completed in ${Date.now() - t3}ms -> Instance ID: ${testInstanceId}`,
+        {
+          userId,
+          targetConfigId,
+          testInstanceId,
+          durationMs: Date.now() - t3,
+        },
+      );
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
         `[START-TEST ❌] Failed assembling test for candidate ${userId}, configId: ${targetConfigId}. Cause: ${errorMsg}`,
-        error instanceof Error ? error.stack : undefined,
+        error,
+        { userId, targetConfigId, errorMsg },
       );
       throw new InternalServerErrorException({
         code: "ASSEMBLY_FAILED",
@@ -232,21 +325,43 @@ export class StartTestService {
     }
 
     const t4 = Date.now();
-    this.logger.log(`[START-TEST ⏱️] Step 5/5: Verifying created TestInstance in DB...`);
+    this.logger.info(`[START-TEST ⏱️] Step 5/5: Verifying created TestInstance in DB...`, {
+      userId,
+      testInstanceId,
+    });
     const testInstance = await this.testInstanceService.getTestInstance(testInstanceId, false);
     if (!testInstance) {
-      this.logger.error(`[START-TEST ❌] Test instance record ${testInstanceId} not found in DB!`);
+      this.logger.error(
+        `[START-TEST ❌] Test instance record ${testInstanceId} not found in DB!`,
+        undefined,
+        { userId, testInstanceId },
+      );
       throw new InternalServerErrorException({
         code: "TEST_INSTANCE_CREATION_FAILED",
         message: "Failed to fetch created test instance after assembly",
       });
     }
-    this.logger.log(`[START-TEST ✅] Step 5/5: Instance verified in ${Date.now() - t4}ms (Status: ${testInstance.status})`);
+    this.logger.info(
+      `[START-TEST ✅] Step 5/5: Instance verified in ${Date.now() - t4}ms (Status: ${testInstance.status})`,
+      {
+        userId,
+        testInstanceId,
+        status: testInstance.status,
+        durationMs: Date.now() - t4,
+      },
+    );
 
     const totalMs = Date.now() - startOverall;
-    this.logger.log(`================================================================================`);
-    this.logger.log(`[START-TEST 🚀⚡] TEST START COMPLETE IN ${totalMs}ms (< ${(totalMs / 1000).toFixed(2)}s) | Instance: ${testInstance.id}`);
-    this.logger.log(`================================================================================\n`);
+    this.logger.info(
+      `[START-TEST 🚀⚡] TEST START COMPLETE IN ${totalMs}ms (< ${(totalMs / 1000).toFixed(2)}s) | Instance: ${testInstance.id}`,
+      {
+        userId,
+        testConfigId: targetConfigId,
+        testInstanceId: testInstance.id,
+        status: testInstance.status,
+        totalDurationMs: totalMs,
+      },
+    );
 
     // 4. formatResponse(result)
     return {

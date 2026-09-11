@@ -9,8 +9,14 @@ export function useCheckpoint(testInstanceId: string) {
     const interval = setInterval(() => {
       const state = useExecutionStore.getState();
 
+      const currentSectionKey =
+        state.testInstance?.sections?.[state.currentSectionIndex]?.sectionKey ||
+        state.testInstance?.sections?.[0]?.sectionKey ||
+        'default';
+
       const payload = {
-        currentSection: 'default',
+        currentSection: currentSectionKey,
+        currentSectionIndex: state.currentSectionIndex,
         currentQuestion: state.currentQuestion?.id || '',
         currentQuestionIndex: state.currentQuestionIndex,
         remainingTime: state.remainingTime,

@@ -98,6 +98,7 @@ export class ExecutionController {
     @Body()
     body: {
       currentSection: string;
+      currentSectionIndex?: number;
       currentQuestion: string;
       currentQuestionIndex: number;
       remainingTime: number;
@@ -110,12 +111,18 @@ export class ExecutionController {
     // SEC-002: Verify the candidate owns this session before writing state
     await this.assertExecutionOwnership(id, user);
 
+    const validSectionIndex =
+      typeof body.currentSectionIndex === "number" && body.currentSectionIndex >= 0
+        ? body.currentSectionIndex
+        : undefined;
+
     await this.prisma.executionState.upsert({
       where: { testInstanceId: id },
       update: {
         currentSectionKey: body.currentSection,
         currentQuestionId: body.currentQuestion,
         currentQuestionIndex: body.currentQuestionIndex,
+        ...(validSectionIndex !== undefined ? { currentSectionIndex: validSectionIndex } : {}),
         remainingTimeSeconds: body.remainingTime,
         markedQuestions: body.markedQuestions,
         visitedQuestions: body.visitedQuestions,
@@ -124,6 +131,7 @@ export class ExecutionController {
       create: {
         testInstanceId: id,
         currentQuestionIndex: body.currentQuestionIndex ?? 0,
+        currentSectionIndex: validSectionIndex ?? 0,
         currentSectionKey: body.currentSection,
         currentQuestionId: body.currentQuestion,
         remainingTimeSeconds: body.remainingTime,

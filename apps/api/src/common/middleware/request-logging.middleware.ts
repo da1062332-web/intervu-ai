@@ -70,7 +70,7 @@ export class RequestLoggingMiddleware implements NestMiddleware {
       // Classify logs strictly according to HTTP status code:
       // 500-599 -> ERROR
       // 400-499 -> WARN
-      // 200-399 -> INFO
+      // 200-399 -> INFO (or WARN if body contains explicit failure)
       if (statusCode >= 500) {
         if (errorDetails) {
           logData.error = errorDetails;
@@ -82,11 +82,16 @@ export class RequestLoggingMiddleware implements NestMiddleware {
         }
         logger.warn(message, logData);
       } else {
-        // 2xx, 3xx: Successful requests. NEVER attach "error" property (prevents Render red flagging).
-        if (duration >= 5000) {
-          logData.isSlow = true;
+        if (errorDetails) {
+          logData.error = errorDetails;
+          logger.warn(`[UNEXPECTED 200 WITH ERROR] ${message}`, logData);
+        } else {
+          // 2xx, 3xx: Successful requests. NEVER attach "error" property (prevents Render red flagging).
+          if (duration >= 5000) {
+            logData.isSlow = true;
+          }
+          logger.info(message, logData);
         }
-        logger.info(message, logData);
       }
     };
 

@@ -66,6 +66,7 @@ export function QuestionRenderer() {
   // Extract saved compiler state for active question
   let initialCode: string | undefined;
   let initialLanguage = 'java';
+  let initialCodeByLanguage: Record<string, string> | undefined;
   let initialRunResponse: any = null;
   let initialSubmitResponse: any = null;
   let initialActiveTab: 'editor' | 'results' = 'editor';
@@ -76,6 +77,9 @@ export function QuestionRenderer() {
       if (parsed && typeof parsed === 'object') {
         if (typeof parsed.code === 'string') initialCode = parsed.code;
         if (typeof parsed.language === 'string') initialLanguage = parsed.language;
+        if (parsed.codeByLanguage && typeof parsed.codeByLanguage === 'object') {
+          initialCodeByLanguage = parsed.codeByLanguage;
+        }
         if (parsed.runResponse) initialRunResponse = parsed.runResponse;
         if (parsed.submitResponse) initialSubmitResponse = parsed.submitResponse;
         if (parsed.activeTab === 'results' || parsed.activeTab === 'editor') {
@@ -408,6 +412,7 @@ export function QuestionRenderer() {
               testInstanceId={testInstance?.id}
               initialCode={initialCode}
               initialLanguage={initialLanguage}
+              initialCodeByLanguage={initialCodeByLanguage}
               initialRunResponse={initialRunResponse}
               initialSubmitResponse={initialSubmitResponse}
               initialActiveTab={initialActiveTab}
@@ -674,6 +679,7 @@ export function QuestionRenderer() {
               testInstanceId={testInstance?.id}
               initialCode={initialCode}
               initialLanguage={initialLanguage}
+              initialCodeByLanguage={initialCodeByLanguage}
               initialRunResponse={initialRunResponse}
               initialSubmitResponse={initialSubmitResponse}
               initialActiveTab={initialActiveTab}

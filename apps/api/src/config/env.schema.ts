@@ -9,6 +9,7 @@ export const envSchema = z.object({
   REDIS_URL: z.string().url().describe("Redis connection string"),
   JWT_SECRET: z.string().min(32).describe("JWT signing secret"),
   JWT_REFRESH_SECRET: z.string().min(32).describe("JWT refresh token secret"),
+  JWT_ACCESS_EXPIRES_IN: z.string().default("3h").optional().describe("JWT access token expiration"),
   OPENAI_API_KEY: z.string().startsWith("sk-").describe("OpenAI API key"),
   AUTH_LIMIT: z.coerce.number().default(10),
   AUTH_TTL: z.coerce.number().default(60000), // 60s

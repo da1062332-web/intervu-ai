@@ -33,9 +33,11 @@ export function useSectionTimer(testId: string | undefined) {
     currentSectionIndex,
     testInstance,
     submissionStatus,
+    setSubmissionStatus,
   } = useExecutionStore();
 
   const advancingRef = useRef(false); // Prevent duplicate advance calls
+  const lastAdvanceTimeRef = useRef(0); // Guard against cascading auto-advances
   // DDOS-001: Retry state
   const retryCountRef = useRef(0);
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -54,6 +56,11 @@ export function useSectionTimer(testId: string | undefined) {
       retriesExhaustedRef.current = false;
 
       if (result.isLastSection || result.submitted) {
+        setSubmissionStatus('SUCCESS');
+        if (typeof document !== 'undefined' && document.fullscreenElement) {
+          document.exitFullscreen().catch(console.error);
+        }
+        advancingRef.current = false;
         return;
       }
 
@@ -104,12 +111,17 @@ export function useSectionTimer(testId: string | undefined) {
         attemptAdvance();
       }, delay);
     }
-  }, [testId, submissionStatus, testInstance, advanceSectionLocally]);
+  }, [testId, submissionStatus, testInstance, advanceSectionLocally, setSubmissionStatus]);
 
   const handleSectionExpiry = useCallback(async () => {
     // DDOS-001: Do not trigger if retries are exhausted
     if (retriesExhaustedRef.current) return;
     if (advancingRef.current) return;
+
+    const now = Date.now();
+    // Guard against rapid successive auto-advances (minimum 3s cooldown between section advances)
+    if (now - lastAdvanceTimeRef.current < 3000) return;
+    lastAdvanceTimeRef.current = now;
 
     advancingRef.current = true;
     await attemptAdvance();
@@ -139,11 +151,6 @@ export function useSectionTimer(testId: string | undefined) {
   useEffect(() => {
     // Only run when section timing is enabled and assessment is active
     if (!sectionTimingEnabled || !testId) return;
-    if (sectionRemainingTime <= 0) {
-      // Already expired on mount — trigger immediately
-      handleSectionExpiry();
-      return;
-    }
 
     const interval = setInterval(() => {
       const currentTime = useExecutionStore.getState().sectionRemainingTime;
@@ -164,6 +171,5 @@ export function useSectionTimer(testId: string | undefined) {
     currentSectionIndex,
     handleSectionExpiry,
     setSectionTimer,
-    sectionRemainingTime,
   ]);
 }

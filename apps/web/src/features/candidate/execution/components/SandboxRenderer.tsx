@@ -5,6 +5,7 @@ import { useExecutionStore } from '../stores/execution.store';
 import { ExecutionLayout } from './ExecutionLayout';
 import { StreamlinedSandboxLayout } from './StreamlinedSandboxLayout';
 import { TerminalSandboxLayout } from './TerminalSandboxLayout';
+import { ConnectionStatus } from './ConnectionStatus';
 
 export interface SandboxRendererProps {
   onSubmit?: () => void;
@@ -17,13 +18,22 @@ export function SandboxRenderer(props: SandboxRendererProps = {}) {
   // Safe fallback to 'DEFAULT'
   const uiType = testInstance?.sandboxUi || 'DEFAULT';
 
-  switch (uiType) {
-    case 'SANDBOX_2':
-      return <StreamlinedSandboxLayout {...props} />;
-    case 'SANDBOX_3':
-      return <TerminalSandboxLayout {...props} />;
-    case 'DEFAULT':
-    default:
-      return <ExecutionLayout />;
-  }
+  const renderLayout = () => {
+    switch (uiType) {
+      case 'SANDBOX_2':
+        return <StreamlinedSandboxLayout {...props} />;
+      case 'SANDBOX_3':
+        return <TerminalSandboxLayout {...props} />;
+      case 'DEFAULT':
+      default:
+        return <ExecutionLayout />;
+    }
+  };
+
+  return (
+    <>
+      <ConnectionStatus />
+      {renderLayout()}
+    </>
+  );
 }

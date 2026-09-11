@@ -51,8 +51,8 @@ export function useSubmission(testId: string) {
 
       // Show a toast letting the candidate know results are being generated
       toast.success('Assessment submitted successfully!', {
-        description: 'Thank you for completing the test. Click Go to Dashboard to return to your dashboard.',
-        duration: 6000,
+        description: 'Thank you for completing the test. Redirecting to dashboard...',
+        duration: 5000,
       });
     } catch (error: any) {
       const isAlreadySubmitted =
@@ -75,7 +75,7 @@ export function useSubmission(testId: string) {
           document.exitFullscreen().catch(console.error);
         }
         toast.info('Assessment already submitted.', {
-          description: 'Thank you. Click Go to Dashboard to view your dashboard.',
+          description: 'Thank you. Redirecting to dashboard...',
           duration: 5000,
         });
         return;
