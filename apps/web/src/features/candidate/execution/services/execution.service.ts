@@ -47,6 +47,7 @@ export const executionService = {
       candidateName: response.candidateName || 'Candidate',
       status: response.status,
       durationSeconds: response.durationSeconds || duration,
+      expiresAt: response.expiresAt ?? null,
 
       // Section timing fields (Feature 5, 6, 7, 8)
       sectionTimingEnabled: response.sectionTimingEnabled ?? false,

@@ -100,4 +100,55 @@ describe('useTestTimer', () => {
     expect(result.current.formattedTime).toBe('00:00');
     expect(result.current.remainingTime).toBe(0);
   });
+
+  it('accurately synchronizes remaining time from authoritative expiresAt', () => {
+    const setTimerMock = vi.fn();
+    const now = Date.now();
+    // 38 minutes (2280 seconds) remaining until expiresAt
+    const expiresAt = new Date(now + 2280 * 1000).toISOString();
+
+    (useExecutionStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      remainingTime: 7200,
+      sectionRemainingTime: 7200,
+      sectionTimingEnabled: false,
+      setTimer: setTimerMock,
+      hasAttemptedResume: true,
+      loading: false,
+      serverClockOffsetMs: 0,
+      testInstance: { id: 'test-wall-clock', durationSeconds: 7200, expiresAt },
+    });
+
+    renderHook(() => useTestTimer());
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    // After 1s, exactly 2279 seconds should be calculated
+    expect(setTimerMock).toHaveBeenCalledWith(2279);
+  });
+
+  it('accurately advances by wall-clock time even after multi-second delay or tab throttle', () => {
+    const setTimerMock = vi.fn();
+    (useExecutionStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      remainingTime: 100,
+      sectionRemainingTime: 100,
+      sectionTimingEnabled: false,
+      setTimer: setTimerMock,
+      hasAttemptedResume: true,
+      loading: false,
+      testInstance: { id: 'test-anchor', durationSeconds: 100 },
+    });
+
+    renderHook(() => useTestTimer());
+
+    act(() => {
+      // Advance by 15 seconds at once (simulating tab throttle / background lag)
+      vi.advanceTimersByTime(15000);
+    });
+
+    // Wall-clock anchor accounts for full 15s elapsed
+    expect(setTimerMock).toHaveBeenCalledWith(85);
+  });
 });
+

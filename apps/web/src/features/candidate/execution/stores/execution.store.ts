@@ -250,13 +250,25 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
       }
     }
 
+    // Compute initial test remaining time authoritatively from expiresAt if available
+    let initialRemainingTime = typeof testInstance.durationSeconds === 'number' ? testInstance.durationSeconds : 0;
+    if (testInstance.expiresAt) {
+      const serverNow = testInstance.serverTime
+        ? new Date(testInstance.serverTime).getTime()
+        : Date.now() - serverClockOffsetMs;
+      const expiry = new Date(testInstance.expiresAt).getTime();
+      if (!isNaN(expiry)) {
+        initialRemainingTime = Math.max(0, Math.floor((expiry - serverNow) / 1000));
+      }
+    }
+
     set({
       testInstance,
       questions: allQuestions,
       currentQuestionIndex: startingQuestionIndex,
       currentQuestion: allQuestions[startingQuestionIndex] || null,
       palette: initialPalette,
-      remainingTime: typeof testInstance.durationSeconds === 'number' ? testInstance.durationSeconds : 0,
+      remainingTime: initialRemainingTime,
       answers: {},
       loading: false,
       error: null,
@@ -689,8 +701,10 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
     }
   },
 
-  setTimer: (time: number) => set({ remainingTime: time }),
-  setSectionTimer: (time: number) => set({ sectionRemainingTime: time }),
+  setTimer: (time: number) =>
+    set((state) => (state.remainingTime === time ? state : { remainingTime: time })),
+  setSectionTimer: (time: number) =>
+    set((state) => (state.sectionRemainingTime === time ? state : { sectionRemainingTime: time })),
   setError: (error) => set({ error }),
   setLoading: (loading) => set({ loading }),
 

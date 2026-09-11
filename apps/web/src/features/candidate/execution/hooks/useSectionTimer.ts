@@ -129,11 +129,14 @@ export function useSectionTimer(testId: string | undefined) {
     // or via the retry timeout. For transient failures, the timeout callback resets it.
   }, [attemptAdvance]);
 
-  // DDOS-001: Reset retry state when section changes (successful advance happened externally)
+  const sectionAnchorRef = useRef<{ localStart: number; initialSeconds: number } | null>(null);
+
+  // DDOS-001: Reset retry and anchor state when section changes
   useEffect(() => {
     retryCountRef.current = 0;
     retriesExhaustedRef.current = false;
     advancingRef.current = false;
+    sectionAnchorRef.current = null;
     if (retryTimeoutRef.current) {
       clearTimeout(retryTimeoutRef.current);
       retryTimeoutRef.current = null;
@@ -152,19 +155,67 @@ export function useSectionTimer(testId: string | undefined) {
     // Only run when section timing is enabled and assessment is active
     if (!sectionTimingEnabled || !testId) return;
 
-    const interval = setInterval(() => {
-      const currentTime = useExecutionStore.getState().sectionRemainingTime;
-      if (currentTime <= 1) {
+    const computeSectionRemaining = () => {
+      const state = useExecutionStore.getState();
+      const activeSection = state.testInstance?.sections?.[currentSectionIndex];
+
+      if (activeSection?.startedAt && typeof activeSection?.durationSeconds === 'number') {
+        const serverNow = Date.now() - (state.serverClockOffsetMs || 0);
+        const sectionStarted = new Date(activeSection.startedAt).getTime();
+        if (!isNaN(sectionStarted)) {
+          const elapsed = Math.floor((serverNow - sectionStarted) / 1000);
+          return Math.max(0, activeSection.durationSeconds - elapsed);
+        }
+      }
+
+      if (!sectionAnchorRef.current) {
+        sectionAnchorRef.current = {
+          localStart: Date.now(),
+          initialSeconds: state.sectionRemainingTime > 0 ? state.sectionRemainingTime : (activeSection?.durationSeconds ?? 0),
+        };
+      }
+
+      const elapsed = Math.floor((Date.now() - sectionAnchorRef.current.localStart) / 1000);
+      return Math.max(0, sectionAnchorRef.current.initialSeconds - elapsed);
+    };
+
+    const updateSectionTimer = () => {
+      const remaining = computeSectionRemaining();
+      if (remaining <= 0) {
         setSectionTimer(0);
-        clearInterval(interval);
         handleSectionExpiry();
       } else {
-        setSectionTimer(currentTime - 1);
+        setSectionTimer(remaining);
       }
-    }, TICK_INTERVAL_MS);
+    };
 
-    return () => clearInterval(interval);
-    // Re-run when section changes (currentSectionIndex changes after advance)
+    const interval = setInterval(updateSectionTimer, TICK_INTERVAL_MS);
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        updateSectionTimer();
+      }
+    };
+    const handleFocus = () => {
+      updateSectionTimer();
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', handleFocus);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', handleFocus);
+      }
+    };
   }, [
     sectionTimingEnabled,
     testId,

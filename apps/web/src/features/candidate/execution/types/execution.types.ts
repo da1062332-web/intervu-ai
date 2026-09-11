@@ -67,4 +67,6 @@ export interface TestInstance {
   serverTime?: string;
   sandboxUi?: string;
   allowSectionNavigation?: boolean;
+  /** Authoritative expiration timestamp (ISO string) from server */
+  expiresAt?: string | null;
 }
