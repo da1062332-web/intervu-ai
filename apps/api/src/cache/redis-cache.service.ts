@@ -124,6 +124,37 @@ export class RedisCacheService {
     }
   }
 
+  /**
+   * Atomically acquires a distributed lock via SET NX EX. Unlike a plain
+   * get-then-set pair, this is race-free: only one caller across all
+   * processes can ever hold the same key at once. Fails open (returns true)
+   * when Redis is unavailable, so a cache outage degrades to best-effort
+   * rather than blocking every submission.
+   */
+  async acquireLock(
+    key: string,
+    ttlSeconds: number,
+    options?: CacheOptions,
+  ): Promise<boolean> {
+    if (!this.isAvailable()) {
+      this.logger.debug("Redis unavailable — lock acquisition skipped (degraded mode)", { key });
+      return true;
+    }
+    try {
+      const redis = RedisConnectionManager.getInstance();
+      const fullKey = this.getKey(key, options?.prefix);
+      const result = await redis.set(fullKey, "1", "EX", ttlSeconds, "NX");
+      return result === "OK";
+    } catch (error) {
+      this.logger.error("Failed to acquire distributed lock", error, { key });
+      return true;
+    }
+  }
+
+  async releaseLock(key: string, options?: CacheOptions): Promise<void> {
+    await this.delete(key, options);
+  }
+
   async exists(key: string, options?: CacheOptions): Promise<boolean> {
     if (!this.isAvailable()) {
       return false;

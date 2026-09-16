@@ -17,9 +17,21 @@ const UpdateRuleFlagsSchema = z.object({
   candidateNoRepeatEnabled: z.boolean().optional(),
   runtimeGenerationOnDeficit: z.boolean().optional(),
   poolEnabled: z.boolean().optional(),
-  poolTargetSize: z.number().int().min(1).max(500).optional(),
-  poolMinThreshold: z.number().int().min(1).max(100).optional(),
-  poolRefillBatchSize: z.number().int().min(1).max(50).optional(),
+  poolTargetSize: z
+    .number()
+    .int()
+    .min(1, 'Target Pool Capacity must be at least 1')
+    .optional(),
+  poolMinThreshold: z
+    .number()
+    .int()
+    .min(1, 'Refill Threshold must be at least 1')
+    .optional(),
+  poolRefillBatchSize: z
+    .number()
+    .int()
+    .min(1, 'Refill Batch Size must be at least 1')
+    .optional(),
 });
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -143,7 +155,9 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
     const validation = UpdateRuleFlagsSchema.safeParse(payload);
 
     if (!validation.success) {
-      toast.error('Validation Error', { description: 'Invalid rule flags state.' });
+      const firstError = validation.error.errors[0];
+      const message = firstError ? firstError.message : 'Invalid rule flags state.';
+      toast.error('Validation Error', { description: message });
       return;
     }
 
@@ -353,12 +367,11 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
                 <Layers className='h-4 w-4 text-primary' />
                 Target Pool Capacity
               </Label>
-              <p className='text-xs text-muted-foreground'>Target count of pre-generated tests to maintain.</p>
+              <p className='text-xs text-muted-foreground'>Target count of ready tests to maintain (unlimited).</p>
               <input
                 id='pool-target-size'
                 type='number'
                 min={1}
-                max={500}
                 value={poolTargetSize}
                 onChange={(e) => {
                   const val = parseInt(e.target.value, 10);
@@ -381,7 +394,6 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
                 id='pool-min-threshold'
                 type='number'
                 min={1}
-                max={100}
                 value={poolMinThreshold}
                 onChange={(e) => {
                   const val = parseInt(e.target.value, 10);
@@ -399,12 +411,11 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
                 <Zap className='h-4 w-4 text-emerald-500' />
                 Refill Batch Size
               </Label>
-              <p className='text-xs text-muted-foreground'>Number of instances assembled per refill cycle.</p>
+              <p className='text-xs text-muted-foreground'>Instances assembled per refill cycle (unlimited).</p>
               <input
                 id='pool-refill-batch'
                 type='number'
                 min={1}
-                max={50}
                 value={poolRefillBatchSize}
                 onChange={(e) => {
                   const val = parseInt(e.target.value, 10);

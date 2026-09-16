@@ -6,9 +6,24 @@ import { Request, Response, NextFunction } from "express";
 export class RequestLoggingMiddleware implements NestMiddleware {
   private readonly logger = new AppLogger({ name: "RequestLogging" });
 
+  private static readonly SENSITIVE_QUERY_PARAMS = ["token", "access_token", "authorization", "apiKey", "api_key"];
+
+  private redactSensitiveQueryParams(url: string): string {
+    const queryIndex = url.indexOf("?");
+    if (queryIndex === -1) return url;
+
+    const path = url.slice(0, queryIndex);
+    const query = url.slice(queryIndex + 1);
+    const params = new URLSearchParams(query);
+    for (const key of RequestLoggingMiddleware.SENSITIVE_QUERY_PARAMS) {
+      if (params.has(key)) params.set(key, "[REDACTED]");
+    }
+    return `${path}?${params.toString()}`;
+  }
+
   use(req: Request, res: Response, next: NextFunction) {
     const method = req.method;
-    const originalUrl = req.originalUrl || req.url;
+    const originalUrl = this.redactSensitiveQueryParams(req.originalUrl || req.url);
     const ip = req.ip || req.socket?.remoteAddress;
     const userAgent = req.headers?.["user-agent"] as string | undefined;
     const startTime = Date.now();

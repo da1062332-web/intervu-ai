@@ -29,8 +29,8 @@ export class EvaluationQueueService {
     });
 
     // 1. Prevent duplicate evaluation
-    const existingSubmission = await this.prisma.submission.findUnique({
-      where: { testInstanceId },
+    const existingSubmission = await this.prisma.submission.findFirst({
+      where: { testInstanceId, isCurrent: true },
     });
 
     if (
@@ -60,8 +60,8 @@ export class EvaluationQueueService {
       });
 
       // 3. Update Submission record to track queue status
-      return await this.prisma.submission.update({
-        where: { testInstanceId },
+      return await this.prisma.submission.updateMany({
+        where: { testInstanceId, isCurrent: true },
         data: {
           status: SubmissionStatus.SUBMITTED,
           errorMessage: null,
@@ -77,8 +77,8 @@ export class EvaluationQueueService {
       );
 
       // Update submission record with queue warning but return successfully
-      return await this.prisma.submission.update({
-        where: { testInstanceId },
+      return await this.prisma.submission.updateMany({
+        where: { testInstanceId, isCurrent: true },
         data: {
           errorMessage:
             error instanceof Error
@@ -92,8 +92,8 @@ export class EvaluationQueueService {
   async getEvaluationStatus(attemptId: string): Promise<unknown> {
     this.logger.debug("Fetching evaluation status", { attemptId });
 
-    const submission = await this.prisma.submission.findUnique({
-      where: { testInstanceId: attemptId },
+    const submission = await this.prisma.submission.findFirst({
+      where: { testInstanceId: attemptId, isCurrent: true },
     });
 
     if (!submission) {
@@ -117,8 +117,8 @@ export class EvaluationQueueService {
   async retryFailedEvaluation(attemptId: string): Promise<unknown> {
     this.logger.info("Retrying failed evaluation", { attemptId });
 
-    const submission = await this.prisma.submission.findUnique({
-      where: { testInstanceId: attemptId },
+    const submission = await this.prisma.submission.findFirst({
+      where: { testInstanceId: attemptId, isCurrent: true },
     });
 
     if (!submission) {
@@ -169,8 +169,8 @@ export class EvaluationQueueService {
     });
 
     // Reset error, increment retryCount, and enqueue
-    await this.prisma.submission.update({
-      where: { testInstanceId: attemptId },
+    await this.prisma.submission.updateMany({
+      where: { testInstanceId: attemptId, isCurrent: true },
       data: {
         retryCount: {
           increment: 1,

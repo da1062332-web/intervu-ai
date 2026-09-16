@@ -37,6 +37,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
       heading: 'Overview',
       items: [
         { label: 'Dashboard', route: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'Live Monitoring', route: '/admin/monitoring', icon: Activity, badge: 'LIVE' },
         { label: 'Activity Feed', route: '/admin/activities', icon: Activity },
         { label: 'Analytics', route: '/admin/analytics/generation', icon: TrendingUp },
         { label: 'Reports', route: '/admin/reports/candidates', icon: FileText },
@@ -79,6 +80,7 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
     {
       heading: 'Execution & Review',
       items: [
+        { label: 'Live Assessment Monitor', route: '/admin/monitoring', icon: Activity },
         { label: 'Recent Test Attempts', route: '/admin/results', icon: BarChart3 },
         { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
         { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },

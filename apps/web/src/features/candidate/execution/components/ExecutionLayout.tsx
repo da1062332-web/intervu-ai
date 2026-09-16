@@ -21,6 +21,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
 import { useSectionTimer } from '../hooks/useSectionTimer';
+import { useLiveTelemetry } from '../hooks/useLiveTelemetry';
 import { useState, useCallback, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LayoutGrid } from 'lucide-react';
@@ -61,6 +62,13 @@ export function ExecutionLayout() {
     };
   }, []);
 
+  // Expose current test instance ID globally for telemetry event listeners
+  useEffect(() => {
+    if (typeof window !== 'undefined' && testInstance?.id) {
+      (window as any).__current_test_instance_id = testInstance.id;
+    }
+  }, [testInstance?.id]);
+
   // Initialize day 4 hooks
   useConnectionMonitor();
   useResume(testInstance?.id || '');
@@ -68,6 +76,7 @@ export function ExecutionLayout() {
   useAnswerPersistence(testInstance?.id || 'unknown');
   useCheckpoint(testInstance?.id || '');
   useSectionTimer(testInstance?.id);
+  useLiveTelemetry(testInstance?.id);
 
   const { submitAssessment } = useSubmission(testInstance?.id || '');
 

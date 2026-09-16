@@ -188,7 +188,19 @@ export class EligibilityService {
           where: {
             userId,
             examConfigId: targetConfigId,
-            status: { in: ["CREATED", "IN_PROGRESS"] },
+            // Includes the recovery-workflow statuses: an attempt awaiting admin
+            // review or resume is still "in flight" and must be reclaimed by the
+            // expiry below, not left running alongside a brand-new attempt.
+            status: {
+              in: [
+                "CREATED",
+                "IN_PROGRESS",
+                "ADMIN_REVIEW",
+                "RESUME_AUTHORIZED",
+                "RESUMED",
+                "AUTO_SUBMITTED",
+              ],
+            },
           },
         })
       : await this.testInstanceRepository.findActiveByUser(

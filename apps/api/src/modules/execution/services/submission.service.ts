@@ -44,16 +44,21 @@ export class SubmissionService {
     testInstanceId: string,
     userId: string,
     isAutoSubmit = false,
+    source: "USER" | "SYSTEM" | "RULE_ENGINE" | "TIMEOUT" | "ADMIN" = isAutoSubmit ? "TIMEOUT" : "USER",
+    reason: "USER_SUBMIT" | "TIME_EXPIRED" | "PROCTORING_LIMIT" | "NETWORK_FAILURE" | "SESSION_EXPIRY" | "SYSTEM_FAILURE" | "ADMIN_ACTION" | "OTHER" = isAutoSubmit ? "TIME_EXPIRED" : "USER_SUBMIT",
+    reasonDetails?: string,
   ): Promise<{ submissionId: string; status: string }> {
     this.logger.info("Initiating assessment submission", {
       testInstanceId,
       userId,
       isAutoSubmit,
+      source,
+      reason,
     });
 
     // A. Submission Idempotency: Check if already submitted
-    const existingSubmission = await this.prisma.submission.findUnique({
-      where: { testInstanceId },
+    const existingSubmission = await this.prisma.submission.findFirst({
+      where: { testInstanceId, isCurrent: true },
     });
     if (
       existingSubmission &&
@@ -75,8 +80,9 @@ export class SubmissionService {
 
     const testInstanceCheck = await this.prisma.testInstance.findUnique({
       where: { id: testInstanceId },
-      include: { submission: true },
+      include: { submissions: { where: { isCurrent: true }, take: 1 } },
     });
+    const currentSub = testInstanceCheck?.submissions?.[0];
     if (
       testInstanceCheck &&
       (testInstanceCheck.status === "SUBMITTED" ||
@@ -86,24 +92,28 @@ export class SubmissionService {
         "TestInstance already marked SUBMITTED, returning existing reference (idempotency)",
         {
           testInstanceId,
-          submissionId: testInstanceCheck.submission?.id,
+          submissionId: currentSub?.id,
         },
       );
       return {
-        submissionId: testInstanceCheck.submission?.id || testInstanceId,
-        status: testInstanceCheck.submission?.status || "SUBMITTED",
+        submissionId: currentSub?.id || testInstanceId,
+        status: currentSub?.status || "SUBMITTED",
       };
     }
 
-    // B. Locking & Double-Submit Guard via Redis Cache
-    const lockKey = `lock:submit:${testInstanceId}`;
-    const isLocked = await this.cacheService.get<string>(lockKey);
-    if (isLocked) {
+    // B. Locking & Double-Submit Guard via an atomic distributed lock.
+    // Shared with ProctoringMonitoringService's strike auto-submit and
+    // AttemptRecoveryService's admin force-submit, so at most one of the
+    // three submission-creation paths can ever be mid-write for a given
+    // attempt at once — closing the race where two of them read the same
+    // "existing submission count" and both insert an isCurrent row.
+    const lockKey = `submission-create:${testInstanceId}`;
+    const lockAcquired = await this.cacheService.acquireLock(lockKey, 30);
+    if (!lockAcquired) {
       throw new ConflictException(
         "Submission is already in progress for this assessment attempt.",
       );
     }
-    await this.cacheService.set(lockKey, "true", { ttl: 30 });
 
     try {
       // 1. Run pre-submission validation checks
@@ -166,24 +176,53 @@ export class SubmissionService {
           // 4. Check if already submitted
           this.validator.validateSubmissionState(testInstance);
 
-          // 5. Update Status to SUBMITTED
+          // 5. Update Status to SUBMITTED or AUTO_SUBMITTED
+          const targetStatus = isAutoSubmit ? "AUTO_SUBMITTED" : "SUBMITTED";
           const repo = this.testInstanceRepo.withTransaction(tx);
           await repo.update(testInstance.id, {
-            status: "SUBMITTED",
+            status: targetStatus as any,
             submittedAt: new Date(),
           });
 
-          // 6. Create or update Submission record idempotently
-          const submission = await tx.submission.upsert({
+          // 6. Create sequential Submission record idempotently (Forensic Immutability)
+          const existingCount = await tx.submission.count({
             where: { testInstanceId },
-            create: {
+          });
+          if (existingCount > 0) {
+            await tx.submission.updateMany({
+              where: { testInstanceId, isCurrent: true },
+              data: { isCurrent: false },
+            });
+          }
+
+          const submission = await tx.submission.create({
+            data: {
               testInstanceId,
-              status: "SUBMITTED",
+              status: isAutoSubmit ? "AUTO_SUBMITTED" : (existingCount > 0 ? "FINAL_SUBMITTED" : "SUBMITTED"),
+              source: source as any,
+              reason: reason as any,
+              reasonDetails,
+              isAutoSubmit,
+              attemptSequence: existingCount + 1,
+              isCurrent: true,
               submittedAt: new Date(),
             },
-            update: {
-              status: "SUBMITTED",
-              submittedAt: new Date(),
+          });
+
+          // 6a. Record immutable assessment event
+          const assessmentId =
+            (testInstance as any).examConfigId ||
+            (testInstance as any).testConfigId ||
+            "unknown";
+          await tx.assessmentEvent.create({
+            data: {
+              assessmentId,
+              attemptId: testInstanceId,
+              candidateId: userId,
+              eventType: isAutoSubmit ? "AUTO_SUBMITTED" : "SUBMITTED",
+              source: source as string,
+              severity: isAutoSubmit ? "P1" : "P3",
+              metadata: { source, reason, reasonDetails },
             },
           });
 
@@ -273,7 +312,7 @@ export class SubmissionService {
         status: isAutoSubmit ? "EXPIRED_AND_SUBMITTED" : "SUBMITTED",
       };
     } finally {
-      await this.cacheService.delete(lockKey);
+      await this.cacheService.releaseLock(lockKey);
     }
   }
 }

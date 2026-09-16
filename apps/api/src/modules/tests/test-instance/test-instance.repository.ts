@@ -95,7 +95,19 @@ export class TestInstanceRepository {
       where: {
         userId,
         OR: [{ testConfigId: testConfigId }, { examConfigId: testConfigId }],
-        status: { in: ["CREATED", "IN_PROGRESS"] },
+        // Includes the recovery-workflow statuses so an attempt awaiting admin
+        // review or resume still counts as active, instead of letting a second
+        // concurrent attempt slip through while the first is mid-recovery.
+        status: {
+          in: [
+            "CREATED",
+            "IN_PROGRESS",
+            "ADMIN_REVIEW",
+            "RESUME_AUTHORIZED",
+            "RESUMED",
+            "AUTO_SUBMITTED",
+          ],
+        },
       },
     });
   }

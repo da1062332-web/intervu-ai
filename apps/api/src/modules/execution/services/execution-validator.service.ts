@@ -70,10 +70,22 @@ export class ExecutionValidatorService {
     }
   }
 
+  private static readonly BLOCKED_SUBMISSION_STATUSES = new Set([
+    "SUBMITTED",
+    "COMPLETED",
+    "AUTO_SUBMITTED",
+    "ADMIN_REVIEW",
+    "RESUME_AUTHORIZED",
+    "EVALUATING",
+    "TERMINATED",
+    "DISCONNECTED",
+  ]);
+
   validateSubmissionState(testInstance: TestInstance): void {
     if (
-      testInstance.status === "SUBMITTED" ||
-      testInstance.status === "COMPLETED"
+      ExecutionValidatorService.BLOCKED_SUBMISSION_STATUSES.has(
+        testInstance.status as string,
+      )
     ) {
       this.logger.warn("Validation failed: Assessment already submitted", {
         testInstanceId: testInstance.id,

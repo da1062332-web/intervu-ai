@@ -27,7 +27,7 @@ export class EvaluationReliabilityService {
     // TestInstances that have a Submission (status SUBMITTED or EVALUATED) but no CandidateResult
     const missingScoreAttempts = await this.prisma.testInstance.findMany({
       where: {
-        submission: { isNot: null },
+        submissions: { some: {} },
         candidateResult: null,
       },
       select: { id: true },

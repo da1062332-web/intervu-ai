@@ -76,9 +76,13 @@ export class SubmissionValidationService {
       );
     }
 
-    // Check existing submission record
+    // Check existing submission record — scoped to the current one only, since
+    // forensic immutability keeps every prior (e.g. auto-submitted) submission
+    // row around forever, and a superseded row must not block a legitimate
+    // post-recovery resubmission.
     const existingSubmission = await this.submissionRepo.findAll({
       testInstanceId,
+      isCurrent: true,
     });
     if (existingSubmission.length > 0) {
       isDuplicate = true;

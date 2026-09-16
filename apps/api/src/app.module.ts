@@ -53,6 +53,7 @@ import { QuestionGenerationModule } from "./modules/question-generation/question
 import { CodingModule } from "./modules/coding/coding.module";
 import { BillingModule } from "./modules/billing/billing.module";
 import { ReferralsModule } from "./modules/referrals/referrals.module";
+import { MonitoringModule } from "./modules/monitoring/monitoring.module";
 
 @Module({
   imports: [
@@ -109,6 +110,7 @@ import { ReferralsModule } from "./modules/referrals/referrals.module";
     AdminAnalyticsModule,
     AdminCandidatesModule,
     ReferralsModule,
+    MonitoringModule,
   ],
   providers: [
     {
