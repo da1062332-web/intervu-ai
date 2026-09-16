@@ -5,7 +5,7 @@ import { useExecutionStore } from '../stores/execution.store';
 import { apiClient } from '@/services/api/client';
 import { toast } from 'sonner';
 
-const HEARTBEAT_INTERVAL_MS = 10000; // 10 seconds
+const HEARTBEAT_INTERVAL_MS = 15000; // 15 seconds for scale (1000-2000 candidates)
 
 export function useLiveTelemetry(testInstanceId?: string) {
   const lastExtraTimeRef = useRef<number>(0);
@@ -126,8 +126,11 @@ export function useLiveTelemetry(testInstanceId?: string) {
               description: 'Your assessment session has been successfully restored. You may continue.',
               duration: 5000,
             });
-            // Trigger handshake to update to ACTIVE
-            await apiClient.request(`/tests/${testInstanceId}/recovery-status`);
+            // Trigger explicit POST handshake to transition state to IN_PROGRESS
+            await apiClient.request(`/tests/${testInstanceId}/recovery/resume`, {
+              method: 'POST',
+              skipErrorToast: true,
+            });
           }
         }
       } catch (err) {

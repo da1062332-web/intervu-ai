@@ -114,7 +114,15 @@ export class LiveAlertService {
         const listKey = REDIS_KEYS.assessmentAlertsList(assessmentId);
         const rawAlerts = await redis.lrange(listKey, 0, 49);
         if (rawAlerts && rawAlerts.length > 0) {
-          return rawAlerts.map((r) => JSON.parse(r));
+          return rawAlerts
+            .map((r) => {
+              try {
+                return JSON.parse(r);
+              } catch {
+                return null;
+              }
+            })
+            .filter((a) => a && !a.isResolved);
         }
       } catch (err) {
         this.logger.warn("Failed reading alerts from Redis, falling back to DB", { error: err });
@@ -148,6 +156,32 @@ export class LiveAlertService {
 
       if (this.isRedisAvailable() && updated) {
         const redis = RedisConnectionManager.getInstance();
+        const listKey = REDIS_KEYS.assessmentAlertsList(updated.assessmentId);
+
+        try {
+          const rawAlerts = await redis.lrange(listKey, 0, -1);
+          if (rawAlerts && rawAlerts.length > 0) {
+            const remaining = rawAlerts
+              .map((r) => {
+                try {
+                  return JSON.parse(r);
+                } catch {
+                  return null;
+                }
+              })
+              .filter((a) => a && a.id !== alertId && !a.isResolved);
+
+            await redis.del(listKey);
+            if (remaining.length > 0) {
+              const serialized = remaining.reverse().map((a) => JSON.stringify(a));
+              await redis.lpush(listKey, ...serialized);
+              await redis.expire(listKey, MONITORING_CONFIG.REDIS_ALERT_TTL_SECONDS);
+            }
+          }
+        } catch (redisErr) {
+          this.logger.warn("Failed synchronizing resolved alert in Redis list", { error: redisErr });
+        }
+
         await redis.publish(
           REDIS_KEYS.assessmentEventsChannel(updated.assessmentId),
           JSON.stringify({

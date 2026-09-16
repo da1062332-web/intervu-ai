@@ -1,8 +1,8 @@
 export const MONITORING_CONFIG = {
-  HEARTBEAT_INTERVAL_MS: 10000, // 10 seconds
-  HEARTBEAT_WARNING_THRESHOLD_MS: 20000, // 20 seconds
-  HEARTBEAT_DISCONNECT_THRESHOLD_MS: 30000, // 30 seconds -> Mark DISCONNECTED
-  PROLONGED_DISCONNECT_THRESHOLD_MS: 90000, // 90 seconds -> P1 Critical Alert
+  HEARTBEAT_INTERVAL_MS: 15000, // 15 seconds for scale
+  HEARTBEAT_WARNING_THRESHOLD_MS: 30000, // 30 seconds
+  HEARTBEAT_DISCONNECT_THRESHOLD_MS: 45000, // 45 seconds -> Mark DISCONNECTED
+  PROLONGED_DISCONNECT_THRESHOLD_MS: 120000, // 120 seconds -> P1 Critical Alert
   SLOW_LATENCY_THRESHOLD_MS: 600, // 600ms latency -> SLOW
   HIGH_STRIKE_THRESHOLD: 3, // >= 3 strikes -> Needs Attention
   MAX_PROCTORING_STRIKES: 5, // 5 strikes -> Auto-submit
@@ -11,9 +11,13 @@ export const MONITORING_CONFIG = {
   REDIS_ALERT_TTL_SECONDS: 86400, // 24 hours
   LOCK_RECOVERY_TTL_SECONDS: 15, // 15s distributed lock for resume
   MAX_RESUMES_PER_ATTEMPT: 3, // Max allowed resumes per attempt
+  PROCTORING_VIOLATION_COOLDOWN_SECONDS: 5, // 5s debounce window per candidate & violation type
+  ATTEMPT_METADATA_TTL_SECONDS: 14400, // 4 hours TTL for attempt metadata cache
 };
 
 export const REDIS_KEYS = {
+  activeAssessmentsIndex: () => "monitoring:active_assessments",
+  attemptMetadata: (attemptId: string) => `monitoring:attempt_meta:${attemptId}`,
   attemptState: (assessmentId: string, attemptId: string) =>
     `assessment:${assessmentId}:attempt:${attemptId}:state`,
   assessmentActiveSet: (assessmentId: string) =>
@@ -26,6 +30,7 @@ export const REDIS_KEYS = {
   candidateHeartbeat: (attemptId: string) => `attempt:${attemptId}:heartbeat`,
   assessmentStats: (assessmentId: string) => `assessment:${assessmentId}:stats`,
   assessmentStormTracker: (assessmentId: string) => `assessment:${assessmentId}:disconnect_storm`,
+  proctoringCooldown: (attemptId: string, eventType: string) => `cooldown:proctoring:${attemptId}:${eventType}`,
 };
 
 export type CandidateLiveState =

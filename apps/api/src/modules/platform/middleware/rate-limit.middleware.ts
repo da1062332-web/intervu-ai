@@ -59,4 +59,27 @@ export class RateLimitGuard extends ThrottlerGuard {
 
     return super.handleRequest(requestProps);
   }
+
+  protected async getTracker(req: Record<string, any>): Promise<string> {
+    // 1. If candidate/user is authenticated, track per unique User ID
+    if (req.user?.id) {
+      return `user:${req.user.id}`;
+    }
+
+    // 2. If test attempt ID is in the route parameter, throttle per attempt
+    if (req.params?.id) {
+      return `attempt:${req.params.id}`;
+    }
+
+    // 3. Fallback to client IP only for unauthenticated public endpoints
+    const forwarded = req.headers?.["x-forwarded-for"];
+    if (forwarded) {
+      const ip = (typeof forwarded === "string" ? forwarded : forwarded[0])
+        .split(",")[0]
+        .trim();
+      if (ip) return `ip:${ip}`;
+    }
+
+    return req.ip || req.socket?.remoteAddress || "anonymous";
+  }
 }

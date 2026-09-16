@@ -354,6 +354,40 @@ export class AttemptRecoveryService {
   }
 
   /**
+   * Candidate recovery status check (Read-Only & Idempotent)
+   */
+  async getRecoveryStatus(
+    attemptId: string,
+    candidateId: string,
+  ): Promise<any> {
+    const attempt = await this.prisma.testInstance.findUnique({
+      where: { id: attemptId },
+      include: { executionState: true },
+    });
+
+    if (!attempt) throw new NotFoundException(`Attempt ${attemptId} not found`);
+    if (attempt.userId !== candidateId) {
+      throw new BadRequestException("Unauthorized attempt ownership");
+    }
+
+    let remTime = 1800;
+    if (attempt.expiresAt) {
+      remTime = Math.max(0, Math.floor((new Date(attempt.expiresAt).getTime() - Date.now()) / 1000));
+    }
+
+    const canResume = attempt.status === "RESUME_AUTHORIZED" || attempt.status === "IN_PROGRESS";
+
+    return {
+      status: attempt.status,
+      canResume,
+      remainingTimeSeconds: remTime,
+      expiresAt: attempt.expiresAt?.toISOString(),
+      currentSectionIndex: attempt.executionState?.currentSectionIndex ?? 0,
+      currentQuestionIndex: attempt.executionState?.currentQuestionIndex ?? 0,
+    };
+  }
+
+  /**
    * Candidate handshake: When candidate connects and resumes
    * State transition: RESUME_AUTHORIZED -> RESUMED -> IN_PROGRESS
    */

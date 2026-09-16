@@ -132,6 +132,7 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const optionsRef = useRef(options);
+  const heartbeatBufferRef = useRef<Map<string, any>>(new Map());
 
   useEffect(() => {
     optionsRef.current = options;
@@ -197,30 +198,43 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
     let isCancelled = false;
     let retryCount = 0;
 
+    // High-concurrency telemetry buffer: flushes buffered heartbeats once every 1,000ms
+    // to maintain a silky smooth 60 FPS UI under 1,000 to 2,000 simultaneous candidates
+    const flushInterval = setInterval(() => {
+      if (heartbeatBufferRef.current.size === 0) return;
+      const updates = new Map(heartbeatBufferRef.current);
+      heartbeatBufferRef.current.clear();
+
+      setCandidates((prev) =>
+        prev.map((c) => {
+          const p = updates.get(c.attemptId);
+          if (!p) return c;
+          return {
+            ...c,
+            status: p.status,
+            currentSectionKey: p.currentSectionKey ?? c.currentSectionKey,
+            currentQuestionIndex: p.currentQuestionIndex ?? c.currentQuestionIndex,
+            answeredCount: p.answeredCount ?? c.answeredCount,
+            remainingTimeSeconds: p.remainingTimeSeconds ?? c.remainingTimeSeconds,
+            latencyMs: p.latencyMs ?? c.latencyMs,
+            autosaveHealth: p.autosaveHealth ?? c.autosaveHealth,
+            networkStatus: p.networkStatus ?? c.networkStatus,
+            isNeedsAttention: p.isNeedsAttention ?? c.isNeedsAttention,
+            lastHeartbeatAt: p.lastHeartbeatAt ?? Date.now(),
+          };
+        }),
+      );
+    }, 1000);
+
     const handleEventData = (data: any) => {
       if (!data || data.type === 'PING') return;
 
       if (data.type === 'CANDIDATE_HEARTBEAT') {
         const p = data.payload;
-        setCandidates((prev) =>
-          prev.map((c) =>
-            c.attemptId === p.attemptId
-              ? {
-                  ...c,
-                  status: p.status,
-                  currentSectionKey: p.currentSectionKey ?? c.currentSectionKey,
-                  currentQuestionIndex: p.currentQuestionIndex ?? c.currentQuestionIndex,
-                  answeredCount: p.answeredCount ?? c.answeredCount,
-                  remainingTimeSeconds: p.remainingTimeSeconds ?? c.remainingTimeSeconds,
-                  latencyMs: p.latencyMs ?? c.latencyMs,
-                  autosaveHealth: p.autosaveHealth ?? c.autosaveHealth,
-                  networkStatus: p.networkStatus ?? c.networkStatus,
-                  isNeedsAttention: p.isNeedsAttention ?? c.isNeedsAttention,
-                  lastHeartbeatAt: p.lastHeartbeatAt ?? Date.now(),
-                }
-              : c,
-          ),
-        );
+        if (p?.attemptId) {
+          heartbeatBufferRef.current.set(p.attemptId, p);
+        }
+        return;
       } else if (data.type === 'STATE_TRANSITION') {
         const p = data.payload;
         setCandidates((prev) =>
@@ -358,6 +372,8 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
 
     return () => {
       isCancelled = true;
+      clearInterval(flushInterval);
+      heartbeatBufferRef.current.clear();
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;

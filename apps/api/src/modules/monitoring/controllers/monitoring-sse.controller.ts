@@ -7,7 +7,7 @@ import {
   Req,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
-import { Observable, interval, fromEvent, merge, map, filter } from "rxjs";
+import { Observable, interval, fromEvent, merge, map, filter, finalize } from "rxjs";
 import { Redis } from "ioredis";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -61,6 +61,7 @@ export class MonitoringSseController {
         try {
           const parsed = JSON.parse(message);
           return {
+            type: parsed.type,
             data: parsed,
           } as MessageEvent;
         } catch (e) {
@@ -79,13 +80,46 @@ export class MonitoringSseController {
       } as MessageEvent)),
     );
 
-    // Clean up subscriber when client disconnects
-    req.on?.("close", () => {
-      this.logger.info(`Admin client disconnected from SSE stream for assessment: ${assessmentId}`);
-      sub.unsubscribe(channelName).catch(() => {});
-      sub.quit().catch(() => {});
-    });
+    // Clean up subscriber safely and idempotently on client close or stream finalize
+    let isCleanedUp = false;
+    const cleanup = () => {
+      if (isCleanedUp) return;
+      isCleanedUp = true;
+      this.logger.info(`Cleaning up Redis SSE subscriber for assessment: ${assessmentId}`);
+      if (typeof sub.unsubscribe === "function") {
+        try {
+          const res = sub.unsubscribe(channelName);
+          if (res && typeof (res as any).catch === "function") {
+            (res as any).catch(() => {});
+          }
+        } catch {
+          // ignore
+        }
+      }
+      if (typeof sub.disconnect === "function") {
+        try {
+          sub.disconnect();
+        } catch {
+          // ignore
+        }
+      } else if (typeof (sub as any).quit === "function") {
+        try {
+          const res = (sub as any).quit();
+          if (res && typeof (res as any).catch === "function") {
+            (res as any).catch(() => {});
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
 
-    return merge(redisEvents$, ping$);
+    req?.on?.("close", cleanup);
+
+    return merge(redisEvents$, ping$).pipe(
+      finalize(() => {
+        cleanup();
+      }),
+    );
   }
 }

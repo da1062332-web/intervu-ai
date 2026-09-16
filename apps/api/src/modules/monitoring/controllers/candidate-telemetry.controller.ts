@@ -44,16 +44,12 @@ export class CandidateTelemetryController {
   private async assertAttemptOwnership(attemptId: string, user: AuthUser) {
     if (user.role === UserRole.ADMIN) return;
 
-    const instance = await this.prisma.testInstance.findUnique({
-      where: { id: attemptId },
-      select: { id: true, userId: true },
-    });
-
-    if (!instance) {
+    const meta = await this.monitoringService.getAttemptMetadata(attemptId);
+    if (!meta || !meta.userId) {
       throw new NotFoundException(`Test instance ${attemptId} not found`);
     }
 
-    if (instance.userId !== user.id) {
+    if (meta.userId !== user.id) {
       throw new ForbiddenException("You do not own this test session");
     }
   }
@@ -86,9 +82,21 @@ export class CandidateTelemetryController {
 
   @Get(":id/recovery-status")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Candidate checks if proctor has authorized recovery/resume after interruption" })
+  @ApiOperation({ summary: "Candidate checks if proctor has authorized recovery/resume after interruption (read-only)" })
   @ApiParam({ name: "id", description: "TestInstance ID" })
   async getRecoveryStatus(
+    @Param("id") attemptId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    await this.assertAttemptOwnership(attemptId, user);
+    return this.recoveryService.getRecoveryStatus(attemptId, user.id);
+  }
+
+  @Post(":id/recovery/resume")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Candidate confirms resume handshake after proctor authorization" })
+  @ApiParam({ name: "id", description: "TestInstance ID" })
+  async confirmResume(
     @Param("id") attemptId: string,
     @CurrentUser() user: AuthUser,
   ) {

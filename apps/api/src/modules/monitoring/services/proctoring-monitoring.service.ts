@@ -12,6 +12,7 @@ import { CandidateProctoringTelemetryDto } from "../dto/monitoring.dto";
 @Injectable()
 export class ProctoringMonitoringService {
   private readonly logger = new AppLogger({ name: "ProctoringMonitoringService" });
+  private readonly inMemoryCooldown = new Map<string, number>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -34,6 +35,41 @@ export class ProctoringMonitoringService {
     let liveRecord = await this.monitoringService.getCandidateLiveRecord(assessmentId, attemptId);
     if (!liveRecord) {
       liveRecord = await this.monitoringService.hydrateLiveRecordFromDb(attemptId, candidateId, assessmentId);
+    }
+
+    // Debounce rapid duplicate events (e.g. rapid alt-tab toggles within 5 seconds)
+    const cooldownKey = REDIS_KEYS.proctoringCooldown(attemptId, dto.eventType);
+    let isDebounced = false;
+
+    if (this.isRedisAvailable()) {
+      try {
+        const redis = RedisConnectionManager.getInstance();
+        const existing = await redis.set(
+          cooldownKey,
+          "1",
+          "EX",
+          MONITORING_CONFIG.PROCTORING_VIOLATION_COOLDOWN_SECONDS,
+          "NX",
+        );
+        isDebounced = existing !== "OK";
+      } catch (_) {
+        isDebounced = false;
+      }
+    } else {
+      const now = Date.now();
+      const last = this.inMemoryCooldown.get(cooldownKey);
+      if (last && now - last < MONITORING_CONFIG.PROCTORING_VIOLATION_COOLDOWN_SECONDS * 1000) {
+        isDebounced = true;
+      } else {
+        this.inMemoryCooldown.set(cooldownKey, now);
+      }
+    }
+
+    if (isDebounced) {
+      this.logger.debug(
+        `Debounced rapid duplicate violation [${dto.eventType}] for candidate ${candidateId} (Attempt: ${attemptId})`,
+      );
+      return { strikeCount: liveRecord.proctoringStrikes, isAutoSubmitted: false };
     }
 
     // Strikes are the server's own counter — never trust a client-supplied

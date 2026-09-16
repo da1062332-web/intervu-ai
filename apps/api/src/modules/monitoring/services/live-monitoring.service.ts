@@ -76,14 +76,62 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Helper to resolve assessment ID from attempt
+   * Helper to retrieve cached attempt metadata (userId and assessmentId).
+   * Resolves in O(1) from Redis with zero database query overhead during live exams.
+   */
+  async getAttemptMetadata(attemptId: string): Promise<{ userId: string; assessmentId: string }> {
+    if (this.isRedisAvailable()) {
+      try {
+        const redis = RedisConnectionManager.getInstance();
+        const cached = await redis.get(REDIS_KEYS.attemptMetadata(attemptId));
+        if (cached) {
+          return JSON.parse(cached);
+        }
+      } catch (err) {
+        this.logger.warn(`Failed reading attempt metadata cache for ${attemptId}`, err);
+      }
+    }
+
+    // Cache miss: query database once
+    let userId = "";
+    let assessmentId = "default-assessment";
+
+    if (this.prisma?.testInstance?.findUnique) {
+      const attempt = await this.prisma.testInstance.findUnique({
+        where: { id: attemptId },
+        select: { userId: true, testConfigId: true, examConfigId: true },
+      });
+      if (attempt) {
+        userId = attempt.userId || "";
+        assessmentId = (attempt as any)?.examConfigId || attempt?.testConfigId || "default-assessment";
+      }
+    }
+
+    const metadata = { userId, assessmentId };
+
+    if (this.isRedisAvailable() && metadata.userId) {
+      try {
+        const redis = RedisConnectionManager.getInstance();
+        await redis.set(
+          REDIS_KEYS.attemptMetadata(attemptId),
+          JSON.stringify(metadata),
+          "EX",
+          MONITORING_CONFIG.ATTEMPT_METADATA_TTL_SECONDS,
+        );
+      } catch (err) {
+        this.logger.warn(`Failed caching attempt metadata for ${attemptId}`, err);
+      }
+    }
+
+    return metadata;
+  }
+
+  /**
+   * Helper to resolve assessment ID from attempt metadata cache
    */
   async resolveAssessmentId(attemptId: string): Promise<string> {
-    const attempt = await this.prisma.testInstance.findUnique({
-      where: { id: attemptId },
-      select: { testConfigId: true, examConfigId: true },
-    });
-    return (attempt as any)?.examConfigId || attempt?.testConfigId || "default-assessment";
+    const meta = await this.getAttemptMetadata(attemptId);
+    return meta.assessmentId || "default-assessment";
   }
 
   /**
@@ -224,8 +272,9 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
           MONITORING_CONFIG.REDIS_STATE_TTL_SECONDS,
         );
 
-        // Add to active set
+        // Add to active set and active assessments index
         await redis.sadd(REDIS_KEYS.assessmentActiveSet(assessmentId), attemptId);
+        await redis.sadd(REDIS_KEYS.activeAssessmentsIndex(), assessmentId);
 
         // Publish live update delta
         await redis.publish(
@@ -395,14 +444,57 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const redis = RedisConnectionManager.getInstance();
-      const assessmentKeys = await redis.keys("assessment:*:active_attempts");
+      let assessmentIds = await redis.smembers(REDIS_KEYS.activeAssessmentsIndex());
+
+      // If active assessments index is empty in Redis, hydrate from active sets or DB
+      if (!assessmentIds || assessmentIds.length === 0) {
+        if (typeof (redis as any).keys === "function") {
+          const keys = await (redis as any).keys("assessment:*:active_attempts");
+          if (keys && keys.length > 0) {
+            assessmentIds = keys
+              .map((k: string) => {
+                const match = k.match(/^assessment:(.+):active_attempts$/);
+                return match ? match[1] : null;
+              })
+              .filter((id: string | null): id is string => Boolean(id));
+            if (assessmentIds.length > 0) {
+              await redis.sadd(REDIS_KEYS.activeAssessmentsIndex(), ...assessmentIds);
+            }
+          }
+        }
+
+        if ((!assessmentIds || assessmentIds.length === 0) && typeof this.prisma?.testInstance?.findMany === "function") {
+          const activeDbAttempts = await this.prisma.testInstance.findMany({
+            where: {
+              status: { in: ["IN_PROGRESS", "ACTIVE", "STARTING"] as any },
+            },
+            select: { examConfigId: true, testConfigId: true },
+            distinct: ["examConfigId", "testConfigId"],
+            take: 50,
+          });
+          const discovered = new Set<string>();
+          for (const a of activeDbAttempts) {
+            const id = a.examConfigId || a.testConfigId;
+            if (id) discovered.add(id);
+          }
+          if (discovered.size > 0) {
+            assessmentIds = Array.from(discovered);
+            await redis.sadd(REDIS_KEYS.activeAssessmentsIndex(), ...assessmentIds);
+          }
+        }
+      }
+
       const now = Date.now();
 
-      for (const key of assessmentKeys) {
-        // key format: assessment:{id}:active_attempts
-        const parts = key.split(":");
-        const assessmentId = parts[1];
+      for (const assessmentId of assessmentIds) {
+        const key = REDIS_KEYS.assessmentActiveSet(assessmentId);
         const attemptIds = await redis.smembers(key);
+
+        if (!attemptIds || attemptIds.length === 0) {
+          // No active attempts in this assessment set; clean up index
+          await redis.srem(REDIS_KEYS.activeAssessmentsIndex(), assessmentId);
+          continue;
+        }
 
         let activeCount = 0;
         let disconnectedCount = 0;
@@ -604,7 +696,8 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
   ): Promise<any> {
     let candidateRecords: CandidateLiveRecord[] = [];
 
-    // 1. Fetch from Redis (Fast Path using MGET batching)
+    // 1. Fetch live records from Redis (Fast Path using MGET batching)
+    const redisMap = new Map<string, CandidateLiveRecord>();
     if (this.isRedisAvailable()) {
       try {
         const redis = RedisConnectionManager.getInstance();
@@ -617,110 +710,117 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
               ? await redis.mget(...keys)
               : await Promise.all(keys.map((k) => redis.get(k)));
 
-          candidateRecords = rawRecords
-            .filter((r): r is string => Boolean(r))
-            .map((r) => JSON.parse(r));
+          for (const raw of rawRecords) {
+            if (raw) {
+              try {
+                const rec: CandidateLiveRecord = JSON.parse(raw);
+                redisMap.set(rec.attemptId, rec);
+              } catch (_) {}
+            }
+          }
         }
       } catch (err) {
-        this.logger.warn("Failed retrieving active attempts from Redis, falling back to DB", { error: err });
+        this.logger.warn("Failed retrieving active attempts from Redis", { error: err });
       }
     }
 
-    // 2. If Redis is empty, hydrate from database active attempts in a single aggregated query
-    if (candidateRecords.length === 0) {
-      const dbAttempts = await this.prisma.testInstance.findMany({
-        where: {
-          OR: [{ examConfigId: assessmentId }, { testConfigId: assessmentId }],
+    // 2. Authoritative query of all attempts for this assessment from PostgreSQL
+    const dbAttempts = await this.prisma.testInstance.findMany({
+      where: {
+        OR: [{ examConfigId: assessmentId }, { testConfigId: assessmentId }],
+      },
+      include: {
+        user: { select: { fullName: true, email: true } },
+        executionState: true,
+        submissions: {
+          select: { source: true, reason: true },
+          orderBy: { attemptSequence: "desc" },
+          take: 1,
         },
-        include: {
-          user: { select: { fullName: true, email: true } },
-          executionState: true,
-          submissions: {
-            select: { source: true, reason: true },
-            orderBy: { attemptSequence: "desc" },
-            take: 1,
-          },
-          questions: { select: { id: true } },
-          _count: {
-            select: { candidateAnswers: true },
-          },
+        questions: { select: { id: true } },
+        _count: {
+          select: { candidateAnswers: true },
         },
-        orderBy: { createdAt: "desc" },
-        take: 150,
-      });
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-      candidateRecords = dbAttempts.map((att) => {
-        const answersCount =
-          (att as any)._count?.candidateAnswers ??
-          (att as any).candidateAnswers?.length ??
-          0;
+    // 3. Merge: overlay real-time Redis telemetry on DB attempts
+    const now = Date.now();
+    const seenAttemptIds = new Set<string>();
 
-        let remTime = 3600;
-        if (att.expiresAt) {
-          remTime = Math.max(0, Math.floor((new Date(att.expiresAt).getTime() - Date.now()) / 1000));
-        }
+    candidateRecords = dbAttempts.map((att) => {
+      seenAttemptIds.add(att.id);
+      const live = redisMap.get(att.id);
+      if (live) {
+        return live;
+      }
 
-        const status = TEST_INSTANCE_STATUS_TO_LIVE_STATE[att.status] || "ACTIVE";
-        return {
-          assessmentId,
-          attemptId: att.id,
-          candidateId: att.userId,
-          candidateName: att.user?.fullName || "Candidate",
-          candidateEmail: att.user?.email || "candidate@intervu.ai",
-          status,
-          currentSectionKey: att.executionState?.currentSectionKey || "section-1",
-          currentSectionIndex: att.executionState?.currentSectionIndex ?? 0,
-          currentQuestionId: att.executionState?.currentQuestionId || "",
-          currentQuestionIndex: att.executionState?.currentQuestionIndex ?? 0,
-          answeredCount: answersCount,
-          totalQuestions: att.questions.length || 20,
-          markedQuestionsCount: 0,
-          remainingTimeSeconds: remTime,
-          expiresAt: att.expiresAt?.toISOString(),
-          lastHeartbeatAt: Date.now() - 5000,
-          lastStateSyncAt: Date.now() - 5000,
-          latencyMs: 40,
-          networkStatus: "ONLINE",
-          autosaveHealth: "HEALTHY",
-          unsyncedAnswersCount: 0,
-          proctoringStrikes: 0,
-          isNeedsAttention: status === "AUTO_SUBMITTED" || status === "ADMIN_REVIEW",
-          incidentReasons: status === "AUTO_SUBMITTED" ? ["Auto-submitted"] : [],
-          submissionSource: att.submissions?.[0]?.source,
-          submissionReason: att.submissions?.[0]?.reason,
-        };
-      });
+      // No heartbeat in Redis: compute status from authoritative DB state
+      const answersCount =
+        (att as any)._count?.candidateAnswers ??
+        (att as any).candidateAnswers?.length ??
+        0;
 
-      // Batch cache in Redis via pipeline
-      if (this.isRedisAvailable() && candidateRecords.length > 0) {
-        try {
-          const redis = RedisConnectionManager.getInstance();
-          if (typeof (redis as any).pipeline === "function") {
-            const pipeline = redis.pipeline();
-            for (const record of candidateRecords) {
-              pipeline.set(
-                REDIS_KEYS.attemptState(assessmentId, record.attemptId),
-                JSON.stringify(record),
-                "EX",
-                MONITORING_CONFIG.REDIS_STATE_TTL_SECONDS,
-              );
-              pipeline.sadd(REDIS_KEYS.assessmentActiveSet(assessmentId), record.attemptId);
-            }
-            await pipeline.exec();
-          } else {
-            for (const record of candidateRecords) {
-              await redis.set(
-                REDIS_KEYS.attemptState(assessmentId, record.attemptId),
-                JSON.stringify(record),
-                "EX",
-                MONITORING_CONFIG.REDIS_STATE_TTL_SECONDS,
-              );
-              await redis.sadd(REDIS_KEYS.assessmentActiveSet(assessmentId), record.attemptId);
-            }
-          }
-        } catch (err) {
-          this.logger.warn("Failed caching hydrated attempts to Redis", { error: err });
-        }
+      let remTime = 3600;
+      if (att.expiresAt) {
+        remTime = Math.max(0, Math.floor((new Date(att.expiresAt).getTime() - now) / 1000));
+      }
+
+      let status: CandidateLiveState =
+        TEST_INSTANCE_STATUS_TO_LIVE_STATE[att.status] || "ACTIVE";
+
+      let networkStatus = "ONLINE";
+      let isNeedsAttention = false;
+      const incidentReasons: string[] = [];
+
+      // If DB status is ACTIVE or IN_PROGRESS but heartbeat is absent in Redis, candidate is DISCONNECTED
+      if (att.status === "IN_PROGRESS" || (att.status as any) === "ACTIVE") {
+        status = "DISCONNECTED";
+        networkStatus = "OFFLINE";
+        isNeedsAttention = true;
+        incidentReasons.push("Heartbeat Offline / Key Expired");
+      } else if (att.status === "AUTO_SUBMITTED" || att.status === "ADMIN_REVIEW") {
+        isNeedsAttention = true;
+        incidentReasons.push(att.submissions?.[0]?.reason || "Auto-submitted");
+      }
+
+      return {
+        assessmentId,
+        attemptId: att.id,
+        candidateId: att.userId,
+        candidateName: att.user?.fullName || "Candidate",
+        candidateEmail: att.user?.email || "candidate@intervu.ai",
+        status,
+        currentSectionKey: att.executionState?.currentSectionKey || "section-1",
+        currentSectionIndex: att.executionState?.currentSectionIndex ?? 0,
+        currentQuestionId: att.executionState?.currentQuestionId || "",
+        currentQuestionIndex: att.executionState?.currentQuestionIndex ?? 0,
+        answeredCount: answersCount,
+        totalQuestions: att.questions.length || 20,
+        markedQuestionsCount: 0,
+        remainingTimeSeconds: remTime,
+        expiresAt: att.expiresAt?.toISOString(),
+        lastHeartbeatAt: att.executionState?.lastActivityAt
+          ? new Date(att.executionState.lastActivityAt).getTime()
+          : now - 60000,
+        lastStateSyncAt: now - 60000,
+        latencyMs: 0,
+        networkStatus,
+        autosaveHealth: "HEALTHY",
+        unsyncedAnswersCount: 0,
+        proctoringStrikes: 0,
+        isNeedsAttention,
+        incidentReasons,
+        submissionSource: att.submissions?.[0]?.source,
+        submissionReason: att.submissions?.[0]?.reason,
+      };
+    });
+
+    // Also include any active records in Redis that haven't flushed to DB yet
+    for (const [attemptId, liveRec] of redisMap.entries()) {
+      if (!seenAttemptIds.has(attemptId)) {
+        candidateRecords.push(liveRec);
       }
     }
 

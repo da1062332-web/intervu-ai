@@ -23,4 +23,21 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     return super.handleRequest(requestProps);
   }
+
+  protected async getTracker(req: Record<string, any>): Promise<string> {
+    if (req.user?.id) {
+      return `user:${req.user.id}`;
+    }
+    if (req.params?.id) {
+      return `attempt:${req.params.id}`;
+    }
+    const forwarded = req.headers?.["x-forwarded-for"];
+    if (forwarded) {
+      const ip = (typeof forwarded === "string" ? forwarded : forwarded[0])
+        .split(",")[0]
+        .trim();
+      if (ip) return `ip:${ip}`;
+    }
+    return req.ip || req.socket?.remoteAddress || "anonymous";
+  }
 }

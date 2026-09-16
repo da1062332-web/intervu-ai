@@ -21,6 +21,12 @@ export function useSubmission(testId: string) {
     setSubmissionStatus('SUBMITTING');
 
     try {
+      if (options?.autoSubmit) {
+        // Spread thundering herd auto-submissions across 0 to 4000ms
+        const jitterMs = Math.floor(Math.random() * 4000);
+        await new Promise((res) => setTimeout(res, jitterMs));
+      }
+
       await executionService.submitAssessment(testId, options);
 
       // Save a snapshot for the summary page before clearing
