@@ -276,6 +276,23 @@ export class SubmissionEvaluatorService {
         memoryKb: memory,
         error: status !== "PASSED" ? judgeResult.error || null : null,
       });
+
+      if (status === "COMPILATION_ERROR") {
+        // Fast-fail: Code with compiler errors will never compile on subsequent tests
+        for (let j = i + 1; j < testCases.length; j++) {
+          const remainingTc = testCases[j];
+          categoryStats[remainingTc.category].total++;
+          categoryStats[remainingTc.category].failed++;
+          results.push({
+            category: remainingTc.category,
+            status: "COMPILATION_ERROR",
+            runtimeSeconds: 0,
+            memoryKb: 0,
+            error: firstErrorMessage || "Compilation Error",
+          });
+        }
+        break;
+      }
     }
 
     // 5. Determine Overall Final Verdict

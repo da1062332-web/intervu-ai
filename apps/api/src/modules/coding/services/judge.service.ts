@@ -150,6 +150,7 @@ export class JudgeService {
             method: "POST",
             headers: this.getJudge0Headers(),
             body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(15000),
           },
         );
 

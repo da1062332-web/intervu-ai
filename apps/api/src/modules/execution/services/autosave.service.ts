@@ -86,32 +86,53 @@ export class AutosaveService {
       return { status: "expired" };
     }
 
-    // 4a. Validate that the question's section is not locked
+    // 4a. Validate that the question's section is not locked.
+    // Both lookups below are cached: examConfig.ruleFlags is effectively
+    // static for the lifetime of a running assessment (long TTL is safe),
+    // while section lock status can change mid-exam (a proctor can lock a
+    // section), so it gets a short TTL — enough to absorb a burst of rapid
+    // autosaves from one candidate without going stale for more than a
+    // few seconds.
     const configId =
       testInstance.examConfigId || (testInstance as any).testConfigId;
     let allowSectionNav = false;
     if (configId) {
-      const examConfig = await this.prisma.examConfig.findUnique({
-        where: { id: configId },
-        include: { ruleFlags: true },
-      });
-      allowSectionNav = examConfig?.ruleFlags?.allowSectionNavigation ?? false;
+      const allowSectionNavCacheKey = `exam-config:allow-section-nav:${configId}`;
+      const cachedFlag = await this.cacheService.get<boolean>(allowSectionNavCacheKey);
+      if (cachedFlag !== null && cachedFlag !== undefined) {
+        allowSectionNav = cachedFlag;
+      } else {
+        const examConfig = await this.prisma.examConfig.findUnique({
+          where: { id: configId },
+          include: { ruleFlags: true },
+        });
+        allowSectionNav = examConfig?.ruleFlags?.allowSectionNavigation ?? false;
+        await this.cacheService.set(allowSectionNavCacheKey, allowSectionNav, { ttl: 600 });
+      }
     }
 
     if (!allowSectionNav) {
-      const questionSection = await this.prisma.testInstanceQuestion.findFirst({
-        where: { testInstanceId, questionId: dto.questionId },
-        include: { section: true },
-      });
+      const sectionStatusCacheKey = `section-status:${testInstanceId}:${dto.questionId}`;
+      let sectionStatus = await this.cacheService.get<string | null>(sectionStatusCacheKey);
+
+      if (sectionStatus === null || sectionStatus === undefined) {
+        const questionSection = await this.prisma.testInstanceQuestion.findFirst({
+          where: { testInstanceId, questionId: dto.questionId },
+          include: { section: true },
+        });
+        sectionStatus = questionSection?.section?.status ?? "";
+        await this.cacheService.set(sectionStatusCacheKey, sectionStatus, { ttl: 5 });
+      }
+
       if (
-        questionSection?.section?.status === "LOCKED" ||
-        questionSection?.section?.status === "COMPLETED" ||
-        questionSection?.section?.status === "EXPIRED"
+        sectionStatus === "LOCKED" ||
+        sectionStatus === "COMPLETED" ||
+        sectionStatus === "EXPIRED"
       ) {
         this.logger.warn("Autosave rejected: section is locked", {
           testInstanceId,
           questionId: dto.questionId,
-          sectionStatus: questionSection?.section?.status,
+          sectionStatus,
         });
         return {
           status: "locked",

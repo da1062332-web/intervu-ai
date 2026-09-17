@@ -63,7 +63,37 @@ export const QUEUE_CONFIG: Record<string, QueueConfig> = {
       },
     },
   },
+  "code-execution": {
+    defaultJobOptions: {
+      // Never auto-retry a candidate's code execution: a retry would silently
+      // re-run their submission and could double-count attempts/time.
+      // Failures surface immediately to the caller instead.
+      attempts: 1,
+      removeOnComplete: {
+        age: 300, // 5 minutes — result is consumed synchronously by the caller
+      },
+      removeOnFail: {
+        age: 1800, // 30 minutes, kept for debugging
+      },
+    },
+  },
 };
+
+/**
+ * Builds the ioredis connection options BullMQ needs from a REDIS_URL.
+ * Shared by QueueModule (producers) and any in-process BullMQ Worker
+ * (consumers) so both sides agree on retry/offline-queue behavior.
+ */
+export function buildQueueRedisConnection(redisUrl: string): ConnectionOptions {
+  const parsed = new URL(redisUrl);
+  return {
+    host: parsed.hostname,
+    port: Number(parsed.port) || 6379,
+    password: parsed.password || undefined,
+    retryStrategy: () => null as null,
+    enableOfflineQueue: false,
+  };
+}
 
 export class QueueFactory {
   private static queues: Map<string, Queue> = new Map();

@@ -1,0 +1,620 @@
+<title>Concurrency Readiness Audit</title>
+<style>
+  :root {
+    --bg: #f4f5f2;
+    --surface: #ffffff;
+    --surface-2: #eceee9;
+    --ink: #1b1f1d;
+    --muted: #5a615c;
+    --faint: #8b918b;
+    --border: #dcded8;
+    --accent: #1f6f5c;
+    --accent-ink: #0d3e33;
+    --critical: #b3392a;
+    --critical-bg: #fbeae7;
+    --warning: #a56a12;
+    --warning-bg: #faf0dd;
+    --ok: #2f7d4f;
+    --ok-bg: #e9f4ec;
+    --mono-bg: #eef0ea;
+    --shadow: 0 1px 2px rgba(20, 24, 21, 0.06), 0 8px 24px -12px rgba(20, 24, 21, 0.15);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141714;
+      --surface: #1c1f1c;
+      --surface-2: #23261f;
+      --ink: #ecefe9;
+      --muted: #a2a99f;
+      --faint: #767d72;
+      --border: #313530;
+      --accent: #59b89b;
+      --accent-ink: #a6ddc9;
+      --critical: #e17c6d;
+      --critical-bg: #3a2320;
+      --warning: #dba85a;
+      --warning-bg: #382d18;
+      --ok: #7bc99a;
+      --ok-bg: #1e3527;
+      --mono-bg: #23261f;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141714;
+    --surface: #1c1f1c;
+    --surface-2: #23261f;
+    --ink: #ecefe9;
+    --muted: #a2a99f;
+    --faint: #767d72;
+    --border: #313530;
+    --accent: #59b89b;
+    --accent-ink: #a6ddc9;
+    --critical: #e17c6d;
+    --critical-bg: #3a2320;
+    --warning: #dba85a;
+    --warning-bg: #382d18;
+    --ok: #7bc99a;
+    --ok-bg: #1e3527;
+    --mono-bg: #23261f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  @font-face {
+    font-family: "Fraunces";
+    src: local("Fraunces");
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,420;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    padding-inline: 16px;
+    padding-block: 32px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  h1, h2, h3 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  a { color: var(--accent-ink); }
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .masthead h1 {
+    font-size: clamp(30px, 5vw, 42px);
+    line-height: 1.06;
+    margin: 0 0 12px;
+  }
+  .masthead .sub {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 56ch;
+    line-height: 1.5;
+    margin: 0 0 18px;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .meta-row b { color: var(--ink); font-weight: 500; }
+
+  /* ---------- verdict ---------- */
+  .verdict {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--critical-bg);
+    border: 1px solid color-mix(in srgb, var(--critical) 35%, var(--border));
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 32px;
+  }
+  .verdict .badge {
+    flex: none;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: #fff;
+    background: var(--critical);
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .verdict p {
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.55;
+  }
+  .verdict strong { color: var(--critical); }
+
+  /* ---------- capacity meter ---------- */
+  .meter-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px 18px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow);
+  }
+  .meter-card h3 {
+    font-size: 14px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+  .meter-track {
+    position: relative;
+    height: 34px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    overflow: visible;
+  }
+  .meter-fill {
+    position: absolute;
+    inset: 0;
+    width: 5%;
+    background: linear-gradient(90deg, var(--critical), color-mix(in srgb, var(--critical) 70%, var(--warning)));
+    border-radius: 6px 0 0 6px;
+  }
+  .meter-fill .fill-label {
+    position: absolute;
+    right: -2px;
+    top: -22px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--critical);
+    white-space: nowrap;
+    transform: translateX(100%);
+  }
+  .meter-target {
+    position: absolute;
+    top: -8px;
+    bottom: -8px;
+    right: 0;
+    width: 2px;
+    background: var(--ink);
+  }
+  .meter-target .t-label {
+    position: absolute;
+    right: 0;
+    top: -26px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink);
+    white-space: nowrap;
+    transform: translateX(0%);
+    text-align: right;
+  }
+  .meter-scale {
+    display: flex;
+    justify-content: space-between;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--faint);
+    margin-top: 8px;
+  }
+  .meter-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 22px;
+    line-height: 1.5;
+  }
+
+  /* ---------- toc ---------- */
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+  .toc a {
+    font-size: 12.5px;
+    text-decoration: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  .toc a:hover { border-color: var(--accent); color: var(--accent-ink); }
+
+  section { margin-bottom: 44px; scroll-margin-top: 20px; }
+  section > h2 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  section > .section-sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 20px;
+    max-width: 62ch;
+    line-height: 1.5;
+  }
+
+  /* ---------- finding cards ---------- */
+  .finding {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--sev-color, var(--border));
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .finding.sev-critical { --sev-color: var(--critical); }
+  .finding.sev-high { --sev-color: var(--warning); }
+  .finding.sev-ok { --sev-color: var(--ok); }
+
+  .finding-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .sev-pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+  .sev-critical .sev-pill { background: var(--critical-bg); color: var(--critical); }
+  .sev-high .sev-pill { background: var(--warning-bg); color: var(--warning); }
+  .sev-ok .sev-pill { background: var(--ok-bg); color: var(--ok); }
+
+  .finding h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: "IBM Plex Sans", sans-serif;
+  }
+  .finding p { margin: 0 0 8px; font-size: 14.5px; line-height: 1.6; color: var(--ink); }
+  .finding p:last-of-type { margin-bottom: 10px; }
+  .cite-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .cite {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    background: var(--mono-bg);
+    color: var(--muted);
+    border-radius: 5px;
+    padding: 3px 7px;
+  }
+
+  /* ---------- roadmap ---------- */
+  .roadmap { display: flex; flex-direction: column; gap: 0; }
+  .phase {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    gap: 18px;
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+  }
+  .phase:last-child { border-bottom: 1px solid var(--border); }
+  .phase-num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+  .phase-num b {
+    display: block;
+    font-family: "Fraunces", serif;
+    font-size: 26px;
+    color: var(--accent-ink);
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .phase h4 { margin: 0 0 6px; font-size: 15.5px; font-family: "IBM Plex Sans", sans-serif; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+  .phase p { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.55; }
+  .phase .goal {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--accent-ink);
+    background: var(--ok-bg);
+    border-radius: 5px;
+    padding: 2px 8px;
+  }
+  .status-pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .status-pill.done { background: var(--ok-bg); color: var(--ok); }
+  .status-pill.open { background: var(--warning-bg); color: var(--warning); }
+  .phase.is-done { border-left: 2px solid var(--ok); padding-left: 14px; margin-left: -16px; }
+  .impl-note {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .impl-note b { color: var(--accent-ink); }
+
+  /* ---------- ok list ---------- */
+  .ok-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  /* ---------- footer ---------- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--faint);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 480px) {
+    .meter-fill .fill-label { transform: translateX(60%); }
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="eyebrow">Infrastructure &amp; capacity audit</div>
+    <h1>Concurrency Readiness Audit</h1>
+    <p class="sub">Can the platform serve 2,000 candidates sitting an assessment at the same moment, without errors? A file-level review of the execution, database, and monitoring layers behind app.skillitrix.com.</p>
+    <div class="meta-row">
+      <span><b>Target load</b> 2,000 concurrent candidates</span>
+      <span><b>Branch</b> beta</span>
+      <span><b>Deploy target</b> Render — single "starter" service</span>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <span class="badge">Not ready</span>
+    <p>At 2,000 concurrent candidates, the platform will fail before it scales gracefully. Three independent hard blockers — a code-execution tunnel with no redundancy, a multiplying database connection pool, and submission transactions that queue on a handful of pooled connections — each cap real capacity far below the target on their own. No commit or test found evidence this has been run at anywhere near 2,000 concurrent users through the real request path.</p>
+  </div>
+
+  <div class="meter-card">
+    <h3>Highest concurrency actually verified vs. target load</h3>
+    <div class="meter-track">
+      <div class="meter-fill" style="width: 5%;">
+        <span class="fill-label">100 tested</span>
+      </div>
+      <div class="meter-target">
+        <span class="t-label">2,000 target</span>
+      </div>
+    </div>
+    <div class="meter-scale">
+      <span>0</span>
+      <span>500</span>
+      <span>1,000</span>
+      <span>1,500</span>
+      <span>2,000</span>
+    </div>
+    <p class="meter-note">The repo's own load scripts (<code>scratch/sustained-load.js</code>, <code>burst-test.js</code>) peak at 100 simulated users, and call Judge0 directly — bypassing auth, the API, and the ngrok tunnel that production traffic actually crosses. Nothing in the codebase exercises the real submission path anywhere close to 2,000 users.</p>
+  </div>
+
+  <nav class="toc">
+    <a href="#blockers">Critical blockers</a>
+    <a href="#secondary">Secondary risks</a>
+    <a href="#working">What already holds up</a>
+    <a href="#roadmap">Remediation roadmap</a>
+    <a href="#evidence">Sources reviewed</a>
+  </nav>
+
+  <section id="blockers">
+    <h2>Critical blockers</h2>
+    <p class="section-sub">Any one of these would cause candidate-facing errors well under 2,000 concurrent users; together they compound.</p>
+
+    <div class="finding sev-critical">
+      <div class="finding-head">
+        <span class="sev-pill">Critical · code execution</span>
+      </div>
+      <h4>Every coding submission crosses one local machine and a free ngrok tunnel</h4>
+      <p><code>JUDGE0_URL</code> points at <code>marbled-fifty-unraveled.ngrok-free.dev</code> — a static ngrok domain tunnelled to a Docker Judge0 instance on someone's local Windows PC, started manually via a batch script. <code>render.yaml</code> deploys no Judge0 service at all; production has no execution infrastructure of its own.</p>
+      <p>Submissions aren't queued either: <code>POST /coding/run</code> and <code>/coding/submit</code> call Judge0 synchronously inside the HTTP request, looping test cases one at a time with no rate limit on the endpoint. This is the hardest ceiling in the system — any assessment with coding questions saturates one machine and one tunnel, with no fallback.</p>
+      <div class="cite-row">
+        <span class="cite">apps/api/.env — JUDGE0_URL</span>
+        <span class="cite">start-judge0-tunnel.bat</span>
+        <span class="cite">coding-execution.controller.ts</span>
+        <span class="cite">judge.service.ts</span>
+      </div>
+    </div>
+
+    <div class="finding sev-critical">
+      <div class="finding-head">
+        <span class="sev-pill">Critical · database</span>
+      </div>
+      <h4>The Prisma connection pool is being multiplied, not shared</h4>
+      <p>The API and the background worker share one Node process, but each builds its own <code>PrismaClient</code> — and worker code goes further, calling <code>new PrismaClient()</code> per invocation rather than reusing one. Every one of these opens its own pool against the same Supabase pgbouncer budget (a handful of connections on a starter tier). Under real concurrent load this exhausts the pool and surfaces as <code>P1017</code>/<code>P2024</code> timeout errors directly to candidates.</p>
+      <div class="cite-row">
+        <span class="cite">apps/api/src/prisma/prisma.service.ts</span>
+        <span class="cite">packages/database/src/client.ts</span>
+        <span class="cite">apps/worker/src/services/ai.service.ts:64</span>
+        <span class="cite">apps/worker/src/queues/generation.queue.ts:22</span>
+      </div>
+    </div>
+
+    <div class="finding sev-critical">
+      <div class="finding-head">
+        <span class="sev-pill">Critical · submission path</span>
+      </div>
+      <h4>Submit transactions hold scarce connections through the deadline spike</h4>
+      <p>The submit flow wraps status updates, submission-count checks, and event writes in one <code>prisma.$transaction</code> with a 90-second timeout and 60-second max wait. Under pgbouncer's transaction-mode pooling, that transaction occupies one of only a handful of pooled connections for its full duration. When candidates submit together near a shared deadline — the realistic worst case — submissions queue against that tiny pool instead of running in parallel, producing multi-second to multi-minute submit delays at the exact moment candidates can least tolerate them.</p>
+      <div class="cite-row">
+        <span class="cite">submission.service.ts:165-279</span>
+        <span class="cite">timeout: 90000, maxWait: 60000</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="secondary">
+    <h2>Secondary risks</h2>
+    <p class="section-sub">These raise error rates and latency under load without being an immediate hard wall on their own.</p>
+
+    <div class="finding sev-high">
+      <div class="finding-head"><span class="sev-pill">High · deployment</span></div>
+      <h4>One unclustered process on a "starter" instance runs everything</h4>
+      <p>The API, the BullMQ worker, and all queue processors run inside a single Node process (<code>scripts/start-combined.js</code>), on one Render "starter" plan instance — roughly 0.5–1 vCPU, no horizontal scaling, no <code>cluster</code>/PM2. <code>WORKER_CONCURRENCY=2</code> is set in <code>render.yaml</code> but ignored: queue processors hardcode their own concurrency (e.g. evaluation at 3) directly in code. There is no path to add capacity short of changing the deploy topology.</p>
+      <div class="cite-row">
+        <span class="cite">render.yaml</span>
+        <span class="cite">scripts/start-combined.js:87,125</span>
+        <span class="cite">evaluation.queue.ts:39</span>
+      </div>
+    </div>
+
+    <div class="finding sev-high">
+      <div class="finding-head"><span class="sev-pill">High · autosave</span></div>
+      <h4>Autosave costs 3–4 uncached DB round trips per save</h4>
+      <p>Every answer autosave hits <code>examConfig.findUnique</code> and, in some flows, <code>testInstanceQuestion.findFirst</code> — neither cached — plus two upserts, all synchronous in the request. At 2,000 candidates autosaving every 10–15 seconds, that's roughly 400–800 database statements per second sustained from this path alone, competing with the same undersized connection pool described above.</p>
+      <div class="cite-row">
+        <span class="cite">autosave.service.ts:23-230</span>
+        <span class="cite">answer.controller.ts:43-55</span>
+      </div>
+    </div>
+
+    <div class="finding sev-high">
+      <div class="finding-head"><span class="sev-pill">High · admin monitoring</span></div>
+      <h4>The live monitoring dashboard re-pulls the full candidate cohort on every poll</h4>
+      <p><code>getAssessmentLiveSnapshot</code> runs an unpaginated <code>testInstance.findMany</code> with deep joins (user, execution state, submissions, questions) across every active candidate, then sorts and filters in JavaScript — on every dashboard load, filter change, and background poll. It sits behind a Redis fast-path, but that cache overlays live fields onto rows still pulled fresh from Postgres each time, so it doesn't actually reduce the query's cost. This scales linearly with candidate count on every admin refresh, sharing the same process as candidate-facing traffic.</p>
+      <div class="cite-row">
+        <span class="cite">live-monitoring.service.ts — getAssessmentLiveSnapshot</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="working">
+    <h2>What already holds up</h2>
+    <p class="section-sub">Not everything needs to change — these parts were built with scale in mind.</p>
+    <div class="ok-grid">
+      <div class="finding sev-ok">
+        <div class="finding-head"><span class="sev-pill">Holds up</span></div>
+        <h4>Candidates never open a persistent connection</h4>
+        <p>Real-time monitoring is SSE for admins only; candidates send a 15-second heartbeat over plain REST. Connection count scales with open admin tabs, not with the 2,000 candidates, so this layer isn't a bottleneck at target load.</p>
+      </div>
+      <div class="finding sev-ok">
+        <div class="finding-head"><span class="sev-pill">Holds up</span></div>
+        <h4>Indexing on the assessment-taking path is solid</h4>
+        <p><code>TestInstance</code>, <code>CandidateAnswer</code>, <code>ExecutionState</code>, and related models carry indexes matching their actual query patterns, including the composite key the autosave upsert relies on. No full-table-scan risk found on the hot path.</p>
+      </div>
+      <div class="finding sev-ok">
+        <div class="finding-head"><span class="sev-pill">Holds up</span></div>
+        <h4>Submission idempotency uses a per-candidate lock, not a global one</h4>
+        <p>The Redis distributed lock on submit is keyed per <code>testInstanceId</code>, so one candidate's submission never blocks another's. It's the transaction's connection-hold time that's the problem, not this locking design.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <h2>Remediation roadmap</h2>
+    <p class="section-sub">Ordered by what has to be true before the next phase is worth doing.</p>
+    <div class="roadmap">
+      <div class="phase">
+        <div class="phase-num"><b>01</b>Unblock</div>
+        <div>
+          <h4>Remove the two hard walls</h4>
+          <p>Move Judge0 off the local-machine ngrok tunnel onto real hosted or self-hosted infrastructure with its own scaling. Fix the <code>PrismaClient</code> multiplication — one shared client per process, explicit <code>connection_limit</code> on <code>DATABASE_URL</code>, and a Supabase pooler size to match.</p>
+          <span class="goal">Nothing else is worth testing until both land</span>
+        </div>
+      </div>
+      <div class="phase is-done">
+        <div class="phase-num"><b>02</b>Decouple</div>
+        <div>
+          <h4>Take execution and scoring off the request thread <span class="status-pill done">Implemented</span></h4>
+          <p>Route coding submissions through a BullMQ queue instead of running synchronously inside the HTTP handler. Shrink or remove the interactive submit transaction, or move that path off transaction-mode pooling entirely. Add rate limiting to the coding endpoints.</p>
+          <div class="impl-note">
+            New <code>code-execution</code> BullMQ queue with a bounded-concurrency processor (<code>CODE_EXECUTION_CONCURRENCY</code>, default 6) sits between the controller and Judge0, with a queue-depth check that returns <b>503</b> once too many jobs are in flight instead of piling up. <code>coding-execution.controller.ts</code> now enqueues and awaits the job instead of calling Judge0 inline. The submission transaction was cut from a 90s/60s budget down to <b>15s/10s</b> by moving the read-only answer fetch out of it entirely. <code>run</code> is now rate-limited under the <code>assessment</code> bucket, <code>submit</code> under the dedicated <code>submission</code> bucket (5/min) that already existed in config but was unused.
+          </div>
+        </div>
+      </div>
+      <div class="phase is-done">
+        <div class="phase-num"><b>03</b>Scale out</div>
+        <div>
+          <h4>Split the deploy topology <span class="status-pill done">Implemented</span></h4>
+          <p>Run the worker as its own Render service instead of co-located with the API, and enable horizontal scaling (multiple API instances) rather than relying on one starter-plan process.</p>
+          <div class="impl-note">
+            <code>render.yaml</code> now defines <code>intervu-api</code> and <code>intervu-worker</code> as separate Render services with their own start scripts (<code>scripts/start-api.js</code>, <code>scripts/start-worker.js</code>); the worker calls back to the API over <code>INTERNAL_API_URL</code> and waits for its health check before processing jobs. <b>Still open:</b> actual horizontal autoscaling (<code>minInstances</code>/<code>maxInstances</code>) needs a Render plan tier above "starter" — the block is documented inline in <code>render.yaml</code> ready to uncomment once upgraded.
+          </div>
+        </div>
+      </div>
+      <div class="phase is-done">
+        <div class="phase-num"><b>04</b>Tighten</div>
+        <div>
+          <h4>Reduce write volume on hot paths <span class="status-pill done">Implemented</span></h4>
+          <p>Batch or debounce autosave writes, and rework the admin monitoring snapshot to filter and paginate in SQL rather than pulling the full cohort into JavaScript on every poll.</p>
+          <div class="impl-note">
+            Autosave now caches the section-navigation flag (10 min TTL) and per-question section-lock status (5s TTL) in Redis, cutting two uncached DB round trips down to roughly one every 5 seconds of rapid saving instead of one per save. The admin snapshot query trims <code>executionState</code> to the five fields actually used, replaces a full <code>questions</code> row pull with a <code>_count</code>, and caps the query at 5,000 rows so an unfiltered "all assessments" view can no longer scale unbounded with total candidate history.
+          </div>
+        </div>
+      </div>
+      <div class="phase is-done">
+        <div class="phase-num"><b>05</b>Prove it <span class="status-pill done">Implemented</span></div>
+        <div>
+          <h4>Load-test the real path</h4>
+          <p>Run k6 or Artillery against the actual public API — auth included, coding submissions included — ramping to 2,000 concurrent virtual users, before trusting this at scale in production.</p>
+          <div class="impl-note">
+            <code>load-tests/k6-2000-candidates.js</code> drives signup/login → start test → autosave loop → optional coding run/submit → final submit through the real public API, ramping to a configurable <code>MAX_VUS</code> (default 2,000), with pass/fail thresholds on error rate and p95 latency. See <code>load-tests/README.md</code> — it still needs to actually be run against staging with a real <code>testConfigId</code> to get a verified number.
+          </div>
+          <span class="goal">Run it — this is the only step that turns "should work" into "does work"</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="evidence">
+    <strong style="color: var(--muted); font-weight: 600;">Sources reviewed —</strong>
+    apps/api/src/modules/execution/services/{autosave,submission}.service.ts · apps/api/src/modules/coding/{controllers,services}/* · apps/api/src/modules/monitoring/{controllers,services}/* · apps/api/src/prisma/prisma.service.ts · packages/database/prisma/schema.prisma · packages/database/src/client.ts · apps/worker/src/{bootstrap.ts,queues/*,services/ai.service.ts} · scripts/start-combined.js · start-judge0-tunnel.bat · render.yaml · scratch/{sustained-load,burst-test}.js · commits 871b0283 and 59be7e46.
+  </footer>
+
+</div>

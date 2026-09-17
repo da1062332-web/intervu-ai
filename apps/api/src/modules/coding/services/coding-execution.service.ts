@@ -238,6 +238,23 @@ export class CodingExecutionService {
         memoryKb: judgeResult.memory,
         error: status === "PASSED" ? null : resError,
       });
+
+      if (status === "COMPILATION_ERROR") {
+        // Fast-fail: Avoid redundantly recompiling broken code across remaining test cases
+        for (let j = i + 1; j < rawPublicTests.length; j++) {
+          results.push({
+            testIndex: j + 1,
+            status: "COMPILATION_ERROR",
+            input: rawPublicTests[j].input,
+            expectedOutput: rawPublicTests[j].expectedOutput,
+            actualOutput: null,
+            runtimeSeconds: null,
+            memoryKb: null,
+            error: resError,
+          });
+        }
+        break;
+      }
     }
 
       return {

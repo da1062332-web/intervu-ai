@@ -799,18 +799,33 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       where: whereClause,
       include: {
         user: { select: { fullName: true, email: true, role: true } },
-        executionState: true,
+        executionState: {
+          select: {
+            currentSectionKey: true,
+            currentSectionIndex: true,
+            currentQuestionId: true,
+            currentQuestionIndex: true,
+            lastActivityAt: true,
+          },
+        },
         submissions: {
           select: { source: true, reason: true },
           orderBy: { attemptSequence: "desc" },
           take: 1,
         },
-        questions: { select: { id: true } },
         _count: {
-          select: { candidateAnswers: true },
+          select: { candidateAnswers: true, questions: true },
         },
       },
       orderBy: { createdAt: "desc" },
+      // Operational safety cap: this dashboard exists to watch currently
+      // active candidates, not to page through the entire historical
+      // cohort. Without a bound, an "all assessments, no date filter" view
+      // re-pulls every TestInstance ever created (with deep joins) on
+      // every poll. 5,000 gives headroom above the 2,000-candidate target
+      // load with no visible change for the normal case (a running batch
+      // of candidates), while capping worst-case query cost.
+      take: 5000,
     });
 
     // 3. Merge: overlay real-time Redis telemetry on DB attempts
@@ -873,7 +888,7 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
         currentQuestionId: att.executionState?.currentQuestionId || "",
         currentQuestionIndex: att.executionState?.currentQuestionIndex ?? 0,
         answeredCount: answersCount,
-        totalQuestions: att.questions.length || 20,
+        totalQuestions: (att as any)._count?.questions || 20,
         markedQuestionsCount: 0,
         remainingTimeSeconds: remTime,
         expiresAt: att.expiresAt?.toISOString(),
