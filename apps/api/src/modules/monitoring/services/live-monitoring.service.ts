@@ -19,6 +19,7 @@ export interface CandidateLiveRecord {
   candidateId: string;
   candidateName: string;
   candidateEmail: string;
+  candidateRole?: string;
   status: CandidateLiveState;
   currentSectionKey: string;
   currentSectionIndex: number;
@@ -171,7 +172,11 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     const incidentReasons: string[] = [];
     let isNeedsAttention = false;
 
-    if (dto.autosaveHealth === "FAILED") {
+    if (
+      dto.autosaveHealth === "FAILED" &&
+      record.candidateRole !== "ADMIN" &&
+      record.candidateRole !== "PLAN_MANAGER"
+    ) {
       isNeedsAttention = true;
       incidentReasons.push("Autosave Failure");
       await this.alertService.emitAlert({
@@ -179,6 +184,7 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
         attemptId,
         candidateId,
         candidateName: record.candidateName,
+        candidateRole: record.candidateRole,
         severity: "P1",
         category: "AUTOSAVE",
         title: "Candidate Autosave Failed",
@@ -272,32 +278,36 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
           MONITORING_CONFIG.REDIS_STATE_TTL_SECONDS,
         );
 
-        // Add to active set and active assessments index
-        await redis.sadd(REDIS_KEYS.assessmentActiveSet(assessmentId), attemptId);
-        await redis.sadd(REDIS_KEYS.activeAssessmentsIndex(), assessmentId);
+        // Only add to active set and publish live delta if NOT an ADMIN or PLAN_MANAGER
+        if (record.candidateRole !== "ADMIN" && record.candidateRole !== "PLAN_MANAGER") {
+          // Add to active set and active assessments index
+          await redis.sadd(REDIS_KEYS.assessmentActiveSet(assessmentId), attemptId);
+          await redis.sadd(REDIS_KEYS.activeAssessmentsIndex(), assessmentId);
 
-        // Publish live update delta
-        await redis.publish(
-          REDIS_KEYS.assessmentEventsChannel(assessmentId),
-          JSON.stringify({
-            type: "CANDIDATE_HEARTBEAT",
-            payload: {
-              attemptId,
-              candidateId,
-              status: record.status,
-              currentSectionKey: record.currentSectionKey,
-              currentQuestionIndex: record.currentQuestionIndex,
-              answeredCount: record.answeredCount,
-              remainingTimeSeconds: record.remainingTimeSeconds,
-              latencyMs: record.latencyMs,
-              autosaveHealth: record.autosaveHealth,
-              networkStatus: record.networkStatus,
-              isNeedsAttention: record.isNeedsAttention,
-              lastHeartbeatAt: now,
-            },
-            timestamp: new Date().toISOString(),
-          }),
-        );
+          // Publish live update delta
+          await redis.publish(
+            REDIS_KEYS.assessmentEventsChannel(assessmentId),
+            JSON.stringify({
+              type: "CANDIDATE_HEARTBEAT",
+              payload: {
+                attemptId,
+                candidateId,
+                candidateRole: record.candidateRole,
+                status: record.status,
+                currentSectionKey: record.currentSectionKey,
+                currentQuestionIndex: record.currentQuestionIndex,
+                answeredCount: record.answeredCount,
+                remainingTimeSeconds: record.remainingTimeSeconds,
+                latencyMs: record.latencyMs,
+                autosaveHealth: record.autosaveHealth,
+                networkStatus: record.networkStatus,
+                isNeedsAttention: record.isNeedsAttention,
+                lastHeartbeatAt: now,
+              },
+              timestamp: new Date().toISOString(),
+            }),
+          );
+        }
       } catch (err) {
         this.logger.warn("Failed caching heartbeat to Redis", { error: err });
       }
@@ -414,20 +424,23 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
           MONITORING_CONFIG.REDIS_STATE_TTL_SECONDS,
         );
 
-        await redis.publish(
-          REDIS_KEYS.assessmentEventsChannel(assessmentId),
-          JSON.stringify({
-            type: "STATE_TRANSITION",
-            payload: {
-              attemptId,
-              candidateId: record.candidateId,
-              previousState: currentState,
-              newState: targetState,
-              reason,
-            },
-            timestamp: new Date().toISOString(),
-          }),
-        );
+        if (record.candidateRole !== "ADMIN" && record.candidateRole !== "PLAN_MANAGER") {
+          await redis.publish(
+            REDIS_KEYS.assessmentEventsChannel(assessmentId),
+            JSON.stringify({
+              type: "STATE_TRANSITION",
+              payload: {
+                attemptId,
+                candidateId: record.candidateId,
+                candidateRole: record.candidateRole,
+                previousState: currentState,
+                newState: targetState,
+                reason,
+              },
+              timestamp: new Date().toISOString(),
+            }),
+          );
+        }
       } catch (err) {
         this.logger.warn("Failed updating Redis state on transition", { error: err });
       }
@@ -508,6 +521,10 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
           }
 
           const record: CandidateLiveRecord = JSON.parse(rawRecord);
+          if (record.candidateRole === "ADMIN" || record.candidateRole === "PLAN_MANAGER") {
+            await redis.srem(key, attemptId);
+            continue;
+          }
           const silentDuration = now - (record.lastHeartbeatAt || 0);
 
           if (record.status === "ACTIVE" && silentDuration > MONITORING_CONFIG.HEARTBEAT_DISCONNECT_THRESHOLD_MS) {
@@ -643,7 +660,7 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       }),
       this.prisma.user.findUnique({
         where: { id: candidateId },
-        select: { fullName: true, email: true },
+        select: { fullName: true, email: true, role: true },
       }),
     ]);
 
@@ -663,6 +680,7 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       candidateId,
       candidateName: user?.fullName || "Candidate",
       candidateEmail: user?.email || "candidate@intervu.ai",
+      candidateRole: (user as any)?.role || "CANDIDATE",
       status,
       currentSectionKey: executionState?.currentSectionKey || "section-1",
       currentSectionIndex: executionState?.currentSectionIndex ?? 0,
@@ -690,32 +708,70 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
   /**
    * Builds the comprehensive live assessment snapshot with server-side filtering/pagination
    */
+  /**
+   * Builds the comprehensive live assessment snapshot with server-side filtering/pagination
+   */
   async getAssessmentLiveSnapshot(
     assessmentId: string,
     query: QueryCandidatesDto,
   ): Promise<any> {
     let candidateRecords: CandidateLiveRecord[] = [];
+    const isAll = assessmentId === "all";
+
+    // 0. Parse Date Filter Range
+    let dateStart: Date | undefined;
+    let dateEnd: Date | undefined;
+
+    if (query.dateFilter === "today") {
+      dateStart = new Date();
+      dateStart.setHours(0, 0, 0, 0);
+      dateEnd = new Date();
+      dateEnd.setHours(23, 59, 59, 999);
+    } else if (query.dateFilter === "yesterday") {
+      dateStart = new Date();
+      dateStart.setDate(dateStart.getDate() - 1);
+      dateStart.setHours(0, 0, 0, 0);
+      dateEnd = new Date();
+      dateEnd.setDate(dateEnd.getDate() - 1);
+      dateEnd.setHours(23, 59, 59, 999);
+    } else if (query.dateFilter === "custom" && (query.startDate || query.endDate)) {
+      if (query.startDate) {
+        dateStart = new Date(query.startDate);
+        if (query.startDate.length === 10) dateStart.setHours(0, 0, 0, 0);
+      }
+      if (query.endDate) {
+        dateEnd = new Date(query.endDate);
+        if (query.endDate.length === 10) dateEnd.setHours(23, 59, 59, 999);
+      }
+    }
 
     // 1. Fetch live records from Redis (Fast Path using MGET batching)
     const redisMap = new Map<string, CandidateLiveRecord>();
     if (this.isRedisAvailable()) {
       try {
         const redis = RedisConnectionManager.getInstance();
-        const activeIds = await redis.smembers(REDIS_KEYS.assessmentActiveSet(assessmentId));
+        let targetAssessmentIds = [assessmentId];
+        if (isAll) {
+          const indexed = await redis.smembers(REDIS_KEYS.activeAssessmentsIndex());
+          targetAssessmentIds = indexed && indexed.length > 0 ? indexed : [];
+        }
 
-        if (activeIds && activeIds.length > 0) {
-          const keys = activeIds.map((id) => REDIS_KEYS.attemptState(assessmentId, id));
-          const rawRecords =
-            typeof (redis as any).mget === "function"
-              ? await redis.mget(...keys)
-              : await Promise.all(keys.map((k) => redis.get(k)));
+        for (const aId of targetAssessmentIds) {
+          const activeIds = await redis.smembers(REDIS_KEYS.assessmentActiveSet(aId));
+          if (activeIds && activeIds.length > 0) {
+            const keys = activeIds.map((id) => REDIS_KEYS.attemptState(aId, id));
+            const rawRecords =
+              typeof (redis as any).mget === "function"
+                ? await (redis as any).mget(...keys)
+                : await Promise.all(keys.map((k: string) => redis.get(k)));
 
-          for (const raw of rawRecords) {
-            if (raw) {
-              try {
-                const rec: CandidateLiveRecord = JSON.parse(raw);
-                redisMap.set(rec.attemptId, rec);
-              } catch (_) {}
+            for (const raw of rawRecords) {
+              if (raw) {
+                try {
+                  const rec: CandidateLiveRecord = JSON.parse(raw);
+                  redisMap.set(rec.attemptId, rec);
+                } catch (_) {}
+              }
             }
           }
         }
@@ -724,13 +780,25 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    // 2. Authoritative query of all attempts for this assessment from PostgreSQL
-    const dbAttempts = await this.prisma.testInstance.findMany({
-      where: {
-        OR: [{ examConfigId: assessmentId }, { testConfigId: assessmentId }],
+    // 2. Authoritative query of attempts from PostgreSQL (strictly excluding ADMIN and PLAN_MANAGER users)
+    const whereClause: any = {
+      user: {
+        role: { notIn: ["ADMIN", "PLAN_MANAGER"] as any },
       },
+    };
+    if (!isAll) {
+      whereClause.OR = [{ examConfigId: assessmentId }, { testConfigId: assessmentId }];
+    }
+    if (dateStart || dateEnd) {
+      whereClause.createdAt = {};
+      if (dateStart) whereClause.createdAt.gte = dateStart;
+      if (dateEnd) whereClause.createdAt.lte = dateEnd;
+    }
+
+    const dbAttempts = await this.prisma.testInstance.findMany({
+      where: whereClause,
       include: {
-        user: { select: { fullName: true, email: true } },
+        user: { select: { fullName: true, email: true, role: true } },
         executionState: true,
         submissions: {
           select: { source: true, reason: true },
@@ -749,49 +817,57 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     const now = Date.now();
     const seenAttemptIds = new Set<string>();
 
-    candidateRecords = dbAttempts.map((att) => {
-      seenAttemptIds.add(att.id);
-      const live = redisMap.get(att.id);
-      if (live) {
-        return live;
-      }
+    candidateRecords = dbAttempts
+      .filter((att) => {
+        const role = (att.user as any)?.role;
+        return role !== "ADMIN" && role !== "PLAN_MANAGER";
+      })
+      .map((att) => {
+        seenAttemptIds.add(att.id);
+        const live = redisMap.get(att.id);
+        if (live) {
+          return live;
+        }
 
-      // No heartbeat in Redis: compute status from authoritative DB state
-      const answersCount =
-        (att as any)._count?.candidateAnswers ??
-        (att as any).candidateAnswers?.length ??
-        0;
+        // No heartbeat in Redis: compute status from authoritative DB state
+        const answersCount =
+          (att as any)._count?.candidateAnswers ??
+          (att as any).candidateAnswers?.length ??
+          0;
 
-      let remTime = 3600;
-      if (att.expiresAt) {
-        remTime = Math.max(0, Math.floor((new Date(att.expiresAt).getTime() - now) / 1000));
-      }
+        let remTime = 3600;
+        if (att.expiresAt) {
+          remTime = Math.max(0, Math.floor((new Date(att.expiresAt).getTime() - now) / 1000));
+        }
 
-      let status: CandidateLiveState =
-        TEST_INSTANCE_STATUS_TO_LIVE_STATE[att.status] || "ACTIVE";
+        let status: CandidateLiveState =
+          TEST_INSTANCE_STATUS_TO_LIVE_STATE[att.status] || "ACTIVE";
 
-      let networkStatus = "ONLINE";
-      let isNeedsAttention = false;
-      const incidentReasons: string[] = [];
+        let networkStatus = "ONLINE";
+        let isNeedsAttention = false;
+        const incidentReasons: string[] = [];
 
-      // If DB status is ACTIVE or IN_PROGRESS but heartbeat is absent in Redis, candidate is DISCONNECTED
-      if (att.status === "IN_PROGRESS" || (att.status as any) === "ACTIVE") {
-        status = "DISCONNECTED";
-        networkStatus = "OFFLINE";
-        isNeedsAttention = true;
-        incidentReasons.push("Heartbeat Offline / Key Expired");
-      } else if (att.status === "AUTO_SUBMITTED" || att.status === "ADMIN_REVIEW") {
-        isNeedsAttention = true;
-        incidentReasons.push(att.submissions?.[0]?.reason || "Auto-submitted");
-      }
+        // If DB status is ACTIVE or IN_PROGRESS but heartbeat is absent in Redis, candidate is DISCONNECTED
+        if (att.status === "IN_PROGRESS" || (att.status as any) === "ACTIVE") {
+          status = "DISCONNECTED";
+          networkStatus = "OFFLINE";
+          isNeedsAttention = true;
+          incidentReasons.push("Heartbeat Offline / Key Expired");
+        } else if (att.status === "AUTO_SUBMITTED" || att.status === "ADMIN_REVIEW") {
+          isNeedsAttention = true;
+          incidentReasons.push(att.submissions?.[0]?.reason || "Auto-submitted");
+        }
 
-      return {
-        assessmentId,
-        attemptId: att.id,
-        candidateId: att.userId,
-        candidateName: att.user?.fullName || "Candidate",
-        candidateEmail: att.user?.email || "candidate@intervu.ai",
-        status,
+        return {
+          assessmentId: isAll
+            ? ((att as any)?.examConfigId || att?.testConfigId || "all")
+            : assessmentId,
+          attemptId: att.id,
+          candidateId: att.userId,
+          candidateName: att.user?.fullName || "Candidate",
+          candidateEmail: att.user?.email || "candidate@intervu.ai",
+          candidateRole: (att.user as any)?.role || "CANDIDATE",
+          status,
         currentSectionKey: att.executionState?.currentSectionKey || "section-1",
         currentSectionIndex: att.executionState?.currentSectionIndex ?? 0,
         currentQuestionId: att.executionState?.currentQuestionId || "",
@@ -818,11 +894,20 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     });
 
     // Also include any active records in Redis that haven't flushed to DB yet
+    // If a date filter is active, only include if their lastHeartbeatAt falls in range
     for (const [attemptId, liveRec] of redisMap.entries()) {
       if (!seenAttemptIds.has(attemptId)) {
+        if (liveRec.candidateRole === "ADMIN" || liveRec.candidateRole === "PLAN_MANAGER") continue;
+        if (dateStart && liveRec.lastHeartbeatAt < dateStart.getTime()) continue;
+        if (dateEnd && liveRec.lastHeartbeatAt > dateEnd.getTime()) continue;
         candidateRecords.push(liveRec);
       }
     }
+
+    // Final safety filter: strictly exclude ADMIN and PLAN_MANAGER users from live monitoring
+    candidateRecords = candidateRecords.filter(
+      (c) => c.candidateRole !== "ADMIN" && c.candidateRole !== "PLAN_MANAGER",
+    );
 
     // 3. Compute Aggregated Summary Metrics across all candidates
     const total = candidateRecords.length;
@@ -922,6 +1007,11 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     return {
       assessmentId,
       serverTime: new Date().toISOString(),
+      dateFilter: query.dateFilter || "all",
+      dateRange: {
+        start: dateStart?.toISOString(),
+        end: dateEnd?.toISOString(),
+      },
       summary: {
         total,
         active,
@@ -983,7 +1073,9 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       }),
     ]);
 
-    if (!attempt) throw new NotFoundException(`Attempt ${attemptId} not found`);
+    if (!attempt || attempt.user?.role === "ADMIN" || attempt.user?.role === "PLAN_MANAGER") {
+      throw new NotFoundException(`Attempt ${attemptId} not found`);
+    }
 
     return {
       attemptId,

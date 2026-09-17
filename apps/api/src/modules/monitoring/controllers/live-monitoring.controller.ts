@@ -114,6 +114,9 @@ export class LiveMonitoringController {
                 { examConfigId: { in: assessmentIds } },
                 { testConfigId: { in: assessmentIds } },
               ],
+              user: {
+                role: { notIn: ["ADMIN", "PLAN_MANAGER"] as any },
+              },
             },
             _count: { id: true },
           })

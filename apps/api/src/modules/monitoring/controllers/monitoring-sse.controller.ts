@@ -45,19 +45,41 @@ export class MonitoringSseController {
       this.logger.warn(`Redis SSE subscriber connection error for assessment ${assessmentId}`, err);
     });
 
-    const channelName = REDIS_KEYS.assessmentEventsChannel(assessmentId);
-    sub.subscribe(channelName, (err) => {
-      if (err) {
-        this.logger.error(`Failed subscribing to Redis channel ${channelName}`, err);
-      } else {
-        this.logger.debug(`Subscribed to Redis channel: ${channelName}`);
-      }
-    });
+    const isAll = assessmentId === "all";
+    const channelName = isAll ? "assessment:*:events" : REDIS_KEYS.assessmentEventsChannel(assessmentId);
 
-    // 1. Observable from Redis Pub/Sub events
-    const redisEvents$ = fromEvent<[string, string]>(sub, "message").pipe(
-      filter(([channel]) => channel === channelName),
-      map(([, message]) => {
+    if (isAll && typeof (sub as any).psubscribe === "function") {
+      (sub as any).psubscribe(channelName, (err: any) => {
+        if (err) {
+          this.logger.error(`Failed psubscribing to Redis pattern ${channelName}`, err);
+        } else {
+          this.logger.debug(`Psubscribed to Redis pattern: ${channelName}`);
+        }
+      });
+    } else {
+      sub.subscribe(channelName, (err) => {
+        if (err) {
+          this.logger.error(`Failed subscribing to Redis channel ${channelName}`, err);
+        } else {
+          this.logger.debug(`Subscribed to Redis channel: ${channelName}`);
+        }
+      });
+    }
+
+    // 1. Observable from Redis Pub/Sub events (supports standard channel or pattern subscription)
+    const messageEvents$ = fromEvent<[string, string]>(sub, "message").pipe(
+      filter(([channel]) => isAll || channel === channelName),
+      map(([, message]) => message),
+    );
+
+    const pmessageEvents$ = isAll
+      ? fromEvent<[string, string, string]>(sub, "pmessage").pipe(
+          map(([, , message]) => message),
+        )
+      : [];
+
+    const redisEvents$ = merge(messageEvents$, pmessageEvents$).pipe(
+      map((message) => {
         try {
           const parsed = JSON.parse(message);
           return {

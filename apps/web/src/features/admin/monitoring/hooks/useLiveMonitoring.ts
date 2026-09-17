@@ -11,6 +11,7 @@ export interface CandidateItem {
   candidateId: string;
   candidateName: string;
   candidateEmail: string;
+  candidateRole?: string;
   status:
     | 'NOT_STARTED'
     | 'STARTING'
@@ -105,6 +106,9 @@ export interface UseLiveMonitoringOptions {
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  dateFilter?: 'today' | 'yesterday' | 'custom' | 'all';
+  startDate?: string;
+  endDate?: string;
 }
 
 export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitoringOptions = {}) {
@@ -155,13 +159,22 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
       if (opts.sortOrder) queryParams.set('sortOrder', opts.sortOrder);
       if (opts.page) queryParams.set('page', String(opts.page));
       if (opts.limit) queryParams.set('limit', String(opts.limit));
+      if (opts.dateFilter && opts.dateFilter !== 'all') queryParams.set('dateFilter', opts.dateFilter);
+      if (opts.startDate) queryParams.set('startDate', opts.startDate);
+      if (opts.endDate) queryParams.set('endDate', opts.endDate);
 
       const res = await apiClient.request<any>(
         `/admin/monitoring/assessments/${assessmentId}/snapshot?${queryParams.toString()}`,
       );
 
       if (res) {
-        setCandidates(res.candidates || []);
+        const filteredCandidates = (res.candidates || []).filter(
+          (c: CandidateItem) =>
+            c.candidateRole !== 'ADMIN' &&
+            c.candidateRole !== 'PLAN_MANAGER' &&
+            !c.candidateEmail?.toLowerCase().includes('admin@intervu.ai'),
+        );
+        setCandidates(filteredCandidates);
         if (res.summary) setSummary(res.summary);
         if (res.alerts) setAlerts(res.alerts);
         if (res.systemHealth) setSystemHealth(res.systemHealth);
@@ -188,6 +201,9 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
     options.sortOrder,
     options.page,
     options.limit,
+    options.dateFilter,
+    options.startDate,
+    options.endDate,
     fetchSnapshot,
   ]);
 
@@ -231,59 +247,75 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
 
       if (data.type === 'CANDIDATE_HEARTBEAT') {
         const p = data.payload;
-        if (p?.attemptId) {
+        if (
+          p?.attemptId &&
+          p.candidateRole !== 'ADMIN' &&
+          p.candidateRole !== 'PLAN_MANAGER'
+        ) {
           heartbeatBufferRef.current.set(p.attemptId, p);
         }
         return;
       } else if (data.type === 'STATE_TRANSITION') {
         const p = data.payload;
+        if (p?.candidateRole === 'ADMIN' || p?.candidateRole === 'PLAN_MANAGER') return;
+        let matched = false;
         setCandidates((prev) =>
-          prev.map((c) =>
-            c.attemptId === p.attemptId
-              ? {
-                  ...c,
-                  status: p.newState,
-                  isNeedsAttention:
-                    p.newState === 'AUTO_SUBMITTED' || p.newState === 'ADMIN_REVIEW'
-                      ? true
-                      : c.isNeedsAttention,
-                }
-              : c,
-          ),
+          prev.map((c) => {
+            if (c.attemptId === p.attemptId) {
+              matched = true;
+              return {
+                ...c,
+                status: p.newState,
+                isNeedsAttention:
+                  p.newState === 'AUTO_SUBMITTED' || p.newState === 'ADMIN_REVIEW'
+                    ? true
+                    : c.isNeedsAttention,
+              };
+            }
+            return c;
+          }),
         );
 
-        // Update tallies
-        setSummary((s) => ({
-          ...s,
-          active: p.newState === 'ACTIVE' ? s.active + 1 : Math.max(0, s.active - 1),
-          autoSubmitted: p.newState === 'AUTO_SUBMITTED' ? s.autoSubmitted + 1 : s.autoSubmitted,
-          submitted: p.newState === 'SUBMITTED' ? s.submitted + 1 : s.submitted,
-        }));
+        // Update tallies only if it matches a monitored candidate
+        if (matched) {
+          setSummary((s) => ({
+            ...s,
+            active: p.newState === 'ACTIVE' ? s.active + 1 : Math.max(0, s.active - 1),
+            autoSubmitted: p.newState === 'AUTO_SUBMITTED' ? s.autoSubmitted + 1 : s.autoSubmitted,
+            submitted: p.newState === 'SUBMITTED' ? s.submitted + 1 : s.submitted,
+          }));
+        }
       } else if (data.type === 'CANDIDATE_DISCONNECTED') {
         const p = data.payload;
+        let matched = false;
         setCandidates((prev) =>
-          prev.map((c) =>
-            c.attemptId === p.attemptId
-              ? {
-                  ...c,
-                  status: 'DISCONNECTED',
-                  networkStatus: 'OFFLINE',
-                  isNeedsAttention: true,
-                  incidentReasons: Array.from(
-                    new Set([...c.incidentReasons, `Disconnected (>${p.silentDurationSeconds || 30}s)`]),
-                  ),
-                }
-              : c,
-          ),
+          prev.map((c) => {
+            if (c.attemptId === p.attemptId) {
+              matched = true;
+              return {
+                ...c,
+                status: 'DISCONNECTED',
+                networkStatus: 'OFFLINE',
+                isNeedsAttention: true,
+                incidentReasons: Array.from(
+                  new Set([...c.incidentReasons, `Disconnected (>${p.silentDurationSeconds || 30}s)`]),
+                ),
+              };
+            }
+            return c;
+          }),
         );
-        setSummary((s) => ({
-          ...s,
-          active: Math.max(0, s.active - 1),
-          disconnected: s.disconnected + 1,
-          needsAttentionCount: s.needsAttentionCount + 1,
-        }));
+        if (matched) {
+          setSummary((s) => ({
+            ...s,
+            active: Math.max(0, s.active - 1),
+            disconnected: s.disconnected + 1,
+            needsAttentionCount: s.needsAttentionCount + 1,
+          }));
+        }
       } else if (data.type === 'ALERT_EMITTED') {
         const alert = data.payload;
+        if (alert.candidateRole === 'ADMIN' || alert.candidateRole === 'PLAN_MANAGER') return;
         setAlerts((prev) => [alert, ...prev.filter((a) => a.id !== alert.id)]);
         if (alert.severity === 'P0' || alert.severity === 'P1') {
           toast.error(`[${alert.severity}] ${alert.title}`, {

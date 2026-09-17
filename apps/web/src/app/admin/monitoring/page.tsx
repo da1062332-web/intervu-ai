@@ -61,18 +61,50 @@ export default function LiveMonitoringOverviewPage() {
           { label: 'Live Monitoring' },
         ]}
         actions={
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={() => fetchOverview(true)}
-            disabled={isRefreshing}
-            className='h-8 text-xs gap-1.5'
-          >
-            <RefreshCw className={`size-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className='flex items-center gap-2'>
+            <Link href='/admin/monitoring/all'>
+              <Button size='sm' className='h-8 text-xs gap-1.5'>
+                <Activity className='size-3.5' />
+                Monitor All Live Candidates
+              </Button>
+            </Link>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => fetchOverview(true)}
+              disabled={isRefreshing}
+              className='h-8 text-xs gap-1.5'
+            >
+              <RefreshCw className={`size-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         }
       />
+
+      {/* Global Live Operations Banner */}
+      <Card className='border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
+        <div className='space-y-1'>
+          <div className='flex items-center gap-2'>
+            <Badge variant='default' className='text-[10px] font-mono'>
+              GLOBAL VIEW
+            </Badge>
+            <h3 className='text-sm font-semibold text-foreground'>
+              All Active Assessments Live Operations
+            </h3>
+          </div>
+          <p className='text-xs text-muted-foreground'>
+            Simultaneously surveil candidates across all assessments platform-wide with real-time telemetry, anomaly alerts, and Today/Yesterday/Custom date filtering.
+          </p>
+        </div>
+        <Link href='/admin/monitoring/all'>
+          <Button size='sm' className='text-xs gap-1.5 shrink-0'>
+            <Activity className='size-3.5' />
+            Launch Global Operations Center
+            <ArrowRight className='size-3.5' />
+          </Button>
+        </Link>
+      </Card>
 
       <div className='flex items-center justify-between gap-4'>
         <div className='relative max-w-md flex-1'>
