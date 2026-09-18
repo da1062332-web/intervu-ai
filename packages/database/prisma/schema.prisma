@@ -1751,6 +1751,7 @@ enum GenerationStrategy {
   DATASET
   HYBRID
   CODING_PATTERN
+  MANUAL
 }
 
 enum QuestionGenerationJobStatus {

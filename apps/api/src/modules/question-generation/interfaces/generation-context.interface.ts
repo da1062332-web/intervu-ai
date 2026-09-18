@@ -49,11 +49,20 @@ export interface CodingPatternPayload {
   };
 }
 
+export interface ManualData {
+  questionText?: string;
+  options?: any[];
+  questionMediaId?: string | null;
+  questionMedia?: any;
+  richOptions?: any[];
+}
+
 export type GenerationPayload =
   | VariableData
   | DatasetData
   | HybridData
-  | CodingPatternPayload;
+  | CodingPatternPayload
+  | ManualData;
 
 // ─── Unified GenerationContext ────────────────────────────────────────────────
 

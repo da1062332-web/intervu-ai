@@ -11,6 +11,7 @@ import { buildPreviewErrorDisplay } from './preview-error-utils';
 import { useTemplateBuilderContext } from '../context/TemplateBuilderContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ImageRenderer } from '@/components/media/ImageRenderer';
 
 export function PreviewSection({ template }: { template?: any }) {
   const { id: templateId } = useParams() as { id: string };
@@ -284,48 +285,78 @@ export function PreviewSection({ template }: { template?: any }) {
                 </div>
               )}
 
-              {/* Question Text */}
+              {/* Question Text & Diagram */}
               <div className='border rounded-md overflow-hidden'>
                 <div className='bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300'>
                   Generated Question
                 </div>
-                <div className='p-4 bg-white dark:bg-gray-950 text-sm leading-relaxed whitespace-pre-wrap'>
-                  {result.questionText || result.previewText || result.solution}
+                <div className='p-4 bg-white dark:bg-gray-950 text-sm leading-relaxed space-y-3'>
+                  {(result.questionText || result.previewText || result.solution) && (
+                    <p className='whitespace-pre-wrap'>{result.questionText || result.previewText || result.solution}</p>
+                  )}
+                  {(result.questionMediaUrl || result.payload?.questionMediaUrl || result.questionMedia?.mediaUrl || result.questionMedia?.url) && (
+                    <ImageRenderer
+                      url={result.questionMediaUrl || result.payload?.questionMediaUrl || result.questionMedia?.mediaUrl || result.questionMedia?.url}
+                      altText={result.questionMedia?.altText}
+                    />
+                  )}
                 </div>
               </div>
 
               {/* Options */}
-              {result.options && result.options.length > 0 && (
+              {((result.richOptions && result.richOptions.length > 0) || (result.options && result.options.length > 0)) && (
                 <div className='border rounded-md overflow-hidden'>
                   <div className='bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b font-medium text-sm text-gray-700 dark:text-gray-300'>
                     Options
                   </div>
-                  <div className='p-4 bg-white dark:bg-gray-950 space-y-2'>
-                    {result.options.map((opt: string, i: number) => {
-                      // Some backends return the correct answer as the exact string in the array
-                      const isCorrect =
-                        opt === result.correctAnswer || opt.startsWith(result.correctAnswer + '.');
-                      return (
-                        <div
-                          key={i}
-                          className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md ${
-                            isCorrect
-                              ? 'bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-300 font-medium'
-                              : 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50'
-                          }`}
-                        >
-                          {isCorrect && (
-                            <CheckCircle2 className='w-4 h-4 shrink-0 text-green-600 dark:text-green-400' />
-                          )}
-                          {!isCorrect && (
-                            <span className='w-4 inline-block font-medium text-gray-400'>
-                              {String.fromCharCode(65 + i)}.
-                            </span>
-                          )}
-                          {formatDisplay(opt)}
-                        </div>
-                      );
-                    })}
+                  <div className='p-4 bg-white dark:bg-gray-950 space-y-3'>
+                    {result.richOptions && result.richOptions.length > 0
+                      ? result.richOptions.map((opt: any, i: number) => {
+                          const isCorrect = Boolean(opt.isCorrect);
+                          return (
+                            <div
+                              key={opt.key || i}
+                              className={`flex flex-col space-y-1.5 text-sm p-3 rounded-md border ${
+                                isCorrect
+                                  ? 'bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800 font-medium'
+                                  : 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 border-input'
+                              }`}
+                            >
+                              <div className='flex items-center gap-2'>
+                                {isCorrect && (
+                                  <CheckCircle2 className='w-4 h-4 shrink-0 text-green-600 dark:text-green-400' />
+                                )}
+                                <span className='font-bold'>Option {opt.key || String.fromCharCode(65 + i)}</span>
+                                {opt.text && <span>- {formatDisplay(opt.text)}</span>}
+                              </div>
+                              {opt.mediaUrl && <ImageRenderer url={opt.mediaUrl} />}
+                            </div>
+                          );
+                        })
+                      : result.options.map((opt: string, i: number) => {
+                          const isCorrect =
+                            opt === result.correctAnswer || opt.startsWith(result.correctAnswer + '.');
+                          return (
+                            <div
+                              key={i}
+                              className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md ${
+                                isCorrect
+                                  ? 'bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-300 font-medium'
+                                  : 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50'
+                              }`}
+                            >
+                              {isCorrect && (
+                                <CheckCircle2 className='w-4 h-4 shrink-0 text-green-600 dark:text-green-400' />
+                              )}
+                              {!isCorrect && (
+                                <span className='w-4 inline-block font-medium text-gray-400'>
+                                  {String.fromCharCode(65 + i)}.
+                                </span>
+                              )}
+                              {formatDisplay(opt)}
+                            </div>
+                          );
+                        })}
                   </div>
                 </div>
               )}

@@ -25,6 +25,10 @@ const strategyPanelRegistry: Record<
     import('../components/strategy/HybridStrategyPanel').then((m) => ({
       default: m.HybridStrategyPanel,
     })),
+  MANUAL: () =>
+    import('../components/strategy/ManualStrategyPanel').then((m) => ({
+      default: m.ManualStrategyPanel,
+    })),
 };
 
 /**
@@ -34,17 +38,19 @@ const strategyPanelRegistry: Record<
  * StrategyConfigSection calls this and renders — zero switch/if.
  */
 export function getStrategyPanelLoader(strategy: GenerationStrategy) {
-  return strategyPanelRegistry[strategy];
+  return strategyPanelRegistry[strategy] || strategyPanelRegistry.MANUAL;
 }
 
 export const STRATEGY_LABELS: Record<GenerationStrategy, string> = {
   VARIABLE: 'Variable',
   DATASET: 'Dataset',
   HYBRID: 'Hybrid',
+  MANUAL: 'Manual',
 };
 
 export const STRATEGY_DESCRIPTIONS: Record<GenerationStrategy, string> = {
   VARIABLE: 'Generate questions using mathematical variables, formulas, and constraints.',
   DATASET: 'Generate reading comprehension questions from a dataset of passages.',
   HYBRID: 'Generate logical reasoning questions from entity-relationship scenarios.',
+  MANUAL: 'Bind pre-authored static text or image-backed questions directly to assessment templates.',
 };

@@ -22,6 +22,7 @@ import { SolutionLogicSection } from './components/SolutionLogicSection';
 import { DatasetConfigurationSection } from './components/DatasetConfigurationSection';
 import { PreviewSection } from './components/PreviewSection';
 import { DatasetQuestionDefinitionSection } from './components/DatasetQuestionDefinitionSection';
+import { ManualQuestionEditorSection } from './components/ManualQuestionEditorSection';
 import { TemplateBuilderProvider, useTemplateBuilderContext } from './context/TemplateBuilderContext';
 
 type SectionType =
@@ -37,7 +38,8 @@ type SectionType =
   | 'media'
   | 'validation'
   | 'publishing'
-  | 'analytics';
+  | 'analytics'
+  | 'manual-editor';
 
 export default function TemplatePage() {
   return (
@@ -50,8 +52,7 @@ export default function TemplatePage() {
 function TemplateEditorContent() {
   const params = useParams();
   const id = params.id as string;
-  const [activeSection, setActiveSection] = useState<SectionType>('basic');
-  
+
   const { initializeDraft, isInitialized } = useTemplateBuilderContext();
 
   // Fetch the full template details
@@ -61,11 +62,18 @@ function TemplateEditorContent() {
   const strategy = template?.generationStrategy || 'VARIABLE';
   const showLegacyBuilderPages = false; // hide old Variable Builder / Constraint Builder pages in the live editor
 
+  const [activeSection, setActiveSection] = useState<SectionType>('basic');
+
   useEffect(() => {
-    if (template && !isInitialized) {
-      initializeDraft(template);
+    if (template) {
+      if (strategy === 'MANUAL' && activeSection === 'basic') {
+        setActiveSection('manual-editor');
+      }
+      if (!isInitialized) {
+        initializeDraft(template);
+      }
     }
-  }, [template, isInitialized, initializeDraft]);
+  }, [template, isInitialized, initializeDraft, strategy]);
 
   if (isLoading) {
     return (
@@ -90,33 +98,40 @@ function TemplateEditorContent() {
 
   const sections: { id: SectionType; label: string }[] = [
     { id: 'basic', label: 'Basic Information' },
-    { id: 'question', label: 'Question Definition' },
   ];
 
-  if (strategy === 'DATASET' || strategy === 'HYBRID') {
-    sections.push({ id: 'dataset-config' as SectionType, label: 'Dataset Configuration' });
-  }
+  if (strategy === 'MANUAL') {
+    sections.push({ id: 'manual-editor' as SectionType, label: 'Manual Question & Preview' });
+  } else {
+    sections.push({ id: 'question', label: 'Question Definition' });
 
-  if (strategy === 'VARIABLE' || strategy === 'HYBRID') {
-    sections.push({ id: 'generation-strategy', label: 'Generation Strategy' });
-    if (showLegacyBuilderPages) {
-      sections.push({ id: 'variables', label: 'Variable Builder' });
-      sections.push({ id: 'constraints', label: 'Constraint Builder' });
+    if (strategy === 'DATASET' || strategy === 'HYBRID') {
+      sections.push({ id: 'dataset-config' as SectionType, label: 'Dataset Configuration' });
     }
-  }
 
-  if (strategy !== 'DATASET') {
-    sections.push(
-      { id: 'options', label: 'Option Strategy' },
-      { id: 'solution', label: 'Solution & Explanation' },
-      { id: 'preview', label: 'Preview' },
-    );
+    if (strategy === 'VARIABLE' || strategy === 'HYBRID') {
+      sections.push({ id: 'generation-strategy', label: 'Generation Strategy' });
+      if (showLegacyBuilderPages) {
+        sections.push({ id: 'variables', label: 'Variable Builder' });
+        sections.push({ id: 'constraints', label: 'Constraint Builder' });
+      }
+    }
+
+    if (strategy !== 'DATASET') {
+      sections.push(
+        { id: 'options', label: 'Option Strategy' },
+        { id: 'solution', label: 'Solution & Explanation' },
+        { id: 'preview', label: 'Preview' },
+      );
+    }
   }
 
   const renderSection = () => {
     switch (activeSection) {
       case 'basic':
         return <BasicInfoSection template={template} />;
+      case 'manual-editor':
+        return <ManualQuestionEditorSection template={template} />;
       case 'question':
         return strategy === 'DATASET' ? (
           <DatasetQuestionDefinitionSection template={template} />

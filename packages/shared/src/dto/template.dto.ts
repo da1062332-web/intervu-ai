@@ -27,7 +27,7 @@ export const CreateTemplateSchema = z.object({
   solutionSchema: z.record(z.unknown()).optional(),
   constraints: z.record(z.unknown()).optional(),
   generationStrategy: z
-    .enum(["VARIABLE", "DATASET", "HYBRID"])
+    .enum(["VARIABLE", "DATASET", "HYBRID", "MANUAL", "CODING_PATTERN"])
     .default("VARIABLE"),
   datasetGenerationMode: z.enum(["DIRECT", "AI"]).optional(),
 });
@@ -44,7 +44,9 @@ export const UpdateTemplateSchema = z.object({
   variableSchema: z.record(z.unknown()).optional(),
   solutionSchema: z.record(z.unknown()).optional(),
   constraints: z.record(z.unknown()).optional(),
-  generationStrategy: z.enum(["VARIABLE", "DATASET", "HYBRID"]).optional(),
+  generationStrategy: z
+    .enum(["VARIABLE", "DATASET", "HYBRID", "MANUAL", "CODING_PATTERN"])
+    .optional(),
   datasetGenerationMode: z.enum(["DIRECT", "AI"]).optional(),
   isActive: z.boolean().optional(),
 });
@@ -132,11 +134,11 @@ export class CreateTemplateDto {
   constraints?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    enum: ["VARIABLE", "DATASET", "HYBRID"],
+    enum: ["VARIABLE", "DATASET", "HYBRID", "MANUAL", "CODING_PATTERN"],
     example: "VARIABLE",
     description: "Template generation strategy",
   })
-  generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID";
+  generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID" | "MANUAL" | "CODING_PATTERN";
 
   static validate(
     data: unknown,
@@ -222,11 +224,11 @@ export class UpdateTemplateDto {
   constraints?: Record<string, unknown>;
 
   @ApiPropertyOptional({
-    enum: ["VARIABLE", "DATASET", "HYBRID"],
+    enum: ["VARIABLE", "DATASET", "HYBRID", "MANUAL", "CODING_PATTERN"],
     example: "VARIABLE",
     description: "Template generation strategy",
   })
-  generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID";
+  generationStrategy?: "VARIABLE" | "DATASET" | "HYBRID" | "MANUAL" | "CODING_PATTERN";
 
   @ApiPropertyOptional({
     enum: ["DIRECT", "AI"],

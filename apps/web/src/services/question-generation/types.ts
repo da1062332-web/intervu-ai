@@ -1,5 +1,5 @@
 // ─── Strategy Types ────────────────────────────────────────────────────────
-export type GenerationStrategy = 'VARIABLE' | 'DATASET' | 'HYBRID';
+export type GenerationStrategy = 'VARIABLE' | 'DATASET' | 'HYBRID' | 'MANUAL';
 
 // ─── Request DTOs ──────────────────────────────────────────────────────────
 export interface QuestionGenerationRequest {

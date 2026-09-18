@@ -6,12 +6,20 @@ import { MediaAsset } from '@/services/media/types';
 import { useUploadImage } from '@/services/media/hooks';
 
 interface ImageUploaderProps {
-  onUploaded: (asset: MediaAsset) => void;
+  onUploaded?: (asset: MediaAsset) => void;
+  onUploadSuccess?: (asset: MediaAsset) => void;
+  onSelect?: (asset: MediaAsset) => void;
   disabled?: boolean;
   className?: string;
 }
 
-export function ImageUploader({ onUploaded, disabled, className }: ImageUploaderProps) {
+export function ImageUploader({
+  onUploaded,
+  onUploadSuccess,
+  onSelect,
+  disabled,
+  className,
+}: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadImage = useUploadImage();
@@ -27,7 +35,15 @@ export function ImageUploader({ onUploaded, disabled, className }: ImageUploader
     try {
       const asset = await uploadImage.mutateAsync({ file });
       toast.success('Image uploaded successfully');
-      onUploaded(asset);
+      if (typeof onUploaded === 'function') {
+        onUploaded(asset);
+      }
+      if (typeof onUploadSuccess === 'function') {
+        onUploadSuccess(asset);
+      }
+      if (typeof onSelect === 'function') {
+        onSelect(asset);
+      }
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.message || 'Failed to upload image';
       toast.error(msg);

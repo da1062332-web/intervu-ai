@@ -311,6 +311,7 @@ export function TemplateListPageClient() {
               <SelectItem value='ALL'>All Strategies</SelectItem>
               <SelectItem value='DATASET'>Dataset</SelectItem>
               <SelectItem value='VARIABLE'>Variable</SelectItem>
+              <SelectItem value='MANUAL'>Manual</SelectItem>
               <SelectItem value='CODING_PATTERN'>Coding Pattern</SelectItem>
               <SelectItem value='HYBRID'>Hybrid</SelectItem>
             </SelectContent>
@@ -519,6 +520,8 @@ export function TemplateListPageClient() {
               <SelectContent>
                 <SelectItem value='VARIABLE'>Variable Generation</SelectItem>
                 <SelectItem value='DATASET'>Dataset-backed</SelectItem>
+                <SelectItem value='HYBRID'>Hybrid Strategy</SelectItem>
+                <SelectItem value='MANUAL'>Manual Question</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -32,6 +32,7 @@ const EMPTY_CONFIGS: Record<GenerationStrategy, Record<string, unknown>> = {
   VARIABLE: {},
   DATASET: {},
   HYBRID: {},
+  MANUAL: {},
 };
 
 export const useStrategyConfigStore = create<StrategyConfigState>((set, get) => ({

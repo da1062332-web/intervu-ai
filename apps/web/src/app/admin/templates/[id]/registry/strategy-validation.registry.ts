@@ -39,9 +39,16 @@ export const hybridStrategySchema = z.object({
   scenarioId: z.string().optional(),
 });
 
+export const manualStrategySchema = z.object({
+  questionText: z.string().optional(),
+  options: z.array(z.any()).optional(),
+  questionMediaId: z.string().nullable().optional(),
+});
+
 export type VariableStrategyConfig = z.infer<typeof variableStrategySchema>;
 export type DatasetStrategyConfig = z.infer<typeof datasetStrategySchema>;
 export type HybridStrategyConfig = z.infer<typeof hybridStrategySchema>;
+export type ManualStrategyConfig = z.infer<typeof manualStrategySchema>;
 
 // ─── Registry ─────────────────────────────────────────────────────────────
 
@@ -49,6 +56,7 @@ const strategyValidationRegistry: Record<GenerationStrategy, z.ZodSchema> = {
   VARIABLE: variableStrategySchema,
   DATASET: datasetStrategySchema,
   HYBRID: hybridStrategySchema,
+  MANUAL: manualStrategySchema,
 };
 
 /**

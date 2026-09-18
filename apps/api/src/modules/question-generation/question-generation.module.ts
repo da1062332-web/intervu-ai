@@ -20,12 +20,14 @@ import { VariableGenerationStrategy } from "./strategies/variable/variable-gener
 import { DatasetGenerationStrategy } from "./strategies/dataset/dataset-generation.strategy";
 import { HybridGenerationStrategy } from "./strategies/hybrid/hybrid-generation.strategy";
 import { CodingPatternGenerationStrategy } from "./strategies/coding-pattern/coding-pattern-generation.strategy";
+import { ManualGenerationStrategy } from "./strategies/manual/manual-generation.strategy";
 
 // Validators
 import { VariableValidator } from "./validation/variable.validator";
 import { DatasetValidator } from "./validation/dataset.validator";
 import { HybridValidator } from "./validation/hybrid.validator";
 import { CodingPatternValidator } from "./validation/coding-pattern.validator";
+import { ManualValidator } from "./validation/manual.validator";
 
 // Services
 import { GenerationStrategyResolver } from "./services/generation-strategy-resolver.service";
@@ -47,12 +49,14 @@ const PROVIDERS = [
   DatasetGenerationStrategy,
   HybridGenerationStrategy,
   CodingPatternGenerationStrategy,
+  ManualGenerationStrategy,
 
   // Validators
   VariableValidator,
   DatasetValidator,
   HybridValidator,
   CodingPatternValidator,
+  ManualValidator,
 
   // Core services
   GenerationStrategyResolver,
@@ -73,6 +77,7 @@ const PROVIDERS = [
     StrategyRegistry,
     ValidationRegistry,
     CodingPatternGenerationStrategy,
+    ManualGenerationStrategy,
     QuestionAssemblerService,
     QuestionRepository,
   ],
@@ -89,12 +94,14 @@ export class QuestionGenerationModule implements OnModuleInit {
     private readonly datasetStrategy: DatasetGenerationStrategy,
     private readonly hybridStrategy: HybridGenerationStrategy,
     private readonly codingPatternStrategy: CodingPatternGenerationStrategy,
+    private readonly manualStrategy: ManualGenerationStrategy,
 
     // Validators
     private readonly variableValidator: VariableValidator,
     private readonly datasetValidator: DatasetValidator,
     private readonly hybridValidator: HybridValidator,
     private readonly codingPatternValidator: CodingPatternValidator,
+    private readonly manualValidator: ManualValidator,
   ) {}
 
   onModuleInit() {
@@ -114,6 +121,11 @@ export class QuestionGenerationModule implements OnModuleInit {
         this.strategyRegistry.register(
           GenerationStrategy.HYBRID,
           this.hybridStrategy,
+        );
+      if (this.manualStrategy)
+        this.strategyRegistry.register(
+          ((GenerationStrategy as any).MANUAL || "MANUAL") as GenerationStrategy,
+          this.manualStrategy,
         );
       if (this.codingPatternStrategy)
         this.strategyRegistry.register(
@@ -138,6 +150,11 @@ export class QuestionGenerationModule implements OnModuleInit {
         this.validationRegistry.register(
           GenerationStrategy.HYBRID,
           this.hybridValidator,
+        );
+      if (this.manualValidator)
+        this.validationRegistry.register(
+          ((GenerationStrategy as any).MANUAL || "MANUAL") as GenerationStrategy,
+          this.manualValidator,
         );
       if (this.codingPatternValidator)
         this.validationRegistry.register(
