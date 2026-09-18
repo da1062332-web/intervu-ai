@@ -111,15 +111,25 @@ function BatchCreateContent() {
   const onSubmit = async (data: FormValues, status: 'DRAFT' | 'ACTIVE') => {
     setIsSubmitting(true);
 
-    const payloads = data.questions.map((q) => {
+    const payloads = data.questions.map((q: any) => {
       // Clean up empty options
-      const filteredOptions = q.options?.filter((opt) => opt && opt.trim() !== '') || [];
+      const filteredOptions = q.options?.filter((opt: any) => opt && String(opt).trim() !== '') || [];
 
       const isCoding = q.questionType === 'CODING';
+      const isMcq = q.questionType === 'MCQ';
+
       const questionText = isCoding
         ? q.codingData?.problemStatement || 'Coding Challenge'
         : q.questionText || '';
       const answer = isCoding ? 'Code solution provided' : q.answer || '';
+
+      const richOptions = isMcq && Array.isArray(q.richOptions)
+        ? q.richOptions.map((opt: any) => ({
+            key: opt.key,
+            text: opt.mode === 'diagram-only' ? null : opt.text || null,
+            mediaId: opt.mode === 'text-only' ? null : opt.mediaId || null,
+          }))
+        : undefined;
 
       return {
         questionText: questionText,
@@ -131,6 +141,8 @@ function BatchCreateContent() {
         source: 'MANUAL' as const,
         templateId: null,
         options: filteredOptions,
+        richOptions: richOptions,
+        questionMediaId: q.questionMediaId || null,
         conceptId: data.conceptId,
         questionSource: 'MANUAL' as const,
         questionType: q.questionType,

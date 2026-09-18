@@ -8,6 +8,8 @@ import { QuestionRepository } from "../repositories/question.repository";
 import { QuestionVersionService } from "./question-version.service";
 import { QuestionReviewService } from "./question-review.service";
 
+import { MediaValidationService } from "../../storage/services/media-validation.service";
+
 import {
   CreateQuestionDto,
   UpdateQuestionDto,
@@ -23,6 +25,7 @@ export class QuestionBankService {
     private readonly questionRepo: QuestionRepository,
     private readonly versionService: QuestionVersionService,
     private readonly reviewService: QuestionReviewService,
+    private readonly mediaValidationService: MediaValidationService,
   ) {}
 
   /**
@@ -31,11 +34,28 @@ export class QuestionBankService {
   async createQuestion(dto: CreateQuestionDto): Promise<Question> {
     return this.prisma.$transaction(
       async (tx) => {
-        const mcqData =
-          dto.mcqData ||
-          (dto.options && dto.options.length > 0
-            ? { options: dto.options }
-            : null);
+        let mcqData = dto.mcqData;
+        if (dto.richOptions && dto.richOptions.length > 0) {
+          const mediaIds = dto.richOptions
+            .map((o) => o.mediaId)
+            .filter(Boolean);
+          if (mediaIds.length > 0) {
+            await this.mediaValidationService.validateMediaIds(mediaIds, tx);
+          }
+          mcqData = {
+            options: dto.richOptions,
+            correctAnswer: dto.answer,
+          };
+        } else if (!mcqData && dto.options && dto.options.length > 0) {
+          mcqData = { options: dto.options };
+        }
+
+        if (dto.questionMediaId) {
+          await this.mediaValidationService.validateMediaIds(
+            [dto.questionMediaId],
+            tx,
+          );
+        }
 
         // 1. Create the question record (starts as DRAFT)
         const question = await this.questionRepo.create(
@@ -64,6 +84,17 @@ export class QuestionBankService {
           },
           tx,
         );
+
+        // Attach question diagram media if provided
+        if (dto.questionMediaId) {
+          await tx.questionMedia.create({
+            data: {
+              questionId: question.id,
+              mediaAssetId: dto.questionMediaId,
+              position: 1,
+            },
+          });
+        }
 
         // 2. Create initial version snapshot
         await this.versionService.createVersionSnapshot(
@@ -253,13 +284,26 @@ export class QuestionBankService {
           }
         }
 
-        const mcqData =
-          dto.mcqData ||
-          (dto.options && dto.options.length > 0
-            ? { options: dto.options }
-            : undefined);
+        let mcqData = dto.mcqData;
+        if (dto.richOptions && dto.richOptions.length > 0) {
+          const mediaIds = dto.richOptions
+            .map((o) => o.mediaId)
+            .filter(Boolean);
+          if (mediaIds.length > 0) {
+            await this.mediaValidationService.validateMediaIds(mediaIds, tx);
+          }
+          mcqData = {
+            options: dto.richOptions,
+            correctAnswer: dto.answer || existing.answer,
+          };
+        } else if (!mcqData && dto.options && dto.options.length > 0) {
+          mcqData = { options: dto.options };
+        }
+
         const cleanDto: any = { ...dto };
         delete cleanDto.options;
+        delete cleanDto.richOptions;
+        delete cleanDto.questionMediaId;
 
         if (cleanDto.conceptId === "" || cleanDto.conceptId === undefined) {
           delete cleanDto.conceptId;
@@ -285,6 +329,24 @@ export class QuestionBankService {
           updateData as any,
           tx,
         );
+
+        // Update question diagram media if questionMediaId is specified
+        if (dto.questionMediaId !== undefined) {
+          await tx.questionMedia.deleteMany({ where: { questionId: id } });
+          if (dto.questionMediaId) {
+            await this.mediaValidationService.validateMediaIds(
+              [dto.questionMediaId],
+              tx,
+            );
+            await tx.questionMedia.create({
+              data: {
+                questionId: id,
+                mediaAssetId: dto.questionMediaId,
+                position: 1,
+              },
+            });
+          }
+        }
 
         // Save snapshot of updated question state
         await this.versionService.createVersionSnapshot(updated, tx);

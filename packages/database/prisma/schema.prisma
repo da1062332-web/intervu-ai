@@ -38,6 +38,7 @@ model User {
   referralRedemptions   ReferralRedemption[] @relation("ReferralRedemptions")
   referralsSent         ReferralEvent[]      @relation("ReferralsSent")
   referralsReceived     ReferralEvent[]      @relation("ReferralsReceived")
+  mediaAssets           MediaAsset[]         @relation("MediaAssets")
 
   @@index([deletedAt])
   @@index([role])
@@ -1006,6 +1007,7 @@ model Question {
   batchId           String?                   @map("batch_id")
   batch             QuestionBatch?            @relation(fields: [batchId], references: [id], onDelete: SetNull)
   configUsages      ExamConfigQuestionUsage[]
+  questionMedia     QuestionMedia[]
 
   @@index([topicId])
   @@index([difficulty])
@@ -1554,6 +1556,46 @@ model QuestionGenerationAuditLog {
 
   @@index([jobId])
   @@index([templateId])
+}
+
+model MediaAsset {
+  id           String      @id @default(cuid())
+  type         MediaType   @default(IMAGE)
+  fileName     String      @map("file_name")
+  storageKey   String      @unique @map("storage_key")
+  mimeType     String      @map("mime_type")
+  fileSize     BigInt      @map("file_size")
+  width        Int?
+  height       Int?
+  altText      String?     @map("alt_text")
+  status       MediaStatus @default(ACTIVE)
+  createdById  String      @map("created_by")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  createdBy     User            @relation("MediaAssets", fields: [createdById], references: [id])
+  questionMedia QuestionMedia[]
+
+  @@index([status])
+  @@index([createdById])
+  @@index([mimeType])
+  @@map("media_assets")
+}
+
+model QuestionMedia {
+  id           String     @id @default(cuid())
+  questionId   String     @map("question_id")
+  mediaAssetId String     @map("media_asset_id")
+  position     Int        @default(1)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id])
+
+  @@unique([questionId, position])
+  @@index([questionId])
+  @@index([mediaAssetId])
+  @@map("question_media")
 }
 
 enum TopicStatus {
@@ -2239,5 +2281,11 @@ model ReferralEvent {
   @@map("referral_events")
 }
 
+enum MediaType {
+  IMAGE
+}
 
-
+enum MediaStatus {
+  ACTIVE
+  ARCHIVED
+}

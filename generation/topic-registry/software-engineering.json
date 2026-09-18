@@ -109,5 +109,33 @@
       "medium": false,
       "hard": true
     }
+  },
+  {
+    "id": "se-pseudocode-001",
+    "domain": "Software Engineering",
+    "topic": "Pseudocode",
+    "subtopic": "Algorithms & Control Flow",
+    "concepts": [
+      "PSEUDOCODE_VARIABLES",
+      "PSEUDOCODE_DATA_TYPES",
+      "PSEUDOCODE_OPERATORS",
+      "PSEUDOCODE_CONDITIONAL_STATEMENTS",
+      "PSEUDOCODE_NESTED_CONDITIONS",
+      "PSEUDOCODE_LOOPS",
+      "PSEUDOCODE_NESTED_LOOPS",
+      "PSEUDOCODE_ARRAYS",
+      "PSEUDOCODE_STRINGS",
+      "PSEUDOCODE_FUNCTIONS",
+      "PSEUDOCODE_RECURSION",
+      "PSEUDOCODE_SEARCHING",
+      "PSEUDOCODE_SORTING",
+      "PSEUDOCODE_ALGORITHM_EXECUTION"
+    ],
+    "tags": ["pseudocode", "algorithms", "tracing", "logic"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
   }
 ]

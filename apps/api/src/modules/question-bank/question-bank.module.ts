@@ -14,13 +14,14 @@ import { QuestionRepository } from "./repositories/question.repository";
 import { QuestionVersionRepository } from "./repositories/question-version.repository";
 import { QuestionReviewRepository } from "./repositories/question-review.repository";
 import { TemplateLibraryModule } from "../template-library/template-library.module";
+import { StorageModule } from "../storage/storage.module";
 
 import { TransactionalOutboxService } from "./services/transactional-outbox.service";
 import { QuestionBatchService } from "./services/question-batch.service";
 import { ExamConfigUsageService } from "./services/exam-config-usage.service";
 
 @Module({
-  imports: [forwardRef(() => TemplateLibraryModule)],
+  imports: [forwardRef(() => TemplateLibraryModule), StorageModule],
   controllers: [
     QuestionBankController,
     QuestionsController,

@@ -23,6 +23,10 @@ export class RuntimeQuestionDto {
   @IsOptional()
   options?: any[];
 
+  @IsArray()
+  @IsOptional()
+  media?: Array<{ id: string; type: string; url: string; altText?: string }>;
+
   @IsObject()
   @IsOptional()
   metadata?: Record<string, any>;

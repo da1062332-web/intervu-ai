@@ -26,6 +26,12 @@ export class QuestionRepository {
   async findById(id: string): Promise<Question | null> {
     return this.prisma.question.findUnique({
       where: { id },
+      include: {
+        questionMedia: {
+          include: { mediaAsset: true },
+          orderBy: { position: "asc" },
+        },
+      },
     });
   }
 

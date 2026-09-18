@@ -130,4 +130,36 @@ export class AppConfigService {
     }
     return [];
   }
+
+  get supabaseUrl(): string {
+    return (
+      this.configService?.get<string>("SUPABASE_URL", "") ||
+      process.env.SUPABASE_URL ||
+      ""
+    );
+  }
+
+  get supabaseServiceRoleKey(): string {
+    return (
+      this.configService?.get<string>("SUPABASE_SERVICE_ROLE_KEY", "") ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      ""
+    );
+  }
+
+  get supabaseMediaBucket(): string {
+    return (
+      this.configService?.get<string>("SUPABASE_MEDIA_BUCKET", "skillitrix-media") ||
+      process.env.SUPABASE_MEDIA_BUCKET ||
+      "skillitrix-media"
+    );
+  }
+
+  get maxImageSizeMb(): number {
+    return (
+      this.configService?.get<number>("MAX_IMAGE_SIZE_MB", 5) ||
+      Number(process.env.MAX_IMAGE_SIZE_MB) ||
+      5
+    );
+  }
 }

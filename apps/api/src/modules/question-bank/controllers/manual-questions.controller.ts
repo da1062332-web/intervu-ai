@@ -33,6 +33,8 @@ import {
   SearchFiltersDto,
 } from "../dto/question-bank.dto";
 
+import { MediaAssetService } from "../../storage/services/media-asset.service";
+
 @ApiTags("manual-questions")
 @ApiBearerAuth("jwt-auth")
 @UseGuards(JwtAuthGuard)
@@ -43,6 +45,7 @@ export class ManualQuestionsController {
     private readonly searchService: QuestionSearchService,
     private readonly prisma: PrismaService,
     private readonly bankService: QuestionBankService,
+    private readonly mediaAssetService: MediaAssetService,
   ) {}
 
   @Post()
@@ -133,16 +136,72 @@ export class ManualQuestionsController {
   async getQuestion(@Param("id") id: string) {
     const manualQuestion = await this.prisma.question.findUnique({
       where: { id },
-      include: { concept: true, topic: true, section: true },
+      include: {
+        concept: true,
+        topic: true,
+        section: true,
+        questionMedia: {
+          include: { mediaAsset: true },
+          orderBy: { position: "asc" },
+        },
+      },
     });
 
     if (!manualQuestion) {
       throw new NotFoundException(`Question ${id} not found`);
     }
 
+    // Enrich resolved media URLs
+    const enrichedQuestion = { ...manualQuestion } as any;
+    if (enrichedQuestion.questionMedia) {
+      enrichedQuestion.questionMedia = enrichedQuestion.questionMedia.map(
+        (qm: any) => ({
+          ...qm,
+          mediaAsset: qm.mediaAsset
+            ? {
+                ...qm.mediaAsset,
+                url: this.mediaAssetService.resolveUrl(qm.mediaAsset.storageKey),
+              }
+            : null,
+        }),
+      );
+    }
+
+    // Resolve rich option media URLs if present in mcqData
+    if (
+      enrichedQuestion.mcqData &&
+      Array.isArray(enrichedQuestion.mcqData.options)
+    ) {
+      const optionMediaIds = enrichedQuestion.mcqData.options
+        .map((opt: any) => (typeof opt === "object" ? opt?.mediaId : null))
+        .filter(Boolean);
+
+      if (optionMediaIds.length > 0) {
+        const mediaAssets = await this.prisma.mediaAsset.findMany({
+          where: { id: { in: optionMediaIds } },
+        });
+        const urlMap = new Map(
+          mediaAssets.map((a) => [a.id, this.mediaAssetService.resolveUrl(a.storageKey)]),
+        );
+
+        enrichedQuestion.mcqData = {
+          ...enrichedQuestion.mcqData,
+          options: enrichedQuestion.mcqData.options.map((opt: any) => {
+            if (typeof opt === "object" && opt?.mediaId) {
+              return {
+                ...opt,
+                mediaUrl: urlMap.get(opt.mediaId) || null,
+              };
+            }
+            return opt;
+          }),
+        };
+      }
+    }
+
     return {
       success: true,
-      data: manualQuestion,
+      data: enrichedQuestion,
     };
   }
 

@@ -8,9 +8,10 @@ import { RuntimeValidationService } from "./validation/runtime-validation.servic
 import { RuntimeMonitoringService } from "./monitoring/runtime-monitoring.service";
 import { RuntimeRepository } from "./repositories/runtime.repository";
 import { AssemblyModule } from "../assembly/assembly.module";
+import { StorageModule } from "../storage/storage.module";
 
 @Module({
-  imports: [AssemblyModule],
+  imports: [AssemblyModule, StorageModule],
   controllers: [RuntimeController],
   providers: [
     RuntimeGeneratorService,

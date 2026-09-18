@@ -54,9 +54,11 @@ import { CodingModule } from "./modules/coding/coding.module";
 import { BillingModule } from "./modules/billing/billing.module";
 import { ReferralsModule } from "./modules/referrals/referrals.module";
 import { MonitoringModule } from "./modules/monitoring/monitoring.module";
+import { StorageModule } from "./modules/storage/storage.module";
 
 @Module({
   imports: [
+    StorageModule,
     BillingModule,
     CodingModule,
     QuestionGenerationModule,

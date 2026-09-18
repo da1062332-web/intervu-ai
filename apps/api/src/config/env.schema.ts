@@ -26,6 +26,10 @@ export const envSchema = z.object({
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
   INTERNAL_SERVICE_TOKEN: z.string().optional(),
+  SUPABASE_URL: z.string().url().optional().describe("Supabase project URL for storage"),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional().describe("Supabase service role key"),
+  SUPABASE_MEDIA_BUCKET: z.string().default("skillitrix-media").describe("Supabase storage bucket name"),
+  MAX_IMAGE_SIZE_MB: z.coerce.number().default(5).describe("Max image upload size in MB"),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

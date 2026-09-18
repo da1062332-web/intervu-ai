@@ -123,6 +123,34 @@ export class CreateQuestionDto {
 
   @IsOptional()
   codingData?: any;
+
+  @ApiProperty({ example: "cm4abc123", required: false })
+  @IsString()
+  @IsOptional()
+  questionMediaId?: string | null;
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => RichMcqOptionDto)
+  richOptions?: RichMcqOptionDto[];
+}
+
+export class RichMcqOptionDto {
+  @ApiProperty({ example: "A" })
+  @IsString()
+  @IsNotEmpty()
+  key!: string;
+
+  @ApiProperty({ example: "Paris", required: false })
+  @IsString()
+  @IsOptional()
+  text?: string | null;
+
+  @ApiProperty({ example: "cm4media123", required: false })
+  @IsString()
+  @IsOptional()
+  mediaId?: string | null;
 }
 
 export class UpdateQuestionDto {
@@ -230,6 +258,17 @@ export class UpdateQuestionDto {
   @IsString()
   @IsOptional()
   correctAnswer?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  questionMediaId?: string | null;
+
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => RichMcqOptionDto)
+  richOptions?: RichMcqOptionDto[];
 }
 
 export class BulkUploadDto {

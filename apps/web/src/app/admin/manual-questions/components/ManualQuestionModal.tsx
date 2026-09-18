@@ -8,7 +8,7 @@ import {
   useManualQuestion,
 } from '@/services/manual-questions/hooks';
 import { ManualQuestion } from '@/services/manual-questions/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,11 @@ import { Modal } from '@/components/ui/modal';
 import { Textarea } from '@/components/ui/textarea';
 import { useTopics } from '@/services/topics/hooks';
 import { useConcepts } from '@/services/concept-mapping/hooks';
+import { QuestionImageAttachment } from '@/components/media/QuestionImageAttachment';
+import { ImagePreview } from '@/components/media/ImagePreview';
+import { ImagePicker } from '@/components/media/ImagePicker';
+import { ImageUploader } from '@/components/media/ImageUploader';
+import { MediaAsset, OptionMode } from '@/services/media/types';
 
 const formSchema = z.object({
   questionText: z.string().min(1, 'Question text is required'),
@@ -31,6 +36,14 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+export interface RichOptionState {
+  key: string;
+  mode: OptionMode;
+  text: string;
+  mediaId: string | null;
+  mediaUrl: string | null;
+}
 
 interface ManualQuestionModalProps {
   isOpen: boolean;
@@ -88,17 +101,43 @@ export function ManualQuestionModal({
 
   const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(topicId, true);
 
-  const [mcqOptions, setMcqOptions] = useState<string[]>(['', '', '', '']);
+  const [questionAttachment, setQuestionAttachment] = useState<{
+    mediaId: string;
+    mediaUrl: string;
+    altText?: string;
+  } | null>(null);
+
+  const [richOptions, setRichOptions] = useState<RichOptionState[]>([
+    { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+    { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+    { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+    { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+  ]);
+
   const [selectedCorrectIndex, setSelectedCorrectIndex] = useState<number>(0);
+  const [pickerOptionIndex, setPickerOptionIndex] = useState<number | null>(null);
+  const [uploaderOptionIndex, setUploaderOptionIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       const targetQuestion = (detailedQuestion as any)?.data || (question as any)?.data || question;
       if (targetQuestion) {
-        let rawOpts: any = targetQuestion.options;
-        if (!rawOpts || !Array.isArray(rawOpts) || rawOpts.length === 0) {
-          rawOpts = (targetQuestion as any).mcqData?.options || (targetQuestion as any).mcqData;
+        // Load question diagram attachment
+        if (targetQuestion.questionMedia && targetQuestion.questionMedia.length > 0) {
+          const qm = targetQuestion.questionMedia[0];
+          if (qm.mediaAsset) {
+            setQuestionAttachment({
+              mediaId: qm.mediaAsset.id,
+              mediaUrl: qm.mediaAsset.url,
+              altText: qm.mediaAsset.altText || undefined,
+            });
+          }
+        } else {
+          setQuestionAttachment(null);
         }
+
+        // Load MCQ options
+        let rawOpts: any = (targetQuestion as any).mcqData?.options || targetQuestion.options;
         if (typeof rawOpts === 'string') {
           try {
             rawOpts = JSON.parse(rawOpts);
@@ -108,17 +147,56 @@ export function ManualQuestionModal({
           rawOpts = rawOpts.options;
         }
 
-        let opts =
-          Array.isArray(rawOpts) && rawOpts.length > 0
-            ? rawOpts.map((o: any) => String(o))
-            : ['', '', '', ''];
-        while (opts.length < 4) {
-          opts.push('');
-        }
+        if (Array.isArray(rawOpts) && rawOpts.length > 0) {
+          const parsedRich: RichOptionState[] = rawOpts.map((opt: any, idx: number) => {
+            const letter = String.fromCharCode(65 + idx);
+            if (typeof opt === 'object' && opt !== null) {
+              const hasText = !!opt.text;
+              const hasMedia = !!opt.mediaId;
+              let mode: OptionMode = 'text-only';
+              if (hasText && hasMedia) mode = 'diagram-text';
+              else if (hasMedia && !hasText) mode = 'diagram-only';
 
-        setMcqOptions(opts);
-        const correctIdx = opts.findIndex((o) => o && o.trim() === targetQuestion.answer?.trim());
-        setSelectedCorrectIndex(correctIdx >= 0 ? correctIdx : 0);
+              return {
+                key: opt.key || letter,
+                mode,
+                text: opt.text || '',
+                mediaId: opt.mediaId || null,
+                mediaUrl: opt.mediaUrl || null,
+              };
+            } else {
+              return {
+                key: letter,
+                mode: 'text-only',
+                text: String(opt || ''),
+                mediaId: null,
+                mediaUrl: null,
+              };
+            }
+          });
+
+          while (parsedRich.length < 4) {
+            const letter = String.fromCharCode(65 + parsedRich.length);
+            parsedRich.push({ key: letter, mode: 'text-only', text: '', mediaId: null, mediaUrl: null });
+          }
+
+          setRichOptions(parsedRich);
+
+          const correctIdx = parsedRich.findIndex(
+            (o) =>
+              (o.text && o.text.trim() === targetQuestion.answer?.trim()) ||
+              o.key === targetQuestion.answer?.trim(),
+          );
+          setSelectedCorrectIndex(correctIdx >= 0 ? correctIdx : 0);
+        } else {
+          setRichOptions([
+            { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+            { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+            { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+            { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+          ]);
+          setSelectedCorrectIndex(0);
+        }
 
         let qType = (targetQuestion.questionType || 'MCQ').toUpperCase();
         if (qType === 'MULTIPLE_CHOICE' || qType === 'MULTIPLE-CHOICE') {
@@ -127,7 +205,7 @@ export function ManualQuestionModal({
 
         reset({
           questionText: targetQuestion.questionText || '',
-          answer: targetQuestion.answer || '',
+          answer: targetQuestion.answer || 'A',
           explanation: targetQuestion.explanation || '',
           difficulty: (targetQuestion.difficulty || 'MEDIUM').toUpperCase() as any,
           questionType: qType === 'CODING' || qType === 'TRUE_FALSE' ? (qType as any) : 'MCQ',
@@ -135,14 +213,19 @@ export function ManualQuestionModal({
           sectionId: targetQuestion.sectionId || '',
           conceptId: targetQuestion.conceptId || '',
           status: (targetQuestion.status || 'DRAFT').toUpperCase() as any,
-          options: opts,
         });
       } else {
-        setMcqOptions(['', '', '', '']);
+        setQuestionAttachment(null);
+        setRichOptions([
+          { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+          { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+          { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+          { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+        ]);
         setSelectedCorrectIndex(0);
         reset({
           questionText: '',
-          answer: '',
+          answer: 'A',
           explanation: '',
           difficulty: 'MEDIUM',
           questionType: 'MCQ',
@@ -150,39 +233,93 @@ export function ManualQuestionModal({
           sectionId: '',
           conceptId: initialConceptId || '',
           status: 'ACTIVE',
-          options: ['', '', '', ''],
         });
       }
     }
   }, [isOpen, question, detailedQuestion, initialTopicId, initialConceptId, reset]);
 
-  const handleOptionChange = (index: number, val: string) => {
-    const updated = [...mcqOptions];
-    updated[index] = val;
-    setMcqOptions(updated);
-    setValue('options', updated);
+  const handleOptionModeChange = (index: number, mode: OptionMode) => {
+    setRichOptions((prev: RichOptionState[]) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], mode };
+      return updated;
+    });
+  };
+
+  const handleOptionTextChange = (index: number, text: string) => {
+    setRichOptions((prev: RichOptionState[]) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], text };
+      return updated;
+    });
     if (index === selectedCorrectIndex) {
-      setValue('answer', val);
+      setValue('answer', text || richOptions[index].key);
     }
+  };
+
+  const handleOptionImageSelect = (index: number, asset: MediaAsset) => {
+    setRichOptions((prev: RichOptionState[]) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        mediaId: asset.id,
+        mediaUrl: asset.url,
+      };
+      return updated;
+    });
+    setPickerOptionIndex(null);
+    setUploaderOptionIndex(null);
+  };
+
+  const handleOptionImageRemove = (index: number) => {
+    setRichOptions((prev: RichOptionState[]) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        mediaId: null,
+        mediaUrl: null,
+      };
+      return updated;
+    });
   };
 
   const handleSelectCorrect = (index: number) => {
     setSelectedCorrectIndex(index);
-    setValue('answer', mcqOptions[index] || '');
+    const opt = richOptions[index];
+    const answerVal = opt.mode === 'diagram-only' ? opt.key : opt.text || opt.key;
+    setValue('answer', answerVal);
   };
 
   const onSubmit = async (data: FormValues) => {
     try {
       const isMcq = data.questionType === 'MCQ';
-      const cleanOptions = isMcq ? mcqOptions.filter((o) => o && o.trim() !== '') : [];
-      const answerVal = isMcq ? mcqOptions[selectedCorrectIndex] || data.answer : data.answer;
 
-      const payload = {
+      const payloadRichOptions = isMcq
+        ? richOptions.map((opt: RichOptionState) => ({
+            key: opt.key,
+            text: opt.mode === 'diagram-only' ? null : opt.text,
+            mediaId: opt.mode === 'text-only' ? null : opt.mediaId,
+          }))
+        : undefined;
+
+      const correctOpt = isMcq ? richOptions[selectedCorrectIndex] : null;
+      const answerVal = isMcq
+        ? correctOpt?.mode === 'diagram-only'
+          ? correctOpt.key
+          : correctOpt?.text || correctOpt?.key || data.answer
+        : data.answer;
+
+      const payload: any = {
         ...data,
         answer: answerVal,
-        options: cleanOptions,
         sectionId: data.sectionId || null,
+        questionMediaId: questionAttachment?.mediaId || null,
       };
+
+      if (isMcq) {
+        payload.richOptions = payloadRichOptions;
+        payload.options = richOptions.map((o: RichOptionState) => o.text || o.key);
+      }
 
       if (isEditing && question) {
         await updateQuestion({ id: question.id, payload, currentStatus: question.status });
@@ -196,7 +333,7 @@ export function ManualQuestionModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+    <Modal isOpen={isOpen} onClose={onClose} className='max-w-3xl max-h-[90vh] overflow-y-auto'>
       <div className='space-y-6 p-1'>
         <div>
           <h3 className='text-lg font-medium'>
@@ -212,7 +349,7 @@ export function ManualQuestionModal({
             <Label htmlFor='questionText'>Question Text *</Label>
             <Textarea
               id='questionText'
-              className='min-h-[100px]'
+              className='min-h-[90px]'
               placeholder='Enter the question text here...'
               {...register('questionText')}
               disabled={isSubmitting}
@@ -221,6 +358,13 @@ export function ManualQuestionModal({
               <p className='text-sm text-destructive'>{errors.questionText.message}</p>
             )}
           </div>
+
+          {/* Question Diagram / Image Attachment */}
+          <QuestionImageAttachment
+            value={questionAttachment}
+            onChange={(att) => setQuestionAttachment(att)}
+            disabled={isSubmitting}
+          />
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-2'>
@@ -268,7 +412,7 @@ export function ManualQuestionModal({
                 <option value=''>
                   {isLoadingTopics ? 'Loading topics...' : 'Select Topic...'}
                 </option>
-                {topics.map((t) => (
+                {topics.map((t: any) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
                   </option>
@@ -295,7 +439,7 @@ export function ManualQuestionModal({
                       ? 'Loading concepts...'
                       : 'Select Concept...'}
                 </option>
-                {concepts.map((c) => (
+                {concepts.map((c: any) => (
                   <option key={c.id} value={c.id}>
                     {c.name || c.conceptName}
                   </option>
@@ -304,31 +448,108 @@ export function ManualQuestionModal({
             </div>
           </div>
 
-          {/* MCQ Option Fields */}
+          {/* MCQ Option Fields with 3 Option Modes */}
           {questionType?.toUpperCase() === 'MCQ' ||
           questionType?.toUpperCase() === 'MULTIPLE_CHOICE' ? (
-            <div className='space-y-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-lg border'>
-              <Label className='text-sm font-semibold'>MCQ Options & Correct Answer *</Label>
-              <p className='text-xs text-muted-foreground mb-2'>
-                Enter the 4 options below and select the radio button next to the correct answer.
-              </p>
-              {mcqOptions.map((optVal, idx) => (
-                <div key={idx} className='flex items-center space-x-2'>
-                  <input
-                    type='radio'
-                    name='correctOption'
-                    checked={selectedCorrectIndex === idx}
-                    onChange={() => handleSelectCorrect(idx)}
-                    className='w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer'
-                  />
-                  <Input
-                    value={optVal}
-                    onChange={(e) => handleOptionChange(idx, e.target.value)}
-                    placeholder={`Option ${idx + 1}`}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              ))}
+            <div className='space-y-3 p-4 bg-slate-50 dark:bg-slate-900/40 rounded-lg border'>
+              <div className='flex items-center justify-between'>
+                <Label className='text-sm font-semibold'>MCQ Options & Correct Answer *</Label>
+                <span className='text-xs text-muted-foreground'>
+                  Supports text, diagram, or text+diagram per option
+                </span>
+              </div>
+
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                {richOptions.map((opt: RichOptionState, idx: number) => {
+                  const isCorrect = selectedCorrectIndex === idx;
+                  return (
+                    <div
+                      key={opt.key}
+                      className={`p-3 border rounded-md bg-background transition-colors space-y-2.5 ${
+                        isCorrect ? 'border-indigo-500 ring-1 ring-indigo-500/20' : 'border-input'
+                      }`}
+                    >
+                      <div className='flex items-center justify-between'>
+                        <span className='text-xs font-semibold px-2 py-0.5 rounded bg-muted'>
+                          Option {opt.key}
+                        </span>
+                        <label className='flex items-center space-x-1.5 cursor-pointer text-xs'>
+                          <input
+                            type='radio'
+                            name='correctOption'
+                            checked={isCorrect}
+                            onChange={() => handleSelectCorrect(idx)}
+                            className='w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500 cursor-pointer'
+                          />
+                          <span className={isCorrect ? 'font-medium text-indigo-600' : 'text-muted-foreground'}>
+                            Correct Answer
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Mode Selector */}
+                      <div className='flex items-center space-x-2 text-xs'>
+                        <span className='text-muted-foreground'>Mode:</span>
+                        <select
+                          className='flex h-7 rounded border border-input bg-background px-2 py-0 text-xs'
+                          value={opt.mode}
+                          onChange={(e) => handleOptionModeChange(idx, e.target.value as OptionMode)}
+                          disabled={isSubmitting}
+                        >
+                          <option value='text-only'>Text Only</option>
+                          <option value='diagram-only'>Diagram Only</option>
+                          <option value='diagram-text'>Diagram + Text</option>
+                        </select>
+                      </div>
+
+                      {/* Text Input */}
+                      {opt.mode !== 'diagram-only' && (
+                        <Input
+                          value={opt.text}
+                          onChange={(e) => handleOptionTextChange(idx, e.target.value)}
+                          placeholder={`Enter text for Option ${opt.key}...`}
+                          disabled={isSubmitting}
+                          className='text-xs h-8'
+                        />
+                      )}
+
+                      {/* Diagram Input */}
+                      {opt.mode !== 'text-only' && (
+                        <div className='pt-1'>
+                          {opt.mediaUrl ? (
+                            <div className='flex items-center justify-between p-1.5 border rounded bg-muted/30'>
+                              <ImagePreview url={opt.mediaUrl} onRemove={() => handleOptionImageRemove(idx)} disabled={isSubmitting} />
+                            </div>
+                          ) : (
+                            <div className='flex items-center space-x-2'>
+                              <Button
+                                type='button'
+                                variant='outline'
+                                size='sm'
+                                className='text-xs h-7 py-0 px-2'
+                                onClick={() => setUploaderOptionIndex(idx)}
+                                disabled={isSubmitting}
+                              >
+                                <Plus className='w-3 h-3 mr-1' /> Upload Diagram
+                              </Button>
+                              <Button
+                                type='button'
+                                variant='outline'
+                                size='sm'
+                                className='text-xs h-7 py-0 px-2'
+                                onClick={() => setPickerOptionIndex(idx)}
+                                disabled={isSubmitting}
+                              >
+                                Select Library
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
               {errors.answer && <p className='text-sm text-destructive'>{errors.answer.message}</p>}
             </div>
           ) : (
@@ -396,6 +617,33 @@ export function ManualQuestionModal({
             </Button>
           </div>
         </form>
+
+        <ImagePicker
+          isOpen={pickerOptionIndex !== null}
+          onClose={() => setPickerOptionIndex(null)}
+          onSelect={(asset) => {
+            if (pickerOptionIndex !== null) {
+              handleOptionImageSelect(pickerOptionIndex, asset);
+            }
+          }}
+          selectedId={pickerOptionIndex !== null ? richOptions[pickerOptionIndex]?.mediaId : null}
+        />
+
+        <Modal
+          isOpen={uploaderOptionIndex !== null}
+          onClose={() => setUploaderOptionIndex(null)}
+          className="max-w-md"
+        >
+          <div className="space-y-3 p-1">
+            <h3 className="text-base font-semibold">Upload Option Diagram</h3>
+            {uploaderOptionIndex !== null && (
+              <ImageUploader
+                onUploaded={(asset) => handleOptionImageSelect(uploaderOptionIndex, asset)}
+                disabled={isSubmitting}
+              />
+            )}
+          </div>
+        </Modal>
       </div>
     </Modal>
   );

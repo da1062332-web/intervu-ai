@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Trash2, Copy, ChevronDown, ChevronUp } from 'lucide-react';
+import { QuestionImageAttachment } from '@/components/media/QuestionImageAttachment';
 import { McqEditor } from './McqEditor';
 import { TrueFalseEditor } from './TrueFalseEditor';
 import { CodingEditor } from './CodingEditor';
@@ -155,6 +156,17 @@ export function QuestionCard({ index, onRemove, onDuplicate, disabled }: Questio
                   <p className='text-sm text-destructive'>{qErrors.questionText.message}</p>
                 )}
               </div>
+            )}
+
+            {questionType !== 'CODING' && (
+              <QuestionImageAttachment
+                value={watch(`questions.${index}.questionMedia`)}
+                onChange={(att) => {
+                  setValue(`questions.${index}.questionMediaId`, att?.mediaId || null, { shouldDirty: true });
+                  setValue(`questions.${index}.questionMedia`, att || null, { shouldDirty: true });
+                }}
+                disabled={disabled}
+              />
             )}
           </div>
 
