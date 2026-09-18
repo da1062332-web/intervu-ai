@@ -1062,6 +1062,48 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
+   * Resolves a raw stored answer value (e.g. "opt-0", "B", "2") to the option's
+   * display text using the question's snapshot options, preserving original casing.
+   */
+  private resolveAnswerText(rawAnswer: unknown, options: any[] | undefined): string | undefined {
+    if (!options || options.length === 0) return undefined;
+
+    let value = typeof rawAnswer === "string" ? rawAnswer : JSON.stringify(rawAnswer ?? "");
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === "object") {
+        value = parsed.selectedOptionId || parsed.answer || parsed.value || value;
+      } else if (typeof parsed === "string") {
+        value = parsed;
+      }
+    } catch {
+      // Not JSON — use raw string value as-is
+    }
+
+    const target = String(value).trim();
+    const optionText = (opt: any) => opt?.text || opt?.label || opt?.optionText || opt?.value;
+
+    const byId = options.find(
+      (opt) => String(opt?.id ?? opt?.value ?? "").toLowerCase() === target.toLowerCase(),
+    );
+    if (byId) return optionText(byId);
+
+    const optMatch = target.match(/^opt-(\d+)$/i);
+    if (optMatch) {
+      const idx = parseInt(optMatch[1], 10);
+      if (idx >= 0 && idx < options.length) return optionText(options[idx]);
+    }
+
+    const letterMatch = target.match(/^(?:option\s+)?([a-z])$/i);
+    if (letterMatch) {
+      const idx = letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+      if (idx >= 0 && idx < options.length) return optionText(options[idx]);
+    }
+
+    return undefined;
+  }
+
+  /**
    * Retrieves candidate detail for the 9-tab inspection drawer
    */
   async getCandidateDetail(assessmentId: string, attemptId: string): Promise<any> {
@@ -1100,6 +1142,13 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       throw new NotFoundException(`Attempt ${attemptId} not found`);
     }
 
+    const questionSnapshotMap = new Map<string, any>();
+    for (const section of attempt.sections) {
+      for (const q of section.questions) {
+        questionSnapshotMap.set(q.questionId, q.questionSnapshot as any);
+      }
+    }
+
     return {
       attemptId,
       assessmentId,
@@ -1125,13 +1174,23 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
         submissions: attempt.submissions,
       },
       executionState: attempt.executionState,
-      answers: answers.map((a) => ({
-        questionId: a.questionId,
-        answer: a.answer,
-        timeSpentSeconds: a.timeSpentSeconds,
-        isMarkedForReview: a.isMarkedForReview,
-        savedAt: a.savedAt,
-      })),
+      answers: answers.map((a) => {
+        const questionSnapshot = questionSnapshotMap.get(a.questionId);
+        const options =
+          questionSnapshot?.options ||
+          questionSnapshot?.mcqData?.options ||
+          questionSnapshot?.metadata?.options;
+
+        return {
+          questionId: a.questionId,
+          questionText: questionSnapshot?.questionText || questionSnapshot?.text || undefined,
+          answer: a.answer,
+          answerText: this.resolveAnswerText(a.answer, options),
+          timeSpentSeconds: a.timeSpentSeconds,
+          isMarkedForReview: a.isMarkedForReview,
+          savedAt: a.savedAt,
+        };
+      }),
       sections: attempt.sections,
       auditTimeline: auditLogs,
       events,

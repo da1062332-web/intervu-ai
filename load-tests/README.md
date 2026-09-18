@@ -39,6 +39,7 @@ Useful overrides:
 | `MAX_VUS`               | `2000`  | Peak concurrent virtual users                                    |
 | `CODING_VU_FRACTION`    | `0.2`   | Share of VUs that also run a coding submission                   |
 | `AUTOSAVE_ROUNDS`       | `6`     | Autosave calls per candidate before submit                       |
+| `SECTION_ADVANCES`      | `1`     | Section-advance calls per candidate, spaced evenly across the autosave rounds |
 | `SIGNUP_PASSWORD`       | —       | Password used for the load-test accounts it creates              |
 
 ## Reading the results

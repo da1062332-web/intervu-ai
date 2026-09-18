@@ -216,14 +216,125 @@ export function CandidateDetailDrawer({
     </h4>
   );
 
+  // Turns a camelCase/snake_case key into a readable label, e.g. "hiddenTimestamp" -> "Hidden Timestamp".
+  const formatMetadataLabel = (key: string): string =>
+    key
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  // Formats a metadata value for display: ISO timestamps become locale strings,
+  // "opt-N" answer keys become a 1-indexed "Option N" label since the raw
+  // internal option id means nothing to an admin reading this log.
+  const formatMetadataValue = (key: string, value: unknown): string => {
+    if (typeof value === 'string') {
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) return date.toLocaleString();
+      }
+      const optMatch = value.match(/^opt-(\d+)$/i);
+      if (optMatch && /answer|option/i.test(key)) {
+        return `Option ${parseInt(optMatch[1], 10) + 1}`;
+      }
+      return value;
+    }
+    if (typeof value === 'boolean' || typeof value === 'number') return String(value);
+    return '';
+  };
+
   // Raw event/audit-log metadata varies per event type, so it can't be
-  // rendered as a fixed set of fields — pretty-printed and wrapped instead
-  // of a single unreadable minified line.
-  const MetadataBlock = ({ data }: { data: unknown }) => (
-    <pre className='text-[10px] bg-muted/40 p-2 rounded font-mono whitespace-pre-wrap break-all max-h-32 overflow-y-auto'>
-      {JSON.stringify(data, null, 2)}
-    </pre>
-  );
+  // rendered as a fixed set of fields — shown as a readable key/value list
+  // (recursing into nested objects) instead of a raw JSON dump.
+  const MetadataBlock = ({ data }: { data: unknown }) => {
+    if (!data || typeof data !== 'object') return null;
+
+    const renderEntries = (obj: Record<string, unknown>, depth = 0) => (
+      <div className={depth > 0 ? 'pl-3 border-l border-border/60 mt-1' : ''}>
+        {Object.entries(obj).map(([key, value]) => (
+          <div key={key} className='flex items-start gap-1.5 text-[11px] py-0.5'>
+            <span className='text-muted-foreground shrink-0'>{formatMetadataLabel(key)}:</span>
+            {value && typeof value === 'object' && !Array.isArray(value) ? (
+              renderEntries(value as Record<string, unknown>, depth + 1)
+            ) : (
+              <span className='text-foreground break-all'>
+                {Array.isArray(value) ? value.join(', ') : formatMetadataValue(key, value)}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+
+    return (
+      <div className='bg-muted/40 p-2 rounded max-h-32 overflow-y-auto'>
+        {renderEntries(data as Record<string, unknown>)}
+      </div>
+    );
+  };
+
+  // Coding answers are saved as a JSON string ({ code, language, runResponse, ... }),
+  // not a plain option key — detect that shape so it can render as a code block
+  // with test results instead of one raw escaped JSON line.
+  const parseCodingAnswer = (answer: unknown): any | null => {
+    try {
+      const parsed = typeof answer === 'string' ? JSON.parse(answer) : answer;
+      if (parsed && typeof parsed === 'object' && typeof parsed.code === 'string') {
+        return parsed;
+      }
+    } catch {
+      // Not a coding submission payload
+    }
+    return null;
+  };
+
+  const CodingAnswerBlock = ({ submission }: { submission: any }) => {
+    const run = submission.runResponse;
+    return (
+      <div className='space-y-2'>
+        <div className='flex items-center justify-between gap-2'>
+          <Badge variant='outline' className='text-[10px] font-mono'>
+            {submission.language || 'code'}
+          </Badge>
+          {run?.summary && (
+            <span className='text-[10px] text-muted-foreground'>
+              {run.summary.passed}/{run.summary.total} tests passed
+            </span>
+          )}
+        </div>
+        <pre className='text-[11px] bg-zinc-900 text-zinc-100 p-2.5 rounded font-mono whitespace-pre overflow-x-auto max-h-56'>
+          {submission.code}
+        </pre>
+        {Array.isArray(run?.results) && run.results.length > 0 && (
+          <div className='space-y-1'>
+            {run.results.map((r: any) => (
+              <div
+                key={r.testIndex}
+                className='flex items-start gap-1.5 text-[11px] p-1.5 rounded bg-muted/30'
+              >
+                {r.status === 'PASSED' ? (
+                  <CheckCircle className='size-3.5 text-emerald-500 shrink-0 mt-0.5' />
+                ) : (
+                  <AlertCircle className='size-3.5 text-rose-500 shrink-0 mt-0.5' />
+                )}
+                <div className='min-w-0 flex-1'>
+                  <span className='font-medium'>
+                    Test {r.testIndex}: {r.status}
+                  </span>
+                  {r.status !== 'PASSED' && (
+                    <p className='text-muted-foreground break-all'>
+                      Input: {JSON.stringify(r.input)} • Expected:{' '}
+                      {JSON.stringify(r.expectedOutput)} • Got: {String(r.actualOutput).trim()}
+                      {r.error ? ` • Error: ${r.error}` : ''}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const isAutoSubmitted =
     candidate.status === 'AUTO_SUBMITTED' || candidate.status === 'ADMIN_REVIEW';
@@ -708,7 +819,9 @@ export function CandidateDetailDrawer({
                         <div key={idx} className='p-3 space-y-1.5'>
                           <div className='flex items-center justify-between gap-2'>
                             <div className='flex items-center gap-2 min-w-0'>
-                              <span className='font-semibold text-foreground truncate'>Q: {ans.questionId}</span>
+                              <span className='font-semibold text-foreground truncate'>
+                                Q: {ans.questionText || ans.questionId}
+                              </span>
                               {ans.isMarkedForReview && (
                                 <Badge variant='outline' className='text-[10px] shrink-0'>
                                   Marked for review
@@ -719,11 +832,18 @@ export function CandidateDetailDrawer({
                               {ans.timeSpentSeconds}s • {new Date(ans.savedAt).toLocaleTimeString()}
                             </span>
                           </div>
-                          <div className='p-1.5 bg-muted/40 rounded font-mono text-[11px] break-all'>
-                            {typeof ans.answer === 'object'
-                              ? JSON.stringify(ans.answer)
-                              : String(ans.answer)}
-                          </div>
+                          {(() => {
+                            const coding = parseCodingAnswer(ans.answer);
+                            if (coding) return <CodingAnswerBlock submission={coding} />;
+                            return (
+                              <div className='p-1.5 bg-muted/40 rounded text-[11px] break-all'>
+                                {ans.answerText ||
+                                  (typeof ans.answer === 'object'
+                                    ? JSON.stringify(ans.answer)
+                                    : formatMetadataValue('answer', String(ans.answer)))}
+                              </div>
+                            );
+                          })()}
                         </div>
                       ))}
                     </div>

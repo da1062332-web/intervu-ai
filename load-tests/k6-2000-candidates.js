@@ -37,8 +37,13 @@ const MAX_VUS = Number(__ENV.MAX_VUS) || 2000;
 // mirrors real usage where only some assessments/questions are coding-based.
 const CODING_VU_FRACTION = Number(__ENV.CODING_VU_FRACTION) || 0.2;
 const AUTOSAVE_ROUNDS = Number(__ENV.AUTOSAVE_ROUNDS) || 6;
+// How many times each candidate advances to the next section during the run,
+// spaced evenly across the autosave rounds — mirrors a real candidate
+// finishing one timed section and moving to the next.
+const SECTION_ADVANCES = Number(__ENV.SECTION_ADVANCES) || 1;
 
 const submitFailures = new Counter("assessment_submit_failures");
+const sectionAdvanceFailures = new Counter("section_advance_failures");
 const codeExecFailures = new Counter("code_execution_failures");
 const codeExecDuration = new Trend("code_execution_duration_ms");
 const capacityRejections = new Counter("http_503_capacity_rejections");
@@ -168,6 +173,20 @@ function runCodingSubmission(authHeaders, testInstanceId) {
   if (submitRes.status === 503) capacityRejections.add(1);
 }
 
+function advanceSection(authHeaders, testInstanceId) {
+  const res = http.post(
+    `${BASE_URL}/tests/${testInstanceId}/sections/advance`,
+    null,
+    { headers: authHeaders, tags: { endpoint: "section_advance" } },
+  );
+  // A 200 (advanced) or 409 (already advanced/last section) are both fine —
+  // only a hard failure here indicates a real problem.
+  if (res.status !== 200 && res.status !== 409) {
+    sectionAdvanceFailures.add(1);
+    console.error(`section-advance failed: ${res.status} ${res.body?.slice?.(0, 300)}`);
+  }
+}
+
 function submitAssessment(authHeaders, testInstanceId) {
   const res = http.post(
     `${BASE_URL}/tests/${testInstanceId}/submit`,
@@ -199,10 +218,21 @@ export default function () {
   if (!testInstanceId) return;
 
   // Simulate a candidate working through questions with autosave firing
-  // periodically, the same way the real frontend does.
+  // periodically, the same way the real frontend does, advancing to the next
+  // section at evenly-spaced points along the way.
+  const advanceAtRound = SECTION_ADVANCES > 0
+    ? Math.max(1, Math.floor(AUTOSAVE_ROUNDS / (SECTION_ADVANCES + 1)))
+    : Infinity;
+  let advancesDone = 0;
+
   for (let i = 0; i < AUTOSAVE_ROUNDS; i++) {
     autosaveAnswer(authHeaders, testInstanceId, `loadtest-question-${i}`, i);
     sleep(Math.random() * 3 + 2); // 2-5s between answers, like a real candidate
+
+    if (advancesDone < SECTION_ADVANCES && (i + 1) % advanceAtRound === 0) {
+      advanceSection(authHeaders, testInstanceId);
+      advancesDone++;
+    }
   }
 
   // A fraction of candidates also run/submit a coding question.
