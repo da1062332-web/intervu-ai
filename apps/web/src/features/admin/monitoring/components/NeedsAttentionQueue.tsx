@@ -22,11 +22,11 @@ interface NeedsAttentionQueueProps {
 }
 
 export function NeedsAttentionQueue({
-  candidates,
+  candidates = [],
   onSelectCandidate,
   onOpenRecovery,
 }: NeedsAttentionQueueProps) {
-  const attentionCandidates = candidates.filter((c) => c.isNeedsAttention);
+  const attentionCandidates = (candidates || []).filter((c) => c && c.isNeedsAttention);
 
   if (attentionCandidates.length === 0) {
     return null;
@@ -63,7 +63,7 @@ export function NeedsAttentionQueue({
                     <div className='flex items-center gap-1.5'>
                       <User className='size-3.5 text-muted-foreground shrink-0' />
                       <span className='font-medium text-xs text-foreground truncate'>
-                        {c.candidateName}
+                        {c.candidateName || 'Candidate'}
                       </span>
                     </div>
                     <p className='text-[11px] text-muted-foreground truncate'>
@@ -80,7 +80,7 @@ export function NeedsAttentionQueue({
                 </div>
 
                 <div className='flex items-center gap-1.5 flex-wrap text-[11px]'>
-                  {c.incidentReasons.map((reason, idx) => (
+                  {(c.incidentReasons || []).map((reason, idx) => (
                     <span
                       key={idx}
                       className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 font-medium'
@@ -88,7 +88,7 @@ export function NeedsAttentionQueue({
                       {reason}
                     </span>
                   ))}
-                  {c.proctoringStrikes > 0 && (
+                  {(c.proctoringStrikes || 0) > 0 && (
                     <span className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 font-medium'>
                       <ShieldAlert className='size-3' />
                       {c.proctoringStrikes} Strikes

@@ -48,6 +48,7 @@ export interface CandidateLiveRecord {
 export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new AppLogger({ name: "LiveMonitoringService" });
   private watchdogInterval: NodeJS.Timeout | null = null;
+  private lastDbFallbackScanAt = 0;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -476,7 +477,14 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
           }
         }
 
-        if ((!assessmentIds || assessmentIds.length === 0) && typeof this.prisma?.testInstance?.findMany === "function") {
+        const dbFallbackDue = Date.now() - this.lastDbFallbackScanAt > MONITORING_CONFIG.DB_FALLBACK_COOLDOWN_MS;
+
+        if (
+          (!assessmentIds || assessmentIds.length === 0) &&
+          dbFallbackDue &&
+          typeof this.prisma?.testInstance?.findMany === "function"
+        ) {
+          this.lastDbFallbackScanAt = Date.now();
           const activeDbAttempts = await this.prisma.testInstance.findMany({
             where: {
               status: { in: ["IN_PROGRESS", "ACTIVE", "STARTING"] as any },

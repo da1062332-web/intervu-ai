@@ -222,12 +222,13 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
       heartbeatBufferRef.current.clear();
 
       setCandidates((prev) =>
-        prev.map((c) => {
+        (prev || []).map((c) => {
+          if (!c) return c;
           const p = updates.get(c.attemptId);
           if (!p) return c;
           return {
             ...c,
-            status: p.status,
+            status: p.status ?? c.status,
             currentSectionKey: p.currentSectionKey ?? c.currentSectionKey,
             currentQuestionIndex: p.currentQuestionIndex ?? c.currentQuestionIndex,
             answeredCount: p.answeredCount ?? c.answeredCount,
@@ -246,7 +247,7 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
       if (!data || data.type === 'PING') return;
 
       if (data.type === 'CANDIDATE_HEARTBEAT') {
-        const p = data.payload;
+        const p = data.payload || data;
         if (
           p?.attemptId &&
           p.candidateRole !== 'ADMIN' &&
@@ -256,16 +257,16 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         }
         return;
       } else if (data.type === 'STATE_TRANSITION') {
-        const p = data.payload;
-        if (p?.candidateRole === 'ADMIN' || p?.candidateRole === 'PLAN_MANAGER') return;
+        const p = data.payload || data;
+        if (!p || p.candidateRole === 'ADMIN' || p.candidateRole === 'PLAN_MANAGER') return;
         let matched = false;
         setCandidates((prev) =>
-          prev.map((c) => {
-            if (c.attemptId === p.attemptId) {
+          (prev || []).map((c) => {
+            if (c && c.attemptId === p.attemptId) {
               matched = true;
               return {
                 ...c,
-                status: p.newState,
+                status: p.newState || c.status,
                 isNeedsAttention:
                   p.newState === 'AUTO_SUBMITTED' || p.newState === 'ADMIN_REVIEW'
                     ? true
@@ -280,17 +281,18 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         if (matched) {
           setSummary((s) => ({
             ...s,
-            active: p.newState === 'ACTIVE' ? s.active + 1 : Math.max(0, s.active - 1),
-            autoSubmitted: p.newState === 'AUTO_SUBMITTED' ? s.autoSubmitted + 1 : s.autoSubmitted,
-            submitted: p.newState === 'SUBMITTED' ? s.submitted + 1 : s.submitted,
+            active: p.newState === 'ACTIVE' ? (s?.active || 0) + 1 : Math.max(0, (s?.active || 0) - 1),
+            autoSubmitted: p.newState === 'AUTO_SUBMITTED' ? (s?.autoSubmitted || 0) + 1 : (s?.autoSubmitted || 0),
+            submitted: p.newState === 'SUBMITTED' ? (s?.submitted || 0) + 1 : (s?.submitted || 0),
           }));
         }
       } else if (data.type === 'CANDIDATE_DISCONNECTED') {
-        const p = data.payload;
+        const p = data.payload || data;
+        if (!p || !p.attemptId) return;
         let matched = false;
         setCandidates((prev) =>
-          prev.map((c) => {
-            if (c.attemptId === p.attemptId) {
+          (prev || []).map((c) => {
+            if (c && c.attemptId === p.attemptId) {
               matched = true;
               return {
                 ...c,
@@ -298,7 +300,7 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
                 networkStatus: 'OFFLINE',
                 isNeedsAttention: true,
                 incidentReasons: Array.from(
-                  new Set([...c.incidentReasons, `Disconnected (>${p.silentDurationSeconds || 30}s)`]),
+                  new Set([...(c.incidentReasons || []), `Disconnected (>${p.silentDurationSeconds || 30}s)`]),
                 ),
               };
             }
@@ -308,15 +310,16 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         if (matched) {
           setSummary((s) => ({
             ...s,
-            active: Math.max(0, s.active - 1),
-            disconnected: s.disconnected + 1,
-            needsAttentionCount: s.needsAttentionCount + 1,
+            active: Math.max(0, (s?.active || 0) - 1),
+            disconnected: (s?.disconnected || 0) + 1,
+            needsAttentionCount: (s?.needsAttentionCount || 0) + 1,
           }));
         }
       } else if (data.type === 'ALERT_EMITTED') {
-        const alert = data.payload;
+        const alert = data.payload || data;
+        if (!alert || !alert.id) return;
         if (alert.candidateRole === 'ADMIN' || alert.candidateRole === 'PLAN_MANAGER') return;
-        setAlerts((prev) => [alert, ...prev.filter((a) => a.id !== alert.id)]);
+        setAlerts((prev) => [alert, ...(prev || []).filter((a) => a && a.id !== alert.id)]);
         if (alert.severity === 'P0' || alert.severity === 'P1') {
           toast.error(`[${alert.severity}] ${alert.title}`, {
             description: alert.message,
@@ -324,14 +327,18 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
           });
         }
       } else if (data.type === 'ALERT_RESOLVED') {
+        const p = data.payload || data;
+        const targetAlertId = p?.alertId || p?.id;
+        if (!targetAlertId) return;
         setAlerts((prev) =>
-          prev.map((a) => (a.id === data.payload.alertId ? { ...a, isResolved: true } : a)),
+          (prev || []).map((a) => (a && a.id === targetAlertId ? { ...a, isResolved: true } : a)),
         );
       } else if (data.type === 'RECOVERY_RESUME_AUTHORIZED') {
-        const p = data.payload;
+        const p = data.payload || data;
+        if (!p || !p.attemptId) return;
         setCandidates((prev) =>
-          prev.map((c) =>
-            c.attemptId === p.attemptId
+          (prev || []).map((c) =>
+            c && c.attemptId === p.attemptId
               ? {
                   ...c,
                   status: 'RESUME_AUTHORIZED',
@@ -386,11 +393,16 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         es.onerror = () => {
           if (isCancelled) return;
           setIsConnected(false);
-          es.close();
+          try {
+            es.close();
+          } catch (_) {}
 
-          // Exponential backoff reconnect
-          const delay = Math.min(1000 * Math.pow(2, retryCount), 15000);
+          // Exponential backoff reconnect with 10s maximum cap
+          const delay = Math.min(1000 * Math.pow(1.5, retryCount), 10000);
           retryCount++;
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+          }
           reconnectTimeoutRef.current = setTimeout(() => {
             connectSse();
           }, delay);

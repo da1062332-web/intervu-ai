@@ -80,7 +80,6 @@ export const ADMIN_NAV_CONFIG: NavConfig = {
     {
       heading: 'Execution & Review',
       items: [
-        { label: 'Live Assessment Monitor', route: '/admin/monitoring', icon: Activity },
         { label: 'Recent Test Attempts', route: '/admin/results', icon: BarChart3 },
         { label: 'Assembly Monitor', route: '/admin/assembly/monitoring', icon: ShieldCheck },
         { label: 'Review Queue', route: '/admin/review', icon: MessageSquare },

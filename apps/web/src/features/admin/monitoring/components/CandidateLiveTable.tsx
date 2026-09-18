@@ -12,19 +12,24 @@ import {
   ShieldAlert,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
   Wifi,
   WifiOff,
-  Zap,
   CheckCircle,
   Eye,
   Plus,
-  ArrowUpDown,
-  Filter,
+  X,
 } from 'lucide-react';
 import { CandidateItem } from '../hooks/useLiveMonitoring';
 import { apiClient } from '@/services/api/client';
 import { toast } from 'sonner';
+
+const STATUS_FILTER_LABELS: Record<string, string> = {
+  ACTIVE: 'Active',
+  DISCONNECTED: 'Disconnected',
+  ATTENTION: 'Needs Attention',
+  AUTO_SUBMITTED: 'Auto-Submitted',
+  SUBMITTED: 'Submitted / Done',
+};
 
 interface CandidateLiveTableProps {
   candidates: CandidateItem[];
@@ -41,12 +46,11 @@ interface CandidateLiveTableProps {
 }
 
 export function CandidateLiveTable({
-  candidates,
+  candidates = [],
   pagination,
   onPageChange,
   onSearchChange,
   onStatusFilterChange,
-  onSortChange,
   onSelectCandidate,
   onOpenRecovery,
   activeStatusFilter,
@@ -62,9 +66,9 @@ export function CandidateLiveTable({
         method: 'POST',
         body: { extraMinutes: minutes, reason: `Quick +${minutes}m proctor extension` },
       });
-      toast.success(`Granted +${minutes}m to ${candidate.candidateName}`);
-    } catch (err) {
-      toast.error('Failed to extend time');
+      toast.success(`Granted +${minutes}m to ${candidate.candidateName || 'Candidate'}`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to extend time');
     } finally {
       setExtendingId(null);
     }
@@ -74,21 +78,21 @@ export function CandidateLiveTable({
     switch (status) {
       case 'ACTIVE':
         return (
-          <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'>
+          <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'>
             <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
             ACTIVE
           </span>
         );
       case 'DISCONNECTED':
         return (
-          <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800'>
+          <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800'>
             <span className='size-1.5 rounded-full bg-rose-500' />
-            DISCONNECTED
+            OFFLINE
           </span>
         );
       case 'RECONNECTING':
         return (
-          <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800'>
+          <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800'>
             <span className='size-1.5 rounded-full bg-amber-500 animate-ping' />
             RECONNECTING
           </span>
@@ -96,14 +100,14 @@ export function CandidateLiveTable({
       case 'AUTO_SUBMITTED':
       case 'ADMIN_REVIEW':
         return (
-          <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800'>
+          <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800'>
             <span className='size-1.5 rounded-full bg-purple-500' />
             {status}
           </span>
         );
       case 'RESUME_AUTHORIZED':
         return (
-          <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300 dark:border-blue-800'>
+          <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300 dark:border-blue-800'>
             <span className='size-1.5 rounded-full bg-blue-500 animate-pulse' />
             RESUME APPROVED
           </span>
@@ -111,7 +115,7 @@ export function CandidateLiveTable({
       case 'SUBMITTED':
       case 'COMPLETED':
         return (
-          <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'>
+          <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'>
             <CheckCircle className='size-3 text-slate-500' />
             {status}
           </span>
@@ -132,9 +136,32 @@ export function CandidateLiveTable({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  // Once an attempt has ended, its remaining-time/latency fields are stale
+  // snapshots, not live values — showing them as "00:00" / "0ms" next to a
+  // wifi icon reads as if the candidate is still connected. Render those
+  // columns as a plain dash for finished attempts instead.
+  const TERMINAL_STATUSES = new Set([
+    'SUBMITTED',
+    'COMPLETED',
+    'AUTO_SUBMITTED',
+    'ADMIN_REVIEW',
+    'TERMINATED',
+  ]);
+
+  const formatSectionLabel = (key: string) => {
+    if (!key || key === 'default') return 'General Section';
+    return key
+      .replace(/[-_]/g, ' ')
+      .replace(/\b\w/g, (ch) => ch.toUpperCase());
+  };
+
   return (
-    <Card className='border shadow-sm'>
-      {/* Table Filters Header */}
+    <Card className='border shadow-sm bg-card'>
+      {/* Table Filters Header
+          Status filtering itself lives one place only — the clickable stat
+          cards in SystemHealthRibbon above — so this header just shows
+          search plus a clear indicator of whatever filter is active,
+          instead of a second, out-of-sync set of filter buttons. */}
       <CardHeader className='p-4 border-b space-y-3'>
         <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3'>
           <div className='relative flex-1 max-w-md'>
@@ -147,34 +174,30 @@ export function CandidateLiveTable({
             />
           </div>
 
-          {/* Quick status filters */}
-          <div className='flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0'>
-            {[
-              { id: 'ALL', label: 'All' },
-              { id: 'ACTIVE', label: 'Active' },
-              { id: 'DISCONNECTED', label: 'Disconnected' },
-              { id: 'AUTO_SUBMITTED', label: 'Auto-Submitted' },
-              { id: 'SUBMITTED', label: 'Submitted' },
-            ].map((f) => (
-              <Button
-                key={f.id}
-                size='sm'
-                variant={activeStatusFilter === f.id ? 'default' : 'outline'}
-                onClick={() => onStatusFilterChange(f.id)}
-                className='h-8 text-xs px-2.5'
+          {activeStatusFilter && activeStatusFilter !== 'ALL' && (
+            <div className='flex items-center gap-1.5 text-xs text-muted-foreground shrink-0'>
+              <span>Filtered by:</span>
+              <button
+                onClick={() => onStatusFilterChange('ALL')}
+                className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors'
               >
-                {f.label}
-              </Button>
-            ))}
-          </div>
+                {STATUS_FILTER_LABELS[activeStatusFilter] || activeStatusFilter}
+                <X className='size-3' />
+              </button>
+            </div>
+          )}
         </div>
       </CardHeader>
 
-      {/* Table Body */}
+      {/* Table Body — a fixed viewport height with its own scrollbar keeps
+          the surrounding dashboard (health ribbon, alerts, filters) on
+          screen no matter how many candidates are enrolled, instead of the
+          whole page growing to thousands of pixels tall. */}
       <CardContent className='p-0 overflow-x-auto'>
+        <div className='max-h-[560px] overflow-y-auto'>
         <table className='w-full text-left text-xs border-collapse'>
-          <thead>
-            <tr className='border-b bg-muted/30 text-muted-foreground font-semibold'>
+          <thead className='sticky top-0 z-10'>
+            <tr className='border-b bg-muted/95 backdrop-blur-sm text-muted-foreground font-semibold'>
               <th className='p-3 pl-4'>Candidate</th>
               <th className='p-3'>Live State</th>
               <th className='p-3'>Section & Question</th>
@@ -191,7 +214,7 @@ export function CandidateLiveTable({
                 <tr key={`skeleton-${i}`} className='animate-pulse'>
                   <td className='p-3 pl-4'>
                     <div className='flex items-center gap-2.5'>
-                      <div className='size-7 rounded-full bg-muted shrink-0' />
+                      <div className='size-8 rounded-full bg-muted shrink-0' />
                       <div className='space-y-1'>
                         <div className='h-3.5 w-28 bg-muted rounded' />
                         <div className='h-2.5 w-36 bg-muted/60 rounded' />
@@ -210,7 +233,7 @@ export function CandidateLiveTable({
             ) : candidates.length === 0 ? (
               <tr>
                 <td colSpan={8} className='p-8 text-center text-muted-foreground text-xs'>
-                  No active candidate attempts found matching criteria.
+                  No candidate attempts found matching criteria.
                 </td>
               </tr>
             ) : (
@@ -222,26 +245,27 @@ export function CandidateLiveTable({
 
                 const isAutoSubmitted =
                   c.status === 'AUTO_SUBMITTED' || c.status === 'ADMIN_REVIEW';
+                const isTerminal = TERMINAL_STATUSES.has(c.status);
 
                 return (
                   <tr
                     key={c.attemptId}
                     className={`hover:bg-muted/40 transition-colors ${
-                      c.isNeedsAttention ? 'bg-amber-50/25 dark:bg-amber-950/15' : ''
+                      c.isNeedsAttention ? 'bg-amber-50/30 dark:bg-amber-950/20' : ''
                     }`}
                   >
                     {/* Candidate */}
                     <td className='p-3 pl-4'>
                       <div className='flex items-center gap-2.5'>
-                        <div className='size-7 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs shrink-0'>
-                          {c.candidateName.charAt(0).toUpperCase()}
+                        <div className='size-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs shrink-0 shadow-2xs'>
+                          {(c.candidateName || 'Candidate').charAt(0).toUpperCase()}
                         </div>
-                        <div className='overflow-hidden max-w-[160px] sm:max-w-[200px]'>
+                        <div className='overflow-hidden max-w-[180px] sm:max-w-[220px]'>
                           <div className='font-semibold text-foreground truncate'>
-                            {c.candidateName}
+                            {c.candidateName || 'Candidate'}
                           </div>
                           <div className='text-[11px] text-muted-foreground truncate'>
-                            {c.candidateEmail}
+                            {c.candidateEmail || '—'}
                           </div>
                         </div>
                       </div>
@@ -252,8 +276,8 @@ export function CandidateLiveTable({
 
                     {/* Section & Question */}
                     <td className='p-3 whitespace-nowrap'>
-                      <div className='text-xs font-medium text-foreground'>
-                        {c.currentSectionKey}
+                      <div className='text-xs font-semibold text-foreground truncate max-w-[140px]'>
+                        {formatSectionLabel(c.currentSectionKey)}
                       </div>
                       <div className='text-[11px] text-muted-foreground'>
                         Q{c.currentQuestionIndex + 1} of {c.totalQuestions}
@@ -267,7 +291,7 @@ export function CandidateLiveTable({
                           <span>
                             {c.answeredCount}/{c.totalQuestions}
                           </span>
-                          <span>{percent}%</span>
+                          <span className='font-semibold'>{percent}%</span>
                         </div>
                         <div className='h-1.5 w-full bg-muted rounded-full overflow-hidden'>
                           <div
@@ -280,18 +304,25 @@ export function CandidateLiveTable({
 
                     {/* Remaining Time */}
                     <td className='p-3 whitespace-nowrap'>
-                      <div
-                        className={`font-mono font-medium text-xs flex items-center gap-1 ${
-                          c.remainingTimeSeconds < 300 ? 'text-rose-500 font-bold' : 'text-foreground'
-                        }`}
-                      >
-                        <Clock className='size-3 text-muted-foreground' />
-                        {formatRemainingTime(c.remainingTimeSeconds)}
-                      </div>
+                      {isTerminal ? (
+                        <span className='text-muted-foreground text-xs'>Ended</span>
+                      ) : (
+                        <div
+                          className={`font-mono font-bold text-xs flex items-center gap-1 ${
+                            c.remainingTimeSeconds < 300 ? 'text-rose-500' : 'text-foreground'
+                          }`}
+                        >
+                          <Clock className='size-3 text-muted-foreground' />
+                          {formatRemainingTime(c.remainingTimeSeconds)}
+                        </div>
+                      )}
                     </td>
 
                     {/* Network & Latency */}
                     <td className='p-3 whitespace-nowrap'>
+                      {isTerminal ? (
+                        <span className='text-muted-foreground text-xs'>—</span>
+                      ) : (
                       <div className='flex items-center gap-1.5'>
                         {c.status === 'DISCONNECTED' ? (
                           <WifiOff className='size-3.5 text-rose-500' />
@@ -299,8 +330,8 @@ export function CandidateLiveTable({
                           <Wifi className='size-3.5 text-emerald-500' />
                         )}
                         <span
-                          className={`font-mono text-[11px] ${
-                            c.latencyMs > 600 ? 'text-amber-500 font-semibold' : 'text-muted-foreground'
+                          className={`font-mono text-[11px] font-medium ${
+                            c.latencyMs > 600 ? 'text-amber-500 font-bold' : 'text-muted-foreground'
                           }`}
                         >
                           {c.latencyMs}ms
@@ -311,17 +342,18 @@ export function CandidateLiveTable({
                           </Badge>
                         )}
                       </div>
+                      )}
                     </td>
 
                     {/* Violations */}
                     <td className='p-3 whitespace-nowrap'>
-                      {c.proctoringStrikes > 0 ? (
-                        <span className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 font-semibold'>
+                      {(c.proctoringStrikes || 0) > 0 ? (
+                        <span className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 font-bold'>
                           <ShieldAlert className='size-3' />
                           {c.proctoringStrikes} Strikes
                         </span>
                       ) : (
-                        <span className='text-muted-foreground text-[11px]'>Clean</span>
+                        <span className='text-emerald-600 dark:text-emerald-400 font-medium text-[11px]'>Clean</span>
                       )}
                     </td>
 
@@ -333,30 +365,30 @@ export function CandidateLiveTable({
                             size='sm'
                             variant='destructive'
                             onClick={() => onOpenRecovery(c)}
-                            className='h-7 text-xs gap-1 px-2.5 font-medium'
+                            className='h-7 text-xs gap-1 px-2.5 font-bold shadow-2xs'
                           >
                             <RotateCcw className='size-3' />
                             Recover
                           </Button>
-                        ) : (
+                        ) : !isTerminal ? (
                           <Button
                             size='sm'
                             variant='outline'
                             disabled={extendingId === c.attemptId}
                             onClick={() => handleQuickExtendTime(c, 5)}
-                            className='h-7 text-xs gap-1 px-2'
+                            className='h-7 text-xs gap-1 px-2 hover:bg-primary hover:text-primary-foreground font-medium'
                             title='Add 5 minutes to timer'
                           >
                             <Plus className='size-3' />
                             +5m
                           </Button>
-                        )}
+                        ) : null}
 
                         <Button
                           size='sm'
                           variant='secondary'
                           onClick={() => onSelectCandidate(c)}
-                          className='h-7 text-xs gap-1 px-2.5'
+                          className='h-7 text-xs gap-1 px-2.5 font-medium'
                         >
                           <Eye className='size-3' />
                           Inspect
@@ -369,6 +401,7 @@ export function CandidateLiveTable({
             )}
           </tbody>
         </table>
+        </div>
       </CardContent>
 
       {/* Pagination Footer */}
@@ -390,7 +423,7 @@ export function CandidateLiveTable({
             >
               <ChevronLeft className='size-4' />
             </Button>
-            <span className='px-2 font-medium text-foreground'>
+            <span className='px-2 font-semibold text-foreground'>
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <Button

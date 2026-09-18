@@ -22,15 +22,15 @@ interface AlertCenterProps {
   onAlertResolved?: (alertId: string) => void;
 }
 
-export function AlertCenter({ alerts, onAlertResolved }: AlertCenterProps) {
+export function AlertCenter({ alerts = [], onAlertResolved }: AlertCenterProps) {
   const [selectedSeverity, setSelectedSeverity] = useState<string>('ALL');
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const activeAlerts = alerts.filter((a) => !a.isResolved);
+  const activeAlerts = (alerts || []).filter((a) => a && !a.isResolved);
   const filteredAlerts =
     selectedSeverity === 'ALL'
       ? activeAlerts
-      : activeAlerts.filter((a) => a.severity === selectedSeverity);
+      : activeAlerts.filter((a) => a && a.severity === selectedSeverity);
 
   const handleResolve = async (alertId: string) => {
     try {

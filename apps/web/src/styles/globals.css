@@ -154,6 +154,18 @@
     background-color: rgba(100, 116, 139, 0.7);
   }
 
+  /* Hides the scrollbar on an intentionally scrollable strip (tab bars,
+     horizontal filter chips) where a native scrollbar reads as a UI bug
+     rather than a control — used across the admin monitoring dashboard.
+     Was referenced in several components without ever being defined. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Dedicated High-Visibility Scrollbar Utility for Sandboxes */
   .custom-scrollbar {
     scrollbar-width: thin;

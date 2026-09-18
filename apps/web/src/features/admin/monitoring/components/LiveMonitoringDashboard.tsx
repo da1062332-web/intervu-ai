@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,10 +17,12 @@ import { RecoveryCenterModal } from './RecoveryCenterModal';
 
 interface LiveMonitoringDashboardProps {
   assessmentId: string;
+  assessmentName?: string;
 }
 
-export function LiveMonitoringDashboard({ assessmentId }: LiveMonitoringDashboardProps) {
+export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMonitoringDashboardProps) {
   const isGlobalAll = assessmentId === 'all';
+  const shortId = assessmentId.length > 10 ? `${assessmentId.slice(0, 8)}…` : assessmentId;
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [attentionOnly, setAttentionOnly] = useState(false);
@@ -69,28 +71,34 @@ export function LiveMonitoringDashboard({ assessmentId }: LiveMonitoringDashboar
     setIsRecoveryOpen(true);
   };
 
+  // `selectedCandidate` is captured once, at the moment "Inspect" is
+  // clicked — it never sees the SSE heartbeats/state transitions that keep
+  // `candidates` current, so the open drawer would otherwise sit frozen at
+  // whatever status/progress/latency the candidate had at that instant.
+  // Re-resolving it from the live list on every render keeps it in sync;
+  // it only falls back to the captured snapshot if the candidate has
+  // dropped out of the current filtered/paginated view.
+  const liveSelectedCandidate = useMemo(() => {
+    if (!selectedCandidate) return null;
+    return candidates.find((c) => c.attemptId === selectedCandidate.attemptId) || selectedCandidate;
+  }, [candidates, selectedCandidate]);
+
   return (
     <div className='container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 pb-16'>
       {/* Header */}
       <SectionHeader
-        title={
-          isGlobalAll
-            ? 'Global Live Assessment Operations Center'
-            : 'Live Assessment Operations Center'
-        }
+        title={isGlobalAll ? 'All Assessments — Live Monitoring' : assessmentName || 'Live Monitoring'}
         description={
           isGlobalAll
-            ? 'Real-time multi-assessment surveillance across all candidates platform-wide.'
-            : 'Real-time concurrent candidate monitoring, automated anomaly detection, and safe state recovery.'
+            ? 'Real-time monitoring across every active assessment, platform-wide.'
+            : 'Real-time candidate monitoring, anomaly detection, and safe state recovery for this assessment.'
         }
         icon={Activity}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
           { label: 'Live Monitoring', href: '/admin/monitoring' },
           {
-            label: isGlobalAll
-              ? 'All Assessments (Global View)'
-              : `Assessment (${assessmentId})`,
+            label: isGlobalAll ? 'All Assessments' : assessmentName || shortId,
           },
         ]}
         actions={
@@ -120,7 +128,7 @@ export function LiveMonitoringDashboard({ assessmentId }: LiveMonitoringDashboar
               className='h-8 text-xs gap-1.5'
             >
               <RefreshCw className={`size-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
-              Resync
+              Refresh
             </Button>
             <Link href='/admin/monitoring'>
               <Button variant='secondary' size='sm' className='h-8 text-xs gap-1.5'>
@@ -271,10 +279,11 @@ export function LiveMonitoringDashboard({ assessmentId }: LiveMonitoringDashboar
 
       {/* 9-Tab Candidate Detail Drawer */}
       <CandidateDetailDrawer
-        candidate={selectedCandidate}
+        candidate={liveSelectedCandidate}
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         onOpenRecovery={handleOpenRecovery}
+        onActionComplete={() => refetch()}
       />
 
       {/* Safe Recovery Center Modal */}

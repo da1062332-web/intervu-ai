@@ -108,11 +108,15 @@ export function SystemHealthRibbon({
           <div className='flex items-center gap-1.5 text-muted-foreground'>
             <Activity className='size-3.5 text-primary' />
             <span>Avg Latency:</span>
-            <span
-              className={`font-semibold ${summary.avgLatencyMs < 300 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'}`}
-            >
-              {summary.avgLatencyMs} ms
-            </span>
+            {summary.active > 0 ? (
+              <span
+                className={`font-semibold ${summary.avgLatencyMs < 300 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'}`}
+              >
+                {summary.avgLatencyMs} ms
+              </span>
+            ) : (
+              <span className='font-medium text-muted-foreground/70'>No active candidates</span>
+            )}
           </div>
 
           <div className='h-4 w-px bg-border' />

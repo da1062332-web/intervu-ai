@@ -7,7 +7,7 @@ import {
   Req,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
-import { Observable, interval, fromEvent, merge, map, filter, finalize } from "rxjs";
+import { Observable, timer, fromEvent, merge, map, filter, finalize } from "rxjs";
 import { Redis } from "ioredis";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -94,8 +94,8 @@ export class MonitoringSseController {
       }),
     );
 
-    // 2. Keep-alive ping interval (every 15s) to maintain proxy connections
-    const ping$ = interval(15000).pipe(
+    // 2. Keep-alive ping interval (every 10s, starts immediately at t=0) to prevent QUIC/proxy idle timeouts
+    const ping$ = timer(0, 10000).pipe(
       map(() => ({
         data: { type: "PING", serverTime: new Date().toISOString() },
         type: "PING",

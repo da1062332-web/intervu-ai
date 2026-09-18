@@ -13,6 +13,7 @@ export const MONITORING_CONFIG = {
   MAX_RESUMES_PER_ATTEMPT: 3, // Max allowed resumes per attempt
   PROCTORING_VIOLATION_COOLDOWN_SECONDS: 5, // 5s debounce window per candidate & violation type
   ATTEMPT_METADATA_TTL_SECONDS: 14400, // 4 hours TTL for attempt metadata cache
+  DB_FALLBACK_COOLDOWN_MS: 300000, // 5 minutes between watchdog DB-scan fallbacks when Redis index is empty
 };
 
 export const REDIS_KEYS = {
