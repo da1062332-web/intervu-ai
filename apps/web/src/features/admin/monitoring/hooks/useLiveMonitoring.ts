@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient } from '@/services/api/client';
+import { normalizeApiError } from '@/services/api/error';
 import { useSessionStore } from '@/store/session.store';
 import { toast } from 'sonner';
 
@@ -181,7 +182,17 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         if (res.pagination) setPagination(res.pagination);
       }
     } catch (err) {
-      console.error('Failed fetching assessment live snapshot', err);
+      const normalized = normalizeApiError(err);
+      const isTransient =
+        normalized.code === 'NETWORK_ERROR' ||
+        normalized.status === 0 ||
+        normalized.status === 408 ||
+        (normalized.status >= 500 && normalized.status < 600);
+
+      // Transient/network errors self-resolve on the next poll cycle; skip logging to avoid noise.
+      if (!isTransient) {
+        console.error('Failed fetching assessment live snapshot', err);
+      }
     } finally {
       setIsLoading(false);
       setIsRefetching(false);
