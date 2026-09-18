@@ -96,7 +96,7 @@ export class AppConfigService {
         ttl: this.configService?.get<number>("ASSESSMENT_TTL", 60000) || 60000,
       },
       submission: {
-        limit: this.configService?.get<number>("SUBMISSION_LIMIT", 5) || 5,
+        limit: this.configService?.get<number>("SUBMISSION_LIMIT", 10) || 10,
         ttl: this.configService?.get<number>("SUBMISSION_TTL", 60000) || 60000,
       },
       default: {

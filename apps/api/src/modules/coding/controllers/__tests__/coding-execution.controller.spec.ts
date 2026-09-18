@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { CodingExecutionController } from "../coding-execution.controller";
 import { CodingExecutionService } from "../../services/coding-execution.service";
+import { CodeExecutionQueueService } from "../../services/code-execution-queue.service";
 import { JudgeService } from "../../services/judge.service";
 import { PrismaService } from "../../../../prisma/prisma.service";
 import { OracleRegistry } from "../../oracles/oracle.registry";
@@ -86,11 +87,22 @@ describe("CodingExecutionController & CodingExecutionService", () => {
       evaluateSubmission: jest.fn(),
     };
 
+    // The controller now goes through a queue (CodeExecutionQueueService)
+    // instead of calling CodingExecutionService directly, so a real
+    // BullMQ/Redis connection would otherwise be required here. This stub
+    // preserves the test's intent — exercising CodingExecutionService's
+    // actual business logic through the controller's public interface —
+    // by synchronously delegating to the real service instance instead of
+    // going through a queue.
+    const mockQueueService = {
+      execute: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CodingExecutionController],
       providers: [
         CodingExecutionService,
+        { provide: CodeExecutionQueueService, useValue: mockQueueService },
         { provide: JudgeService, useValue: mockJudgeService },
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OracleRegistry, useValue: mockOracleRegistry },
@@ -104,6 +116,12 @@ describe("CodingExecutionController & CodingExecutionService", () => {
     judgeService = module.get(JudgeService);
     prismaService = module.get(PrismaService);
     contextResolver = module.get(CodingContextResolverService);
+
+    mockQueueService.execute.mockImplementation((mode: "run" | "submit", dto: any, user: any) =>
+      mode === "run"
+        ? executionService.runPublicTests(dto, user)
+        : executionService.submitFullEvaluation(dto, user),
+    );
   });
 
   describe("runCode", () => {

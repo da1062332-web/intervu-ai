@@ -186,4 +186,22 @@ export class QueryCandidatesDto {
   @IsOptional()
   @IsNumber()
   limit?: number;
+
+  @ApiPropertyOptional({
+    description: "Date filter: 'today', 'yesterday', 'custom', or 'all'",
+    default: "all",
+  })
+  @IsOptional()
+  @IsString()
+  dateFilter?: "today" | "yesterday" | "custom" | "all";
+
+  @ApiPropertyOptional({ description: "Start date (ISO or YYYY-MM-DD) for custom filter" })
+  @IsOptional()
+  @IsString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ description: "End date (ISO or YYYY-MM-DD) for custom filter" })
+  @IsOptional()
+  @IsString()
+  endDate?: string;
 }

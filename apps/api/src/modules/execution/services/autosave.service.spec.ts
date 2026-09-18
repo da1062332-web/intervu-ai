@@ -96,7 +96,10 @@ describe("AutosaveService", () => {
     });
 
     expect(result.status).toBe("saved");
-    expect(cacheService.set).toHaveBeenCalledTimes(2); // once for answer, once for state
+    // answer cache + execution-state cache + section-lock-status cache
+    // (allow-section-nav isn't cached here since the mocked testInstance has
+    // no examConfigId, so that branch is skipped entirely)
+    expect(cacheService.set).toHaveBeenCalledTimes(3);
     expect(prisma.candidateAnswer.upsert).toHaveBeenCalled();
     expect(prisma.executionState.upsert).toHaveBeenCalled();
   });

@@ -7,7 +7,7 @@ import {
   Req,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
-import { Observable, interval, fromEvent, merge, map, filter, finalize } from "rxjs";
+import { Observable, timer, fromEvent, merge, map, filter, finalize } from "rxjs";
 import { Redis } from "ioredis";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
@@ -45,19 +45,41 @@ export class MonitoringSseController {
       this.logger.warn(`Redis SSE subscriber connection error for assessment ${assessmentId}`, err);
     });
 
-    const channelName = REDIS_KEYS.assessmentEventsChannel(assessmentId);
-    sub.subscribe(channelName, (err) => {
-      if (err) {
-        this.logger.error(`Failed subscribing to Redis channel ${channelName}`, err);
-      } else {
-        this.logger.debug(`Subscribed to Redis channel: ${channelName}`);
-      }
-    });
+    const isAll = assessmentId === "all";
+    const channelName = isAll ? "assessment:*:events" : REDIS_KEYS.assessmentEventsChannel(assessmentId);
 
-    // 1. Observable from Redis Pub/Sub events
-    const redisEvents$ = fromEvent<[string, string]>(sub, "message").pipe(
-      filter(([channel]) => channel === channelName),
-      map(([, message]) => {
+    if (isAll && typeof (sub as any).psubscribe === "function") {
+      (sub as any).psubscribe(channelName, (err: any) => {
+        if (err) {
+          this.logger.error(`Failed psubscribing to Redis pattern ${channelName}`, err);
+        } else {
+          this.logger.debug(`Psubscribed to Redis pattern: ${channelName}`);
+        }
+      });
+    } else {
+      sub.subscribe(channelName, (err) => {
+        if (err) {
+          this.logger.error(`Failed subscribing to Redis channel ${channelName}`, err);
+        } else {
+          this.logger.debug(`Subscribed to Redis channel: ${channelName}`);
+        }
+      });
+    }
+
+    // 1. Observable from Redis Pub/Sub events (supports standard channel or pattern subscription)
+    const messageEvents$ = fromEvent<[string, string]>(sub, "message").pipe(
+      filter(([channel]) => isAll || channel === channelName),
+      map(([, message]) => message),
+    );
+
+    const pmessageEvents$ = isAll
+      ? fromEvent<[string, string, string]>(sub, "pmessage").pipe(
+          map(([, , message]) => message),
+        )
+      : [];
+
+    const redisEvents$ = merge(messageEvents$, pmessageEvents$).pipe(
+      map((message) => {
         try {
           const parsed = JSON.parse(message);
           return {
@@ -72,8 +94,8 @@ export class MonitoringSseController {
       }),
     );
 
-    // 2. Keep-alive ping interval (every 15s) to maintain proxy connections
-    const ping$ = interval(15000).pipe(
+    // 2. Keep-alive ping interval (every 10s, starts immediately at t=0) to prevent QUIC/proxy idle timeouts
+    const ping$ = timer(0, 10000).pipe(
       map(() => ({
         data: { type: "PING", serverTime: new Date().toISOString() },
         type: "PING",

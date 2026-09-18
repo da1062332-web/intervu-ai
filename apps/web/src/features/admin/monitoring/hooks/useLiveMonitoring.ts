@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient } from '@/services/api/client';
+import { normalizeApiError } from '@/services/api/error';
 import { useSessionStore } from '@/store/session.store';
 import { toast } from 'sonner';
 
@@ -11,6 +12,7 @@ export interface CandidateItem {
   candidateId: string;
   candidateName: string;
   candidateEmail: string;
+  candidateRole?: string;
   status:
     | 'NOT_STARTED'
     | 'STARTING'
@@ -105,6 +107,9 @@ export interface UseLiveMonitoringOptions {
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  dateFilter?: 'today' | 'yesterday' | 'custom' | 'all';
+  startDate?: string;
+  endDate?: string;
 }
 
 export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitoringOptions = {}) {
@@ -155,20 +160,39 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
       if (opts.sortOrder) queryParams.set('sortOrder', opts.sortOrder);
       if (opts.page) queryParams.set('page', String(opts.page));
       if (opts.limit) queryParams.set('limit', String(opts.limit));
+      if (opts.dateFilter && opts.dateFilter !== 'all') queryParams.set('dateFilter', opts.dateFilter);
+      if (opts.startDate) queryParams.set('startDate', opts.startDate);
+      if (opts.endDate) queryParams.set('endDate', opts.endDate);
 
       const res = await apiClient.request<any>(
         `/admin/monitoring/assessments/${assessmentId}/snapshot?${queryParams.toString()}`,
       );
 
       if (res) {
-        setCandidates(res.candidates || []);
+        const filteredCandidates = (res.candidates || []).filter(
+          (c: CandidateItem) =>
+            c.candidateRole !== 'ADMIN' &&
+            c.candidateRole !== 'PLAN_MANAGER' &&
+            !c.candidateEmail?.toLowerCase().includes('admin@intervu.ai'),
+        );
+        setCandidates(filteredCandidates);
         if (res.summary) setSummary(res.summary);
         if (res.alerts) setAlerts(res.alerts);
         if (res.systemHealth) setSystemHealth(res.systemHealth);
         if (res.pagination) setPagination(res.pagination);
       }
     } catch (err) {
-      console.error('Failed fetching assessment live snapshot', err);
+      const normalized = normalizeApiError(err);
+      const isTransient =
+        normalized.code === 'NETWORK_ERROR' ||
+        normalized.status === 0 ||
+        normalized.status === 408 ||
+        (normalized.status >= 500 && normalized.status < 600);
+
+      // Transient/network errors self-resolve on the next poll cycle; skip logging to avoid noise.
+      if (!isTransient) {
+        console.error('Failed fetching assessment live snapshot', err);
+      }
     } finally {
       setIsLoading(false);
       setIsRefetching(false);
@@ -188,6 +212,9 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
     options.sortOrder,
     options.page,
     options.limit,
+    options.dateFilter,
+    options.startDate,
+    options.endDate,
     fetchSnapshot,
   ]);
 
@@ -206,12 +233,13 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
       heartbeatBufferRef.current.clear();
 
       setCandidates((prev) =>
-        prev.map((c) => {
+        (prev || []).map((c) => {
+          if (!c) return c;
           const p = updates.get(c.attemptId);
           if (!p) return c;
           return {
             ...c,
-            status: p.status,
+            status: p.status ?? c.status,
             currentSectionKey: p.currentSectionKey ?? c.currentSectionKey,
             currentQuestionIndex: p.currentQuestionIndex ?? c.currentQuestionIndex,
             answeredCount: p.answeredCount ?? c.answeredCount,
@@ -230,61 +258,79 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
       if (!data || data.type === 'PING') return;
 
       if (data.type === 'CANDIDATE_HEARTBEAT') {
-        const p = data.payload;
-        if (p?.attemptId) {
+        const p = data.payload || data;
+        if (
+          p?.attemptId &&
+          p.candidateRole !== 'ADMIN' &&
+          p.candidateRole !== 'PLAN_MANAGER'
+        ) {
           heartbeatBufferRef.current.set(p.attemptId, p);
         }
         return;
       } else if (data.type === 'STATE_TRANSITION') {
-        const p = data.payload;
+        const p = data.payload || data;
+        if (!p || p.candidateRole === 'ADMIN' || p.candidateRole === 'PLAN_MANAGER') return;
+        let matched = false;
         setCandidates((prev) =>
-          prev.map((c) =>
-            c.attemptId === p.attemptId
-              ? {
-                  ...c,
-                  status: p.newState,
-                  isNeedsAttention:
-                    p.newState === 'AUTO_SUBMITTED' || p.newState === 'ADMIN_REVIEW'
-                      ? true
-                      : c.isNeedsAttention,
-                }
-              : c,
-          ),
+          (prev || []).map((c) => {
+            if (c && c.attemptId === p.attemptId) {
+              matched = true;
+              return {
+                ...c,
+                status: p.newState || c.status,
+                isNeedsAttention:
+                  p.newState === 'AUTO_SUBMITTED' || p.newState === 'ADMIN_REVIEW'
+                    ? true
+                    : c.isNeedsAttention,
+              };
+            }
+            return c;
+          }),
         );
 
-        // Update tallies
-        setSummary((s) => ({
-          ...s,
-          active: p.newState === 'ACTIVE' ? s.active + 1 : Math.max(0, s.active - 1),
-          autoSubmitted: p.newState === 'AUTO_SUBMITTED' ? s.autoSubmitted + 1 : s.autoSubmitted,
-          submitted: p.newState === 'SUBMITTED' ? s.submitted + 1 : s.submitted,
-        }));
+        // Update tallies only if it matches a monitored candidate
+        if (matched) {
+          setSummary((s) => ({
+            ...s,
+            active: p.newState === 'ACTIVE' ? (s?.active || 0) + 1 : Math.max(0, (s?.active || 0) - 1),
+            autoSubmitted: p.newState === 'AUTO_SUBMITTED' ? (s?.autoSubmitted || 0) + 1 : (s?.autoSubmitted || 0),
+            submitted: p.newState === 'SUBMITTED' ? (s?.submitted || 0) + 1 : (s?.submitted || 0),
+          }));
+        }
       } else if (data.type === 'CANDIDATE_DISCONNECTED') {
-        const p = data.payload;
+        const p = data.payload || data;
+        if (!p || !p.attemptId) return;
+        let matched = false;
         setCandidates((prev) =>
-          prev.map((c) =>
-            c.attemptId === p.attemptId
-              ? {
-                  ...c,
-                  status: 'DISCONNECTED',
-                  networkStatus: 'OFFLINE',
-                  isNeedsAttention: true,
-                  incidentReasons: Array.from(
-                    new Set([...c.incidentReasons, `Disconnected (>${p.silentDurationSeconds || 30}s)`]),
-                  ),
-                }
-              : c,
-          ),
+          (prev || []).map((c) => {
+            if (c && c.attemptId === p.attemptId) {
+              matched = true;
+              return {
+                ...c,
+                status: 'DISCONNECTED',
+                networkStatus: 'OFFLINE',
+                isNeedsAttention: true,
+                incidentReasons: Array.from(
+                  new Set([...(c.incidentReasons || []), `Disconnected (>${p.silentDurationSeconds || 30}s)`]),
+                ),
+              };
+            }
+            return c;
+          }),
         );
-        setSummary((s) => ({
-          ...s,
-          active: Math.max(0, s.active - 1),
-          disconnected: s.disconnected + 1,
-          needsAttentionCount: s.needsAttentionCount + 1,
-        }));
+        if (matched) {
+          setSummary((s) => ({
+            ...s,
+            active: Math.max(0, (s?.active || 0) - 1),
+            disconnected: (s?.disconnected || 0) + 1,
+            needsAttentionCount: (s?.needsAttentionCount || 0) + 1,
+          }));
+        }
       } else if (data.type === 'ALERT_EMITTED') {
-        const alert = data.payload;
-        setAlerts((prev) => [alert, ...prev.filter((a) => a.id !== alert.id)]);
+        const alert = data.payload || data;
+        if (!alert || !alert.id) return;
+        if (alert.candidateRole === 'ADMIN' || alert.candidateRole === 'PLAN_MANAGER') return;
+        setAlerts((prev) => [alert, ...(prev || []).filter((a) => a && a.id !== alert.id)]);
         if (alert.severity === 'P0' || alert.severity === 'P1') {
           toast.error(`[${alert.severity}] ${alert.title}`, {
             description: alert.message,
@@ -292,14 +338,18 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
           });
         }
       } else if (data.type === 'ALERT_RESOLVED') {
+        const p = data.payload || data;
+        const targetAlertId = p?.alertId || p?.id;
+        if (!targetAlertId) return;
         setAlerts((prev) =>
-          prev.map((a) => (a.id === data.payload.alertId ? { ...a, isResolved: true } : a)),
+          (prev || []).map((a) => (a && a.id === targetAlertId ? { ...a, isResolved: true } : a)),
         );
       } else if (data.type === 'RECOVERY_RESUME_AUTHORIZED') {
-        const p = data.payload;
+        const p = data.payload || data;
+        if (!p || !p.attemptId) return;
         setCandidates((prev) =>
-          prev.map((c) =>
-            c.attemptId === p.attemptId
+          (prev || []).map((c) =>
+            c && c.attemptId === p.attemptId
               ? {
                   ...c,
                   status: 'RESUME_AUTHORIZED',
@@ -354,11 +404,16 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         es.onerror = () => {
           if (isCancelled) return;
           setIsConnected(false);
-          es.close();
+          try {
+            es.close();
+          } catch (_) {}
 
-          // Exponential backoff reconnect
-          const delay = Math.min(1000 * Math.pow(2, retryCount), 15000);
+          // Exponential backoff reconnect with 10s maximum cap
+          const delay = Math.min(1000 * Math.pow(1.5, retryCount), 10000);
           retryCount++;
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+          }
           reconnectTimeoutRef.current = setTimeout(() => {
             connectSse();
           }, delay);

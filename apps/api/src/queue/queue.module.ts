@@ -1,7 +1,7 @@
 import { Global, Module, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { AppConfigService, ConfigModule } from "../config";
-import { QueueFactory } from "./queue-config";
+import { QueueFactory, buildQueueRedisConnection } from "./queue-config";
 import { QueueService } from "./queue.service";
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -25,7 +25,6 @@ import { PrismaService } from "../prisma/prisma.service";
         prisma: PrismaService,
       ): QueueService => {
         const logger = new AppLogger({ name: "QueueService" });
-        const redisUrl = new URL(configService.redisUrl);
 
         /**
          * Connection options passed directly to ioredis by BullMQ.
@@ -37,20 +36,14 @@ import { PrismaService } from "../prisma/prisma.service";
          * enableOfflineQueue: false → commands fail fast instead of queuing
          * up indefinitely when the connection is not ready.
          */
-        const connection = {
-          host: redisUrl.hostname,
-          port: Number(redisUrl.port) || 6379,
-          password: redisUrl.password || undefined,
-          // Stop reconnecting immediately when Redis is unavailable at startup.
-          retryStrategy: () => null as null,
-          enableOfflineQueue: false,
-        };
+        const connection = buildQueueRedisConnection(configService.redisUrl);
 
         // Initialize all queues eagerly on module startup
         QueueFactory.createQueue("generation", connection);
         QueueFactory.createQueue("evaluation", connection);
         QueueFactory.createQueue("analytics", connection);
         QueueFactory.createQueue("validation", connection);
+        QueueFactory.createQueue("code-execution", connection);
 
         return new QueueService(logger, prisma);
       },

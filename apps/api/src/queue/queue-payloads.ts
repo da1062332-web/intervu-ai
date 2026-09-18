@@ -14,6 +14,7 @@ export enum QueueType {
   EVALUATION = "evaluation",
   ANALYTICS = "analytics",
   VALIDATION = "validation",
+  CODE_EXECUTION = "code-execution",
 }
 
 // ─── TypeScript Interfaces ─────────────────────────────────────────────────────
@@ -61,11 +62,30 @@ export interface ValidationQueueMessage extends BaseQueueMessage {
   };
 }
 
+/**
+ * Code execution jobs carry the raw candidate submission (mode + DTO + caller
+ * identity) through to a bounded-concurrency worker instead of every request
+ * hitting Judge0 directly and unboundedly. `dto`/`user` are `unknown` here
+ * because this file has no dependency on the coding module's types — the
+ * processor casts them back to `RunCodeDto`/`SubmitCodeDto`/`AuthUser`.
+ */
+export interface CodeExecutionQueueMessage extends BaseQueueMessage {
+  type: QueueType.CODE_EXECUTION;
+  payload: {
+    mode: "run" | "submit";
+    // Optional here only to match the Zod-inferred type below (z.unknown()
+    // fields infer as optional) — enqueueCodeExecution always supplies both.
+    dto?: unknown;
+    user?: unknown;
+  };
+}
+
 export type QueueMessage =
   | GenerationQueueMessage
   | EvaluationQueueMessage
   | AnalyticsQueueMessage
-  | ValidationQueueMessage;
+  | ValidationQueueMessage
+  | CodeExecutionQueueMessage;
 
 export interface QueueJobResult {
   success: boolean;
@@ -119,15 +139,26 @@ export const ValidationJobSchema = BaseJobSchema.extend({
   }),
 });
 
+export const CodeExecutionJobSchema = BaseJobSchema.extend({
+  type: z.literal(QueueType.CODE_EXECUTION),
+  payload: z.object({
+    mode: z.union([z.literal("run"), z.literal("submit")]),
+    dto: z.unknown(),
+    user: z.unknown(),
+  }),
+});
+
 // Discriminated union for full payload validation
 export const AnyJobSchema = z.discriminatedUnion("type", [
   GenerationJobSchema,
   EvaluationJobSchema,
   AnalyticsJobSchema,
   ValidationJobSchema,
+  CodeExecutionJobSchema,
 ]);
 
 export type GenerationJobInput = z.infer<typeof GenerationJobSchema>;
 export type EvaluationJobInput = z.infer<typeof EvaluationJobSchema>;
 export type AnalyticsJobInput = z.infer<typeof AnalyticsJobSchema>;
 export type ValidationJobInput = z.infer<typeof ValidationJobSchema>;
+export type CodeExecutionJobInput = z.infer<typeof CodeExecutionJobSchema>;

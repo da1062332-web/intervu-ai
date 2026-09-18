@@ -162,7 +162,14 @@ export class SubmissionService {
         }
       }
 
-      const { submission, executionResult } = await this.prisma.$transaction(
+      // Only the writes that must be atomic live inside the transaction below.
+      // Reading back the answers to build the evaluation payload is read-only
+      // and doesn't need transactional isolation — running it after commit
+      // keeps the transaction to a handful of indexed point-writes instead
+      // of holding a scarce pgbouncer transaction-mode connection open for a
+      // full-attempt answer scan too. That matters most exactly when it's
+      // riskiest: everyone submitting together near a shared deadline.
+      const submission = await this.prisma.$transaction(
         async (tx) => {
           // 2. Lock and fetch assessment
           const testInstance = await this.validator.validateAssessment(
@@ -226,65 +233,70 @@ export class SubmissionService {
             },
           });
 
-          // 7. Collect answers for Evaluation
-          const ansRepo = this.answerRepo.withTransaction(tx);
-          const answers = await ansRepo.findAll({ testInstanceId });
-
-          const executionResult: ExecutionResultDto = {
-            executionId: submission.id,
-            testId: testInstanceId,
-            status: "submitted",
-            submittedAt: new Date(),
-            answers: answers.map((a) => {
-              // Safely extract the answer string from the Prisma Json field
-              let answerStr = "";
-              if (typeof a.answer === "string") {
-                answerStr = a.answer;
-              } else if (typeof a.answer === "object" && a.answer !== null) {
-                const ansObj = a.answer as Record<string, any>;
-                // For coding submissions, preserve the complete JSON payload
-                if (
-                  ansObj.code !== undefined ||
-                  ansObj.sourceCode !== undefined ||
-                  ansObj.files !== undefined
-                ) {
-                  answerStr = JSON.stringify(a.answer);
-                } else {
-                  // For MCQs, extract the specific option value
-                  answerStr =
-                    ansObj.selectedOptionId ||
-                    ansObj.answer ||
-                    ansObj.textResponse ||
-                    ansObj.value ||
-                    JSON.stringify(a.answer);
-                }
-              } else {
-                answerStr = String(a.answer || "");
-              }
-              return {
-                questionId: a.questionId,
-                answer: answerStr,
-                timeSpentSeconds: a.timeSpentSeconds,
-                isMarkedForReview: a.isMarkedForReview,
-              };
-            }),
-          };
-
-          return { submission, executionResult };
+          return submission;
         },
         {
-          timeout: 90000,
-          maxWait: 60000,
+          // The transaction now only does a handful of indexed point-writes
+          // (status update, submission count/create, one event insert) — if
+          // that doesn't finish in a few seconds something is actually wrong,
+          // and failing fast releases the pooled connection instead of
+          // holding it for up to the previous 90s ceiling.
+          timeout: 15000,
+          maxWait: 10000,
         },
       );
 
       this.logger.info(
-        "Transaction committed successfully, enqueuing to evaluation queue",
+        "Transaction committed successfully, collecting answers for evaluation queue",
         {
           submissionId: submission.id,
           testInstanceId,
         },
       );
+
+      // 7. Collect answers for evaluation — read-only, done after commit so
+      // it never holds the transactional connection open.
+      const answers = await this.answerRepo.findAll({ testInstanceId });
+
+      const executionResult: ExecutionResultDto = {
+        executionId: submission.id,
+        testId: testInstanceId,
+        status: "submitted",
+        submittedAt: new Date(),
+        answers: answers.map((a) => {
+          // Safely extract the answer string from the Prisma Json field
+          let answerStr = "";
+          if (typeof a.answer === "string") {
+            answerStr = a.answer;
+          } else if (typeof a.answer === "object" && a.answer !== null) {
+            const ansObj = a.answer as Record<string, any>;
+            // For coding submissions, preserve the complete JSON payload
+            if (
+              ansObj.code !== undefined ||
+              ansObj.sourceCode !== undefined ||
+              ansObj.files !== undefined
+            ) {
+              answerStr = JSON.stringify(a.answer);
+            } else {
+              // For MCQs, extract the specific option value
+              answerStr =
+                ansObj.selectedOptionId ||
+                ansObj.answer ||
+                ansObj.textResponse ||
+                ansObj.value ||
+                JSON.stringify(a.answer);
+            }
+          } else {
+            answerStr = String(a.answer || "");
+          }
+          return {
+            questionId: a.questionId,
+            answer: answerStr,
+            timeSpentSeconds: a.timeSpentSeconds,
+            isMarkedForReview: a.isMarkedForReview,
+          };
+        }),
+      };
 
       // CON-003: Invalidate cached test instance state so autosave cannot use
       // stale IN_PROGRESS status and write answers after submission

@@ -1,45 +1,105 @@
 services:
-  # 1. Combined API and Worker Web Service
+  # 1. API service
+  #
+  # Previously this ran combined with the background worker in one process
+  # (scripts/start-combined.js). Split apart so the worker's queue
+  # processing (and its own DB/Redis load) can no longer starve the API's
+  # request-handling capacity, and so each can be scaled independently.
+  #
+  # `plan: starter` is a single instance with no autoscaling. To actually
+  # serve concurrent load beyond what one instance can handle, this needs a
+  # Render plan tier that supports horizontal scaling (Professional or
+  # above), at which point add:
+  #   scaling:
+  #     minInstances: 2
+  #     maxInstances: 6
+  #     targetCPUPercent: 65
   - type: web
-    name: intervu-backend-combined
-    env: node
+    name: intervu-api
+    runtime: node
     region: singapore # Closest Render region to Supabase in AWS Mumbai (~30ms latency)
-    plan: starter # Dedicated CPU, no sleep/cold starts
-    buildCommand: npm install && npx turbo run build --filter=@intervu-ai/api --filter=@intervu-ai/worker
-    startCommand: node scripts/start-combined.js
+    plan: starter
+    buildCommand: npm install && npx turbo run build --filter=@intervu-ai/api
+    startCommand: node scripts/start-api.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        sync: false # Supabase Transaction Pooler (port 6543 with ?pgbouncer=true)
+        sync: false # Supabase Transaction Pooler (port 6543 with ?pgbouncer=true) — set an explicit connection_limit matching the Supabase pooler size
       - key: DIRECT_URL
         sync: false # Supabase Direct Connection (port 5432) for Prisma migrations
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: intervu-redis
           property: connectionString
       - key: NODE_OPTIONS
         value: --max-old-space-size=1536 # 1.5GB heap to prevent blocking GC pauses
-      - key: WORKER_CONCURRENCY
-        value: 2
+      - key: CODE_EXECUTION_CONCURRENCY
+        value: 20 # Bounded concurrency to sustain up to 1,200 code evaluations/min for 2,000 candidates
+      - key: CODE_EXECUTION_MAX_QUEUE_DEPTH
+        value: 500 # Smoothly absorbs surge bursts from 2,000 concurrent students without premature 503s
       - key: ENABLE_GENERATION_QUEUE
-        value: true
+        value: "true"
       - key: ENABLE_EVALUATION_QUEUE
-        value: true
+        value: "true"
       - key: ENABLE_ANALYTICS_QUEUE
-        value: true
+        value: "true"
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
+      - key: INTERNAL_SERVICE_TOKEN
+        generateValue: true # Must match the same value set on intervu-worker below
 
-  # 2. Next.js Frontend Web Service
+  # 2. Background worker service (generation / evaluation / analytics queues)
+  #
+  # Runs as its own Render service so a burst of queue work can't compete
+  # with the API's Node event loop or memory budget for candidate-facing
+  # requests. Note: code execution (Judge0 submissions) is NOT processed
+  # here — that queue's consumer runs inside the API service, since it needs
+  # the coding module's full Nest dependency graph. See
+  # apps/api/src/modules/coding/services/code-execution-queue-processor.service.ts.
+  - type: worker
+    name: intervu-worker
+    runtime: node
+    region: singapore
+    plan: starter
+    buildCommand: npm install && npx turbo run build --filter=@intervu-ai/worker
+    startCommand: node scripts/start-worker.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # Same value as intervu-api's DATABASE_URL — move to a shared Render env group to avoid drift
+      - key: DIRECT_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: intervu-redis
+          property: connectionString
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=1024
+      - key: WORKER_CONCURRENCY
+        value: 4
+      - key: ENABLE_GENERATION_QUEUE
+        value: "true"
+      - key: ENABLE_EVALUATION_QUEUE
+        value: "true"
+      - key: ENABLE_ANALYTICS_QUEUE
+        value: "true"
+      - key: INTERNAL_API_URL
+        value: http://intervu-api:10000
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false # Must match intervu-api's INTERNAL_SERVICE_TOKEN exactly
+
+  # 3. Next.js Frontend Web Service
   - type: web
     name: intervu-web
-    env: node
+    runtime: node
     region: singapore # Closest region to users in India/Asia
     plan: starter
     buildCommand: npm install && npx turbo run build --filter=@intervu-ai/web
@@ -48,14 +108,11 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: intervu-backend-combined
-          property: url
+        sync: false # Set to your public API URL (e.g. https://intervu-api.onrender.com or custom domain)
 
-# 3. Managed Redis
-redis:
-  - name: intervu-redis
+  # 4. Managed Key Value (Redis)
+  - type: keyvalue
+    name: intervu-redis
     region: singapore
     plan: starter # Persistent instance (does not expire)
     ipAllowList: [] # empty IP allowlist permits connection from other services within Render account

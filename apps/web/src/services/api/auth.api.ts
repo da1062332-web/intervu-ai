@@ -102,7 +102,18 @@ export async function refreshSession(): Promise<string | null> {
 
     const authState = useAuthStore.getState();
     if (authState.user) {
-      authState.setAuthenticated(authState.user);
+      // Re-fetch the current user so a server-side role change (e.g. promoted to ADMIN)
+      // is reflected client-side instead of routing on the stale cached role.
+      try {
+        const freshUser = await apiClient.request<AuthUser>(`${AUTH_BASE_PATH}/me`, {
+          skipAuthRefresh: true,
+          skipErrorToast: true,
+          trackLoading: false,
+        });
+        authState.setAuthenticated(freshUser);
+      } catch {
+        authState.setAuthenticated(authState.user);
+      }
     }
 
     return payload.accessToken;

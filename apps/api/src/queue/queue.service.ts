@@ -8,14 +8,17 @@ import {
   EvaluationQueueMessage,
   AnalyticsQueueMessage,
   ValidationQueueMessage,
+  CodeExecutionQueueMessage,
   GenerationJobSchema,
   EvaluationJobSchema,
   AnalyticsJobSchema,
   ValidationJobSchema,
+  CodeExecutionJobSchema,
   GenerationJobInput,
   EvaluationJobInput,
   AnalyticsJobInput,
   ValidationJobInput,
+  CodeExecutionJobInput,
 } from "./queue-payloads";
 import { BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
@@ -33,6 +36,7 @@ export interface AllQueueMetrics {
   evaluation: QueueMetrics;
   analytics: QueueMetrics;
   validation: QueueMetrics;
+  "code-execution": QueueMetrics;
 }
 
 export class QueueService {
@@ -132,6 +136,34 @@ export class QueueService {
       });
     }
     return this.enqueue(QueueType.VALIDATION, result.data);
+  }
+
+  /**
+   * Enqueues a candidate code run/submit job. Unlike the other enqueue*
+   * methods this one returns the raw `Job` so the caller (the coding
+   * controller) can await its completion directly — the HTTP response for a
+   * code submission IS the job result, there's no separate "check status
+   * later" flow for candidates.
+   */
+  async enqueueCodeExecution(
+    payload: Omit<CodeExecutionJobInput, "type">,
+  ): Promise<Job> {
+    const fullPayload: CodeExecutionQueueMessage = {
+      ...payload,
+      type: QueueType.CODE_EXECUTION,
+    };
+    const result = CodeExecutionJobSchema.safeParse(fullPayload);
+    if (!result.success) {
+      throw new BadRequestException({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid code execution job payload",
+          details: result.error.format(),
+        },
+      });
+    }
+    return this.enqueue(QueueType.CODE_EXECUTION, result.data);
   }
 
   // ─── Job Inspection ──────────────────────────────────────────────────────────
@@ -318,13 +350,21 @@ export class QueueService {
    * Used by the Queue Monitor endpoint.
    */
   async getQueueMetrics(): Promise<AllQueueMetrics> {
-    const [generation, evaluation, analytics, validation] = await Promise.all([
-      this.getQueueCounts(QueueType.GENERATION),
-      this.getQueueCounts(QueueType.EVALUATION),
-      this.getQueueCounts(QueueType.ANALYTICS),
-      this.getQueueCounts(QueueType.VALIDATION),
-    ]);
-    return { generation, evaluation, analytics, validation };
+    const [generation, evaluation, analytics, validation, codeExecution] =
+      await Promise.all([
+        this.getQueueCounts(QueueType.GENERATION),
+        this.getQueueCounts(QueueType.EVALUATION),
+        this.getQueueCounts(QueueType.ANALYTICS),
+        this.getQueueCounts(QueueType.VALIDATION),
+        this.getQueueCounts(QueueType.CODE_EXECUTION),
+      ]);
+    return {
+      generation,
+      evaluation,
+      analytics,
+      validation,
+      "code-execution": codeExecution,
+    };
   }
 
   // ─── Job Operations ───────────────────────────────────────────────────────────

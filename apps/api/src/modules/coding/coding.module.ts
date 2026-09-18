@@ -1,5 +1,6 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { ConfigModule } from "../../config";
 import { GenerationAiModule } from "../generation-ai/generation-ai.module";
 import { CodingPatternRepository } from "./repositories/coding-pattern.repository";
 import { CodingOracleRepository } from "./repositories/coding-oracle.repository";
@@ -34,13 +35,15 @@ import { JudgeService } from "./services/judge.service";
 import { CodingExecutionService } from "./services/coding-execution.service";
 import { CodingContextResolverService } from "./services/coding-context-resolver.service";
 import { SubmissionEvaluatorService } from "./services/submission-evaluator.service";
+import { CodeExecutionQueueService } from "./services/code-execution-queue.service";
+import { CodeExecutionQueueProcessorService } from "./services/code-execution-queue-processor.service";
 
 const standardOracleProviders = Object.values(StandardOracles).filter(
   (val) => typeof val === "function" && val.prototype,
 ) as any[];
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => GenerationAiModule)],
+  imports: [PrismaModule, ConfigModule, forwardRef(() => GenerationAiModule)],
   controllers: [
     CodingPatternController,
     CodingOracleController,
@@ -64,6 +67,8 @@ const standardOracleProviders = Object.values(StandardOracles).filter(
     SubmissionEvaluatorService,
     CodingContextResolverService,
     CodingExecutionService,
+    CodeExecutionQueueService,
+    CodeExecutionQueueProcessorService,
     ...standardOracleProviders,
     {
       provide: ORACLE_PROVIDERS_TOKEN,

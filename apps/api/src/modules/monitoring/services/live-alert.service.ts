@@ -14,6 +14,7 @@ export interface LiveAlertPayload {
   attemptId?: string;
   candidateId?: string;
   candidateName?: string;
+  candidateRole?: string;
   severity: AlertSeverity;
   category: AlertCategory;
   title: string;
@@ -33,6 +34,23 @@ export class LiveAlertService {
   }
 
   async emitAlert(alert: LiveAlertPayload): Promise<any> {
+    // Strictly do not emit alerts for ADMIN or PLAN_MANAGER users
+    if (alert.candidateRole === "ADMIN" || alert.candidateRole === "PLAN_MANAGER") {
+      return null;
+    }
+
+    if (alert.candidateId && !alert.candidateRole) {
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { id: alert.candidateId },
+          select: { role: true },
+        });
+        if (user?.role === "ADMIN" || user?.role === "PLAN_MANAGER") {
+          return null;
+        }
+      } catch (_) {}
+    }
+
     const dedupeKey = `${alert.assessmentId}:${alert.attemptId || "global"}:${alert.category}:${alert.severity}`;
     const now = Date.now();
     const lastEmitted = this.recentAlertCooldown.get(dedupeKey);
@@ -122,7 +140,7 @@ export class LiveAlertService {
                 return null;
               }
             })
-            .filter((a) => a && !a.isResolved);
+            .filter((a) => a && !a.isResolved && a.candidateRole !== "ADMIN" && a.candidateRole !== "PLAN_MANAGER");
         }
       } catch (err) {
         this.logger.warn("Failed reading alerts from Redis, falling back to DB", { error: err });
@@ -130,11 +148,32 @@ export class LiveAlertService {
     }
 
     try {
+      const whereClause: any = { isResolved: false };
+      if (assessmentId !== "all") {
+        whereClause.assessmentId = assessmentId;
+      }
       const dbAlerts = await this.prisma.liveAssessmentAlert.findMany({
-        where: { assessmentId, isResolved: false },
+        where: whereClause,
         orderBy: { createdAt: "desc" },
         take: 50,
       });
+
+      const candidateIds = dbAlerts
+        .map((a) => a.candidateId)
+        .filter((cid): cid is string => Boolean(cid));
+
+      if (candidateIds.length > 0) {
+        const adminUsers = await this.prisma.user.findMany({
+          where: {
+            id: { in: candidateIds },
+            role: { in: ["ADMIN", "PLAN_MANAGER"] },
+          },
+          select: { id: true },
+        });
+        const adminIdSet = new Set(adminUsers.map((u) => u.id));
+        return dbAlerts.filter((a) => !a.candidateId || !adminIdSet.has(a.candidateId));
+      }
+
       return dbAlerts;
     } catch (err) {
       this.logger.error("Failed reading alerts from DB", err);

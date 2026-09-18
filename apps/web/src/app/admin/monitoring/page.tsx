@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { SectionHeader } from '@/components/ui/section-header';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,8 @@ import {
   ArrowRight,
   Users,
   RotateCcw,
-  Clock,
   CheckCircle2,
-  Zap,
+  Globe,
   RefreshCw,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -49,11 +48,29 @@ export default function LiveMonitoringOverviewPage() {
       a.code?.toLowerCase().includes(search.toLowerCase()),
   );
 
+  // Platform-wide totals across every assessment currently on this page —
+  // this is the one place a "view everything" summary belongs, so the
+  // "View All Candidates" action lives here once instead of being repeated
+  // in the header and in a separate banner pointing at the same page.
+  const platformTotals = useMemo(
+    () =>
+      assessments.reduce(
+        (acc, a) => {
+          acc.active += a.metrics?.activeCandidates || 0;
+          acc.autoSubmitted += a.metrics?.autoSubmittedCandidates || 0;
+          acc.submitted += a.metrics?.submittedCandidates || 0;
+          return acc;
+        },
+        { active: 0, autoSubmitted: 0, submitted: 0 },
+      ),
+    [assessments],
+  );
+
   return (
     <div className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 pb-16'>
       <SectionHeader
         title='Live Assessment Monitoring'
-        description='Real-time surveillance operations center for 100+ concurrent candidate assessments, anomaly detection, and safe state recovery.'
+        description='Real-time visibility into concurrent candidate assessments, anomaly detection, and safe state recovery.'
         icon={Activity}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin/dashboard' },
@@ -74,6 +91,50 @@ export default function LiveMonitoringOverviewPage() {
         }
       />
 
+      {/* Platform-wide summary + the single entry point into the global,
+          cross-assessment view. */}
+      <Card className='border-primary/20 bg-primary/5 p-4'>
+        <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
+          <div className='grid grid-cols-3 gap-6 sm:gap-10'>
+            <div>
+              <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wide font-medium'>
+                <Users className='size-3.5 text-emerald-500' />
+                Active now
+              </div>
+              <p className='text-xl font-bold text-emerald-600 dark:text-emerald-400'>
+                {platformTotals.active}
+              </p>
+            </div>
+            <div>
+              <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wide font-medium'>
+                <RotateCcw className='size-3.5 text-purple-500' />
+                Auto-submitted
+              </div>
+              <p className='text-xl font-bold text-purple-600 dark:text-purple-400'>
+                {platformTotals.autoSubmitted}
+              </p>
+            </div>
+            <div>
+              <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wide font-medium'>
+                <CheckCircle2 className='size-3.5 text-blue-500' />
+                Submitted
+              </div>
+              <p className='text-xl font-bold text-blue-600 dark:text-blue-400'>
+                {platformTotals.submitted}
+              </p>
+            </div>
+          </div>
+
+          <Link href='/admin/monitoring/all' className='shrink-0'>
+            <Button size='sm' className='text-xs gap-1.5 w-full lg:w-auto'>
+              <Globe className='size-3.5' />
+              View All Candidates
+              <ArrowRight className='size-3.5' />
+            </Button>
+          </Link>
+        </div>
+      </Card>
+
       <div className='flex items-center justify-between gap-4'>
         <div className='relative max-w-md flex-1'>
           <Search className='absolute left-3 top-2.5 size-4 text-muted-foreground' />
@@ -87,39 +148,37 @@ export default function LiveMonitoringOverviewPage() {
       </div>
 
       {loading ? (
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        <div className='space-y-2.5'>
           {[...Array(6)].map((_, i) => (
-            <Card key={`overview-skeleton-${i}`} className='animate-pulse p-4 space-y-4 border'>
-              <div className='flex items-start justify-between gap-2'>
+            <Card key={`overview-skeleton-${i}`} className='animate-pulse p-4'>
+              <div className='flex items-center gap-4'>
                 <div className='space-y-1.5 flex-1'>
-                  <div className='h-4 bg-muted rounded w-3/4' />
-                  <div className='h-3 bg-muted/60 rounded w-1/2' />
+                  <div className='h-4 bg-muted rounded w-1/3' />
+                  <div className='h-3 bg-muted/60 rounded w-1/4' />
                 </div>
-                <div className='h-5 w-14 bg-muted rounded' />
+                <div className='h-8 bg-muted rounded w-64 hidden sm:block' />
+                <div className='h-8 bg-muted rounded w-40' />
               </div>
-              <div className='grid grid-cols-3 gap-2 p-2.5 bg-muted/40 rounded-lg'>
-                <div className='h-8 bg-muted rounded' />
-                <div className='h-8 bg-muted rounded' />
-                <div className='h-8 bg-muted rounded' />
-              </div>
-              <div className='h-8 bg-muted rounded w-full' />
             </Card>
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <Card className='p-8 text-center text-xs text-muted-foreground'>
-          No assessments found matching search.
+          {assessments.length === 0
+            ? 'No assessments are currently active.'
+            : 'No assessments found matching your search.'}
         </Card>
       ) : (
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        <div className='space-y-2.5'>
           {filtered.map((a) => (
             <Card
               key={a.id}
-              className='hover:shadow-md transition-shadow border flex flex-col justify-between'
+              className='hover:shadow-md transition-shadow border p-4 flex flex-col lg:flex-row lg:items-center gap-4'
             >
-              <CardHeader className='p-4 pb-2 space-y-1'>
-                <div className='flex items-start justify-between gap-2'>
-                  <CardTitle className='text-sm font-semibold truncate'>{a.name}</CardTitle>
+              {/* Name & meta */}
+              <div className='min-w-0 lg:flex-1 space-y-1'>
+                <div className='flex items-center gap-2 flex-wrap'>
+                  <CardTitle className='text-sm font-semibold'>{a.name}</CardTitle>
                   <Badge variant='outline' className='text-[10px] font-mono shrink-0'>
                     {a.code}
                   </Badge>
@@ -127,38 +186,41 @@ export default function LiveMonitoringOverviewPage() {
                 <CardDescription className='text-xs'>
                   {a.durationMinutes} min • {a.totalQuestions} questions
                 </CardDescription>
-              </CardHeader>
+              </div>
 
-              <CardContent className='p-4 pt-2 space-y-3'>
-                <div className='grid grid-cols-3 gap-2 p-2.5 bg-muted/40 rounded-lg text-center'>
-                  <div>
-                    <span className='text-[11px] text-muted-foreground block'>Active</span>
-                    <span className='font-bold text-sm text-emerald-600 dark:text-emerald-400'>
-                      {a.metrics?.activeCandidates || 0}
-                    </span>
-                  </div>
-                  <div>
-                    <span className='text-[11px] text-muted-foreground block'>Attention</span>
-                    <span className='font-bold text-sm text-purple-600 dark:text-purple-400'>
-                      {a.metrics?.autoSubmittedCandidates || 0}
-                    </span>
-                  </div>
-                  <div>
-                    <span className='text-[11px] text-muted-foreground block'>Done</span>
-                    <span className='font-bold text-sm text-foreground'>
-                      {a.metrics?.submittedCandidates || 0}
-                    </span>
-                  </div>
+              {/* Stats */}
+              <div className='flex items-center gap-5 sm:gap-8 px-1 shrink-0'>
+                <div className='text-center'>
+                  <span className='text-[11px] text-muted-foreground block'>Active</span>
+                  <span className='font-bold text-sm text-emerald-600 dark:text-emerald-400'>
+                    {a.metrics?.activeCandidates || 0}
+                  </span>
                 </div>
+                <div className='text-center'>
+                  <span className='text-[11px] text-muted-foreground block'>Auto-Submitted</span>
+                  <span className='font-bold text-sm text-purple-600 dark:text-purple-400'>
+                    {a.metrics?.autoSubmittedCandidates || 0}
+                  </span>
+                </div>
+                <div className='text-center'>
+                  <span className='text-[11px] text-muted-foreground block'>Done</span>
+                  <span className='font-bold text-sm text-foreground'>
+                    {a.metrics?.submittedCandidates || 0}
+                  </span>
+                </div>
+              </div>
 
-                <Link href={`/admin/monitoring/${a.id}`} className='block'>
-                  <Button size='sm' className='w-full text-xs gap-1.5 h-8'>
-                    <Activity className='size-3.5' />
-                    Launch Operations Center
-                    <ArrowRight className='size-3.5 ml-auto' />
-                  </Button>
-                </Link>
-              </CardContent>
+              {/* Action */}
+              <Link
+                href={`/admin/monitoring/${a.id}?name=${encodeURIComponent(a.name || '')}`}
+                className='block shrink-0'
+              >
+                <Button size='sm' className='w-full lg:w-auto text-xs gap-1.5 h-8'>
+                  <Activity className='size-3.5' />
+                  View Live Monitoring
+                  <ArrowRight className='size-3.5' />
+                </Button>
+              </Link>
             </Card>
           ))}
         </div>
