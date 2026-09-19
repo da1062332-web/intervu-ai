@@ -49,25 +49,26 @@ export class AssemblyRepository {
           });
 
           // 2. Create Sections and Questions
-          for (const section of sections) {
+          for (let i = 0; i < sections.length; i++) {
+            const section = sections[i];
             const testSection = await tx.testInstanceSection.create({
               data: {
                 testInstanceId: testInstance.id,
-                sectionKey: section.sectionKey,
-                sectionName: section.displayName,
+                sectionKey: section.sectionKey || `section_${i + 1}`,
+                sectionName: section.displayName || `Section ${i + 1}`,
                 durationSeconds: section.durationSeconds,
                 questionCount: section.questionCount,
-                orderIndex: section.orderIndex,
+                orderIndex: i,
               },
             });
 
             if (section.questions.length > 0) {
               await tx.testInstanceQuestion.createMany({
-                data: section.questions.map((q: AllocatedQuestionDto) => ({
+                data: section.questions.map((q: AllocatedQuestionDto, qIdx: number) => ({
                   testInstanceId: testInstance.id,
                   sectionId: testSection.id,
                   questionId: q.questionId,
-                  questionOrder: q.questionOrder,
+                  questionOrder: qIdx,
                   questionSnapshot: q.questionSnapshot as Prisma.InputJsonValue,
                 })),
               });

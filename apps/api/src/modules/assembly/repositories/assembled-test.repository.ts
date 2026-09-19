@@ -18,12 +18,42 @@ export class AssembledTestRepository {
     totalQuestions: number,
   ): Promise<string> {
     try {
+      // Resolve valid ExamConfig ID (or bridge from TestConfig if necessary)
+      let targetExamConfigId = configId;
+      const examConfig = await this.prisma.examConfig.findFirst({
+        where: { OR: [{ id: configId }, { code: configId }] },
+        select: { id: true },
+      });
+      if (examConfig) {
+        targetExamConfigId = examConfig.id;
+      } else {
+        const testConfig = await this.prisma.testConfig.findFirst({
+          where: { OR: [{ id: configId }, { configKey: configId }] },
+        });
+        if (testConfig) {
+          const bridgedExam = await this.prisma.examConfig.upsert({
+            where: { id: testConfig.id },
+            update: {},
+            create: {
+              id: testConfig.id,
+              name: testConfig.displayName,
+              code: testConfig.configKey,
+              role: testConfig.companyName || "Candidate",
+              durationMinutes: Math.max(1, Math.ceil(testConfig.totalDurationSeconds / 60)),
+              totalQuestions: testConfig.totalQuestions || 10,
+              status: "PUBLISHED",
+            },
+          });
+          targetExamConfigId = bridgedExam.id;
+        }
+      }
+
       const result = await this.prisma.$transaction(
         async (tx: Prisma.TransactionClient) => {
           // 1. Create Assembly
           const assembly = await tx.assembledTest.create({
             data: {
-              configId,
+              configId: targetExamConfigId,
               status: AssemblyStatus.DRAFT,
               totalDurationSeconds,
               totalQuestions,
