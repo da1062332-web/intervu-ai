@@ -1107,7 +1107,7 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
    * Retrieves candidate detail for the 9-tab inspection drawer
    */
   async getCandidateDetail(assessmentId: string, attemptId: string): Promise<any> {
-    const [liveRecord, attempt, answers, auditLogs, events, recoveryLogs] = await Promise.all([
+    const [liveRecord, attempt] = await Promise.all([
       this.getCandidateLiveRecord(assessmentId, attemptId),
       this.prisma.testInstance.findUnique({
         where: { id: attemptId },
@@ -1118,29 +1118,47 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
           sections: { include: { questions: true } },
         },
       }),
-      this.prisma.candidateAnswer.findMany({
-        where: { testInstanceId: attemptId },
-        orderBy: { savedAt: "asc" },
-      }),
-      this.prisma.assessmentAuditLog.findMany({
-        where: { attemptId },
-        orderBy: { createdAt: "desc" },
-        take: 100,
-      }),
-      this.prisma.assessmentEvent.findMany({
-        where: { attemptId },
-        orderBy: { timestamp: "desc" },
-        take: 100,
-      }),
-      this.prisma.attemptRecoveryLog.findMany({
-        where: { attemptId },
-        orderBy: { createdAt: "desc" },
-      }),
     ]);
 
     if (!attempt || attempt.user?.role === "ADMIN" || attempt.user?.role === "PLAN_MANAGER") {
       throw new NotFoundException(`Attempt ${attemptId} not found`);
     }
+
+    const [answers, auditLogs, events, recoveryLogs] = await Promise.all([
+      this.prisma.candidateAnswer.findMany({
+        where: { testInstanceId: attemptId },
+        orderBy: { savedAt: "asc" },
+      }),
+      this.prisma.assessmentAuditLog
+        .findMany({
+          where: { attemptId },
+          orderBy: { createdAt: "desc" },
+          take: 100,
+        })
+        .catch((err) => {
+          this.logger.warn(`Failed fetching audit logs for attempt ${attemptId}`, { error: err });
+          return [];
+        }),
+      this.prisma.assessmentEvent
+        .findMany({
+          where: { attemptId },
+          orderBy: { timestamp: "desc" },
+          take: 100,
+        })
+        .catch((err) => {
+          this.logger.warn(`Failed fetching events for attempt ${attemptId}`, { error: err });
+          return [];
+        }),
+      this.prisma.attemptRecoveryLog
+        .findMany({
+          where: { attemptId },
+          orderBy: { createdAt: "desc" },
+        })
+        .catch((err) => {
+          this.logger.warn(`Failed fetching recovery logs for attempt ${attemptId}`, { error: err });
+          return [];
+        }),
+    ]);
 
     const questionSnapshotMap = new Map<string, any>();
     for (const section of attempt.sections) {

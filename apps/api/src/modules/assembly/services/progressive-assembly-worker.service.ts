@@ -196,22 +196,44 @@ export class ProgressiveAssemblyWorkerService {
         }
 
         // Persist to TestInstanceSection & TestInstanceQuestion for execution controller
-        const instanceSectionId = `sec_inst_${assemblyId}_${section.sectionKey}`;
-        await this.prisma.testInstanceSection.upsert({
-          where: { id: instanceSectionId },
-          create: {
-            id: instanceSectionId,
+        let targetSection = await this.prisma.testInstanceSection.findFirst({
+          where: {
             testInstanceId: assemblyId,
             sectionKey: section.sectionKey,
-            sectionName: (section as any).sectionName || section.displayName || "Section",
-            durationSeconds: section.durationSeconds,
-            questionCount: section.questionCount,
-            orderIndex: section.orderIndex || 0,
-          },
-          update: {
-            questionCount: section.questionCount,
           },
         });
+
+        if (targetSection) {
+          await this.prisma.testInstanceSection.update({
+            where: { id: targetSection.id },
+            data: {
+              questionCount: section.questionCount,
+              durationSeconds: section.durationSeconds,
+            },
+          });
+        } else {
+          // Check if orderIndex is already taken to ensure @@unique([testInstanceId, orderIndex]) is never violated
+          const existingWithOrder = await this.prisma.testInstanceSection.count({
+            where: { testInstanceId: assemblyId, orderIndex: section.orderIndex ?? 0 },
+          });
+          const safeOrderIndex =
+            existingWithOrder > 0
+              ? await this.prisma.testInstanceSection.count({ where: { testInstanceId: assemblyId } })
+              : (section.orderIndex ?? 0);
+
+          targetSection = await this.prisma.testInstanceSection.create({
+            data: {
+              testInstanceId: assemblyId,
+              sectionKey: section.sectionKey,
+              sectionName: (section as any).sectionName || section.displayName || "Section",
+              durationSeconds: section.durationSeconds,
+              questionCount: section.questionCount,
+              orderIndex: safeOrderIndex,
+            },
+          });
+        }
+
+        const instanceSectionId = targetSection.id;
 
         if (section.questions && section.questions.length > 0) {
           let questionsToPersist: any[] = section.questions;

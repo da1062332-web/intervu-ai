@@ -86,12 +86,22 @@ export const QUEUE_CONFIG: Record<string, QueueConfig> = {
  */
 export function buildQueueRedisConnection(redisUrl: string): ConnectionOptions {
   const parsed = new URL(redisUrl);
+  const isProduction = process.env.NODE_ENV === "production";
+
   return {
     host: parsed.hostname,
     port: Number(parsed.port) || 6379,
     password: parsed.password || undefined,
-    retryStrategy: () => null as null,
-    enableOfflineQueue: false,
+    maxRetriesPerRequest: null,
+    enableOfflineQueue: isProduction,
+    retryStrategy: (times: number) => {
+      // Avoid infinite spam in local development if Redis is not running
+      if (!isProduction && times > 3) {
+        return null;
+      }
+      // Reconnect with exponential backoff up to 3 seconds
+      return Math.min(times * 200, 3000);
+    },
   };
 }
 

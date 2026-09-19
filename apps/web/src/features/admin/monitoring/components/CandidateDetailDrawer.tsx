@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -78,24 +78,30 @@ export function CandidateDetailDrawer({
   const [forceSubmitDetails, setForceSubmitDetails] = useState('');
   const [isForceSubmitting, setIsForceSubmitting] = useState(false);
 
-  const fetchDetail = async () => {
-    if (!candidate) return;
-    setLoading(true);
+  const isFetchingRef = useRef(false);
+
+  const fetchDetail = async (isBackground = false) => {
+    if (!candidate || isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    if (!isBackground) setLoading(true);
     try {
       const res = await apiClient.request<any>(
         `/admin/monitoring/assessments/${candidate.assessmentId}/candidate/${candidate.attemptId}`,
       );
       setDetailData(res);
     } catch (err) {
-      toast.error('Failed to load candidate telemetry');
+      if (!isBackground) {
+        toast.error('Failed to load candidate telemetry');
+      }
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
   useEffect(() => {
     if (!candidate || !isOpen) return;
-    fetchDetail();
+    fetchDetail(false);
     // Land admins directly on the actionable tab for a candidate who needs
     // attention, instead of requiring a click through from Overview —
     // this is also why the header no longer duplicates a "Launch Recovery
@@ -117,8 +123,8 @@ export function CandidateDetailDrawer({
     if (isEnded) return;
 
     const interval = setInterval(() => {
-      fetchDetail();
-    }, 8000);
+      fetchDetail(true);
+    }, 10000);
     return () => clearInterval(interval);
   }, [candidate?.attemptId, isOpen, candidate?.status]);
 

@@ -25,7 +25,7 @@ export class PrismaService
     // Add automatic retry middleware for transient connection drops (e.g. Supabase socket resets)
     this.$use(async (params, next) => {
       let retries = 0;
-      const maxRetries = 4;
+      const maxRetries = 2;
       while (true) {
         try {
           return await next(params);
@@ -45,7 +45,7 @@ export class PrismaService
             this.logger.warn(
               `[PrismaService] Transient DB connection error on ${params.model}.${params.action} (${err?.message || err?.code}). Retrying attempt ${retries}/${maxRetries}...`,
             );
-            await new Promise((res) => setTimeout(res, 400 * retries));
+            await new Promise((res) => setTimeout(res, 250 * retries));
             continue;
           }
           throw err;
