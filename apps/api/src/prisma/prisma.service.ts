@@ -7,6 +7,7 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   private readonly logger = new Logger(PrismaService.name);
+  private keepAliveInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     super({
@@ -65,9 +66,22 @@ export class PrismaService
     }
 
     await this.$connect();
+
+    // Periodic heartbeat every 45 seconds to keep Supabase pooler connections warm and avoid idle socket resets
+    this.keepAliveInterval = setInterval(async () => {
+      try {
+        await this.$queryRaw`SELECT 1`;
+      } catch (_) {
+        // Ignored; if a socket dropped, next query/retry will reconnect cleanly
+      }
+    }, 45000);
   }
 
   async onModuleDestroy(): Promise<void> {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+      this.keepAliveInterval = null;
+    }
     await this.$disconnect();
   }
 }
