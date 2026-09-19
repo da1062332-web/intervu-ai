@@ -133,7 +133,7 @@ export function TestCard({ test }: TestCardProps) {
         </div>
         <div className='flex flex-col items-center justify-center text-center p-2 rounded-lg bg-card/60 border border-border/40'>
           <RotateCcw className='size-4 text-orange-500 mb-1' />
-          <span className='text-[11px] font-bold text-foreground'>{test.attemptCount || 0}/{test.maxAttempts || 3}</span>
+          <span className='text-[11px] font-bold text-foreground'>{test.attemptCount || 0}/{test.maxAttempts ?? 10}</span>
           <span className='text-[9px] text-muted-foreground uppercase font-semibold tracking-wider mt-0.5'>
             Attempts
           </span>

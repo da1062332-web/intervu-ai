@@ -181,7 +181,7 @@ export class AssembledTestRepository {
   }
 
   async findLatestReusableByConfigId(configId: string) {
-    return this.prisma.assembledTest.findFirst({
+    const assembly = await this.prisma.assembledTest.findFirst({
       where: {
         configId,
         totalQuestions: { gt: 0 },
@@ -213,6 +213,19 @@ export class AssembledTestRepository {
       },
       orderBy: { createdAt: "desc" },
     });
+
+    if (!assembly) return null;
+
+    // Stale check: If examConfig was updated AFTER this pre-assembled test was created/updated,
+    // the pre-assembled test is STALE and cannot be reused!
+    if (
+      assembly.examConfig?.updatedAt &&
+      new Date(assembly.updatedAt).getTime() < new Date(assembly.examConfig.updatedAt).getTime()
+    ) {
+      return null;
+    }
+
+    return assembly;
   }
 
 

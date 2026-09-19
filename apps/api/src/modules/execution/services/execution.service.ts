@@ -201,12 +201,12 @@ export class ExecutionService {
 
     const templates = await this.prisma.template.findMany({
       where: { id: { in: Array.from(templateIds) } },
-      select: { id: true, structure: true },
+      select: { id: true, structure: true, config: true },
     });
 
     const templateMap = new Map<string, any>();
     for (const t of templates) {
-      templateMap.set(t.id, t.structure);
+      templateMap.set(t.id, t);
     }
 
     // 6. Build sections with status derived from TestInstanceSection.status
@@ -301,6 +301,51 @@ export class ExecutionService {
                   }
                 }
               }
+            }
+
+            // Enrich questionMedia and option mediaUrls from Template / Question if missing
+            const templateObj = templateMap.get(rawSnapshot.templateId || rawSnapshot.id || q.questionId);
+            const tStructure = (templateObj?.structure as any) || {};
+            const tMetadata = (templateObj?.metadata as any) || {};
+            const tConfig = (templateObj?.config as any) || {};
+            const dbQuestion = questionMetaMap.get(q.questionId);
+
+            if (!candidateSafeSnapshot.questionMedia) {
+              const stemMedia =
+                (dbQuestion?.metadata as any)?.questionMedia ||
+                (dbQuestion?.metadata as any)?.questionImage ||
+                tMetadata.questionMedia ||
+                tStructure.mcq?.questionMedia ||
+                tStructure.media ||
+                tConfig.questionMedia ||
+                null;
+              if (stemMedia) {
+                candidateSafeSnapshot.questionMedia = stemMedia;
+              }
+            }
+
+            const templateOptions =
+              tConfig.richOptions ||
+              tConfig.options ||
+              tStructure.mcq?.options ||
+              tStructure.options ||
+              tMetadata.options ||
+              (dbQuestion?.metadata as any)?.mcqData?.options ||
+              (dbQuestion?.metadata as any)?.options;
+
+            if (Array.isArray(templateOptions) && Array.isArray(candidateSafeSnapshot.options)) {
+              candidateSafeSnapshot.options = candidateSafeSnapshot.options.map((opt: any, idx: number) => {
+                const tOpt = templateOptions[idx] || templateOptions.find((o: any) => (o.id && opt.id && o.id === opt.id) || (o.key && opt.key && o.key === opt.key));
+                if (tOpt && (tOpt.mediaUrl || tOpt.url || tOpt.image || tOpt.media?.url)) {
+                  const mediaUrl = tOpt.mediaUrl || tOpt.url || tOpt.image || tOpt.media?.url;
+                  if (typeof opt === 'object' && opt !== null) {
+                    return { ...opt, mediaUrl, mode: tOpt.mode || (opt as any).mode };
+                  } else {
+                    return { id: `opt-${idx + 1}`, text: String(opt), mediaUrl, mode: tOpt.mode };
+                  }
+                }
+                return opt;
+              });
             }
 
             // Normalize question text, options, and numbers for clean presentation

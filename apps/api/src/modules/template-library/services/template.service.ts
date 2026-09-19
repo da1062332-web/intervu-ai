@@ -311,6 +311,11 @@ export class TemplateService {
       await this.cacheService.clear("template:list:*");
     }
 
+    // Sync manual template directly to question bank if generationStrategy is MANUAL
+    if ((template.generationStrategy as string) === "MANUAL") {
+      await this.syncManualTemplateToQuestionBank(template);
+    }
+
     // Trigger incremental readiness check in the background
     this.generateQuestionForTemplate(template.id).catch(() => {
       // Errors are handled and update readinessStatus to ERROR
@@ -463,6 +468,11 @@ export class TemplateService {
       await this.cacheService.invalidateSystemTemplates();
     } else {
       await this.cacheService.clear("template:list:*");
+    }
+
+    // Sync manual template directly to question bank if generationStrategy is MANUAL
+    if ((updated.generationStrategy as string) === "MANUAL") {
+      await this.syncManualTemplateToQuestionBank(updated);
     }
 
     // Trigger incremental readiness check in the background
@@ -1178,6 +1188,33 @@ export class TemplateService {
     const template = await this.templateRepository.findById(id);
     if (!template) {
       throw new NotFoundException(`Template ${id} not found`);
+    }
+
+    // If template is MANUAL strategy, return static pre-authored question directly
+    if ((template.generationStrategy as string) === "MANUAL") {
+      const config = (template.config as Record<string, any>) || {};
+      const structure = (template.structure as Record<string, any>) || {};
+      const questionText = config.questionText || structure.stem || template.name;
+      const richOptions = config.richOptions || config.options || [];
+      const options = richOptions.map((o: any) => o.text || o);
+      const correctAnswer = structure.correctAnswer || richOptions.find((o: any) => o.isCorrect)?.key || "A";
+      const explanation = config.solutionExplanation || structure.solution || "";
+
+      await this.syncManualTemplateToQuestionBank(template);
+
+      return {
+        questionText,
+        options,
+        correctAnswer,
+        explanation,
+        parameters: {},
+        isManual: true,
+        metadata: {
+          generationStrategy: "MANUAL",
+          questionMedia: config.questionMedia || structure.media || null,
+          richOptions,
+        },
+      };
     }
 
     // 2. Resolve variables definition
@@ -2207,5 +2244,112 @@ export class TemplateService {
     }
 
     return [];
+  }
+
+  /**
+   * Automatically syncs a MANUAL strategy template into the Question Bank (`questions` table)
+   * so that manual template questions are registered directly in the Question Bank.
+   */
+  private async syncManualTemplateToQuestionBank(template: Template): Promise<void> {
+    if ((template.generationStrategy as string) !== "MANUAL") return;
+
+    try {
+      const config = (template.config as Record<string, any>) || {};
+      const structure = (template.structure as Record<string, any>) || {};
+      const metadata = ((template as any).metadata as Record<string, any>) || {};
+
+      const questionText =
+        config.questionText || structure.stem || structure.mcq?.questionText || template.name;
+      const richOptions =
+        config.richOptions ||
+        config.options ||
+        structure.mcq?.options ||
+        structure.options ||
+        metadata.options ||
+        [];
+      const questionMedia =
+        config.questionMedia ||
+        structure.mcq?.questionMedia ||
+        structure.media ||
+        metadata.questionMedia ||
+        null;
+      const correctAnswerKey =
+        structure.correctAnswer ||
+        richOptions.find((o: any) => o.isCorrect)?.key ||
+        "A";
+      const explanation =
+        config.solutionExplanation || structure.solution || "";
+
+      let topicId = config.topicId || (config.topics && config.topics[0]) || null;
+      let conceptId: string | null = null;
+
+      if (template.conceptKey) {
+        const concept = await this.prisma.concept.findFirst({
+          where: {
+            OR: [
+              { code: { equals: template.conceptKey, mode: "insensitive" } },
+              { name: { equals: template.conceptKey, mode: "insensitive" } },
+            ],
+          },
+        });
+        if (concept) {
+          conceptId = concept.id;
+          topicId = topicId || concept.topicId;
+        }
+      }
+
+      if (!topicId) {
+        const defaultTopic = await this.prisma.topic.findFirst();
+        if (defaultTopic) topicId = defaultTopic.id;
+      }
+
+      if (!topicId) return;
+
+      const existingQuestion = await this.prisma.question.findFirst({
+        where: { templateId: template.id },
+      });
+
+      const questionData = {
+        questionText,
+        answer: correctAnswerKey,
+        explanation,
+        topicId,
+        conceptId,
+        difficulty: String(
+          template.difficultyLevel || template.difficulty || "MEDIUM",
+        ).toUpperCase(),
+        source: "MANUAL",
+        questionSource: "MANUAL" as any,
+        questionType: template.questionType || "MCQ",
+        templateId: template.id,
+        status: "ACTIVE" as any,
+        mcqData: {
+          options: richOptions,
+          correctAnswer: correctAnswerKey,
+          questionMedia: config.questionMedia || structure.media || null,
+        },
+        metadata: {
+          isManualTemplateQuestion: true,
+          templateId: template.id,
+          templateKey: template.templateKey,
+          conceptKey: template.conceptKey,
+        },
+      };
+
+      if (existingQuestion) {
+        await this.prisma.question.update({
+          where: { id: existingQuestion.id },
+          data: questionData,
+        });
+      } else {
+        await this.prisma.question.create({
+          data: questionData,
+        });
+      }
+    } catch (err: any) {
+      this.logger.error(
+        `Failed to sync manual template ${template.id} to Question Bank: ${err?.message || err}`,
+      );
+    }
   }
 }

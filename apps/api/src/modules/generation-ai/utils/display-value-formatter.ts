@@ -229,6 +229,28 @@ export function extractAndNormalizeOptions(
       optionsList = [trimmed];
     }
   } else if (Array.isArray(rawOptions)) {
+    const isRich = rawOptions.some(
+      (opt) =>
+        typeof opt === "object" &&
+        opt !== null &&
+        ("mediaUrl" in opt || "image" in opt || "url" in opt || "mode" in opt || "mediaId" in opt),
+    );
+    if (isRich) {
+      const richList = rawOptions.map((opt) => {
+        if (typeof opt === "object" && opt !== null) {
+          const text = extractStringFromOption(opt);
+          return {
+            ...(opt as Record<string, unknown>),
+            text: text || (opt as any).text || (opt as any).value || "",
+          };
+        }
+        return opt;
+      });
+      return {
+        options: richList as any,
+        correctAnswer: cleanCorrect,
+      };
+    }
     optionsList = rawOptions.map((opt) => extractStringFromOption(opt)).filter((s) => s.length > 0);
   }
 

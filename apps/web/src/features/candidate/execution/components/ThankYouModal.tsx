@@ -21,19 +21,17 @@ export function ThankYouModal({ isOpen }: ThankYouModalProps) {
       return;
     }
 
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          router.replace('/candidate/dashboard');
-          return 0;
-        }
-        return prev - 1;
-      });
+    if (countdown <= 0) {
+      router.replace('/candidate/dashboard');
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown((prev) => Math.max(0, prev - 1));
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [isOpen, router]);
+    return () => clearTimeout(timer);
+  }, [isOpen, countdown, router]);
 
   const total = questions.length;
   let answered = 0;

@@ -58,21 +58,48 @@ export class RuntimeMapperService {
 
     // Resolve question diagram media
     let media: Array<{ id: string; type: string; url: string; altText?: string }> | undefined;
-    if (Array.isArray(snapshot["questionMedia"])) {
-      media = (snapshot["questionMedia"] as any[])
-        .map((qm) => {
+    const rawMedia = snapshot["questionMedia"] || snapshot["questionImage"] || snapshot["mediaUrl"];
+    if (Array.isArray(rawMedia)) {
+      media = rawMedia
+        .map((qm: any, idx: number) => {
+          if (!qm) return null;
+          if (typeof qm === "string") {
+            return { id: `media-${idx}`, type: "IMAGE", url: qm };
+          }
           const asset = qm.mediaAsset;
-          if (asset && asset.storageKey) {
+          const url = asset?.storageKey
+            ? this.mediaAssetService.resolveUrl(asset.storageKey)
+            : qm.mediaUrl || qm.url || asset?.url || null;
+          if (url) {
             return {
-              id: asset.id,
-              type: asset.type || "IMAGE",
-              url: this.mediaAssetService.resolveUrl(asset.storageKey),
-              altText: asset.altText || undefined,
+              id: asset?.id || qm.id || `media-${idx}`,
+              type: asset?.type || qm.type || "IMAGE",
+              url,
+              altText: asset?.altText || qm.altText || undefined,
             };
           }
           return null;
         })
         .filter(Boolean) as any;
+    } else if (rawMedia) {
+      if (typeof rawMedia === "string") {
+        media = [{ id: "media-0", type: "IMAGE", url: rawMedia }];
+      } else if (typeof rawMedia === "object") {
+        const asset = (rawMedia as any).mediaAsset;
+        const url = asset?.storageKey
+          ? this.mediaAssetService.resolveUrl(asset.storageKey)
+          : (rawMedia as any).mediaUrl || (rawMedia as any).url || asset?.url || null;
+        if (url) {
+          media = [
+            {
+              id: asset?.id || (rawMedia as any).id || "media-0",
+              type: asset?.type || (rawMedia as any).type || "IMAGE",
+              url,
+              altText: asset?.altText || (rawMedia as any).altText || undefined,
+            },
+          ];
+        }
+      }
     }
 
     // Resolve options (rich or legacy string array)

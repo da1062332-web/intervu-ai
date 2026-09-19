@@ -67,22 +67,55 @@ export class QuestionAllocatorService {
       q.options ||
       q.mcqData?.options ||
       q.mcqData?.choices ||
+      q.structure?.mcq?.options ||
+      q.structure?.options ||
       q.metadata?.options ||
       q.metadata?.choices ||
       q.choices ||
       [];
 
     let normalizedOptions: any[] = [];
-    if (rawOptions) {
+    if (Array.isArray(rawOptions) && rawOptions.length > 0) {
+      normalizedOptions = rawOptions.map((opt: any) => {
+        if (typeof opt === "object" && opt !== null) {
+          return {
+            id: opt.id || opt.key || undefined,
+            key: opt.key || opt.id || undefined,
+            text: opt.text ?? opt.value ?? opt.label ?? extractStringFromOption(opt),
+            mediaUrl: opt.mediaUrl || opt.url || opt.media?.url || opt.image || undefined,
+            mediaId: opt.mediaId || undefined,
+            mode: opt.mode || undefined,
+            isCorrect: opt.isCorrect ?? undefined,
+          };
+        }
+        return opt;
+      });
+    } else if (rawOptions) {
       const extracted = extractAndNormalizeOptions(rawOptions, rawAnswer);
       if (extracted.options && extracted.options.length > 0) {
         normalizedOptions = extracted.options;
       }
     }
 
+    const questionMedia =
+      q.questionMedia ||
+      q.metadata?.questionMedia ||
+      q.mcqData?.questionMedia ||
+      q.structure?.mcq?.questionMedia ||
+      q.structure?.media ||
+      q.questionImage ||
+      q.mediaUrl ||
+      null;
+
     return {
       ...q,
       options: normalizedOptions,
+      mcqData: {
+        ...(q.mcqData || {}),
+        options: normalizedOptions,
+        questionMedia: questionMedia || (q.mcqData as any)?.questionMedia || undefined,
+      },
+      questionMedia: questionMedia || q.questionMedia || undefined,
       answer: rawAnswer,
       explanation: q.explanation ?? q.solution ?? "",
     };
