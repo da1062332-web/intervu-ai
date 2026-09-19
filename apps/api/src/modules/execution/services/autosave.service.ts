@@ -44,6 +44,17 @@ export class AutosaveService {
     this.validator.validateOwnership(testInstance, userId);
     this.validator.validateSubmissionState(testInstance);
 
+    if (testInstance.status === "CREATED") {
+      await this.prisma.testInstance
+        .update({
+          where: { id: testInstanceId },
+          data: { status: "IN_PROGRESS", startedAt: testInstance.startedAt || new Date() },
+        })
+        .catch(() => {});
+      (testInstance as any).status = "IN_PROGRESS";
+      await this.cacheService.set(cacheKey, testInstance, { ttl: 600 });
+    }
+
     // 3. Load or initialize execution state from cache/DB
     const stateCacheKey = `execution-state:${testInstanceId}`;
     let cachedState = await this.cacheService.get<{

@@ -133,6 +133,8 @@ export class SubmissionService {
           },
         );
         isAutoSubmit = true;
+        source = "TIMEOUT";
+        reason = "TIME_EXPIRED";
       }
 
       if (!validation.isValid) {
@@ -306,12 +308,19 @@ export class SubmissionService {
         }),
       };
 
-      // CON-003: Invalidate cached test instance state so autosave cannot use
-      // stale IN_PROGRESS status and write answers after submission
+      // CON-003: Invalidate cached test instance state and monitoring state so
+      // live monitoring and autosave immediately reflect the terminal submission
+      const assessmentId =
+        (testInstanceCheck as any)?.examConfigId ||
+        (testInstanceCheck as any)?.testConfigId ||
+        "";
       await Promise.allSettled([
         this.cacheService.delete(`test-instance:meta:${testInstanceId}`),
         this.cacheService.delete(`execution-state:${testInstanceId}`),
         this.cacheService.delete(`assessment-snapshot:${testInstanceId}`),
+        ...(assessmentId
+          ? [this.cacheService.delete(`assessment:${assessmentId}:attempt:${testInstanceId}:state`)]
+          : []),
       ]);
       // 8. Convert answers array to map for the queue
       const answersMap: Record<string, string> = {};

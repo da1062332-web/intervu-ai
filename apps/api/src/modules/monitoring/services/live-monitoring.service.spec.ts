@@ -68,6 +68,7 @@ describe("LiveMonitoringService", () => {
           user: { id: "candidate-user-1", name: "Jane Doe", email: "jane@example.com" },
         }),
         update: jest.fn().mockResolvedValue({ id: "attempt-101" }),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
       executionState: {
         findUnique: jest.fn().mockResolvedValue({
@@ -296,6 +297,103 @@ describe("LiveMonitoringService", () => {
 
       const record = await service.getCandidateLiveRecord("assessment-uuid", "attempt-101");
       expect(record?.proctoringStrikes).toBe(4);
+    });
+
+    it("should transition candidate from NOT_STARTED to ACTIVE on incoming heartbeat", async () => {
+      const key = REDIS_KEYS.attemptState("assessment-uuid", "attempt-not-started");
+      redisStorage.set(
+        key,
+        JSON.stringify({
+          assessmentId: "assessment-uuid",
+          attemptId: "attempt-not-started",
+          candidateId: "candidate-user-2",
+          candidateName: "John Doe",
+          candidateEmail: "john@example.com",
+          status: "NOT_STARTED",
+          currentSectionKey: "sec-1",
+          currentSectionIndex: 0,
+          currentQuestionId: "q-1",
+          currentQuestionIndex: 0,
+          answeredCount: 0,
+          totalQuestions: 10,
+          markedQuestionsCount: 0,
+          remainingTimeSeconds: 3600,
+          expiresAt: new Date(Date.now() + 3600000).toISOString(),
+          lastHeartbeatAt: Date.now(),
+          lastStateSyncAt: Date.now(),
+          latencyMs: 40,
+          networkStatus: "ONLINE",
+          autosaveHealth: "HEALTHY",
+          unsyncedAnswersCount: 0,
+          proctoringStrikes: 0,
+          isNeedsAttention: false,
+          incidentReasons: [],
+        }),
+      );
+
+      const result = await service.recordHeartbeat("attempt-not-started", "candidate-user-2", {
+        currentSectionKey: "sec-1",
+        currentSectionIndex: 0,
+        currentQuestionId: "q-1",
+        currentQuestionIndex: 0,
+        answeredCount: 1,
+        totalQuestions: 10,
+        remainingTimeSeconds: 3500,
+      });
+
+      expect(result.status).toBe("ACTIVE");
+      const record = await service.getCandidateLiveRecord("assessment-uuid", "attempt-not-started");
+      expect(record?.status).toBe("ACTIVE");
+      expect(record?.answeredCount).toBe(1);
+    });
+
+    it("should NOT auto-submit if expiresAt is in the future even if client sends remainingTimeSeconds: 0", async () => {
+      const futureExpiry = new Date(Date.now() + 7200000).toISOString();
+      const key = REDIS_KEYS.attemptState("assessment-uuid", "attempt-future");
+      redisStorage.set(
+        key,
+        JSON.stringify({
+          assessmentId: "assessment-uuid",
+          attemptId: "attempt-future",
+          candidateId: "candidate-user-3",
+          candidateName: "Alice",
+          candidateEmail: "alice@example.com",
+          status: "ACTIVE",
+          currentSectionKey: "sec-1",
+          currentSectionIndex: 0,
+          currentQuestionId: "q-1",
+          currentQuestionIndex: 0,
+          answeredCount: 5,
+          totalQuestions: 10,
+          markedQuestionsCount: 0,
+          remainingTimeSeconds: 7200,
+          expiresAt: futureExpiry,
+          lastHeartbeatAt: Date.now(),
+          lastStateSyncAt: Date.now(),
+          latencyMs: 40,
+          networkStatus: "ONLINE",
+          autosaveHealth: "HEALTHY",
+          unsyncedAnswersCount: 0,
+          proctoringStrikes: 0,
+          isNeedsAttention: false,
+          incidentReasons: [],
+        }),
+      );
+
+      const result = await service.recordHeartbeat("attempt-future", "candidate-user-3", {
+        currentSectionKey: "sec-1",
+        currentSectionIndex: 0,
+        currentQuestionId: "q-1",
+        currentQuestionIndex: 0,
+        answeredCount: 5,
+        totalQuestions: 10,
+        remainingTimeSeconds: 0, // Client sending 0 e.g. at end of test window
+      });
+
+      // Status must remain ACTIVE because authoritative expiresAt has 2 hours left!
+      expect(result.status).toBe("ACTIVE");
+      expect(result.directive).toBeUndefined();
+      expect(result.remainingTimeSeconds).toBeGreaterThan(7000);
     });
   });
 

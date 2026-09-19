@@ -163,10 +163,36 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
 
     // 2. Validate / Update State
     let newStatus: CandidateLiveState = record.status;
-    if (newStatus === "DISCONNECTED" || newStatus === "RECONNECTING") {
+    if (
+      newStatus === "DISCONNECTED" ||
+      newStatus === "RECONNECTING" ||
+      newStatus === "NOT_STARTED" ||
+      newStatus === "STARTING"
+    ) {
       newStatus = "ACTIVE";
-      // Candidate recovered
-      this.logger.info(`Candidate ${candidateId} recovered to ACTIVE`, { attemptId });
+      if (record.status !== "ACTIVE") {
+        this.logger.info(`Candidate ${candidateId} transitioned to ACTIVE`, {
+          attemptId,
+          previousStatus: record.status,
+        });
+      }
+
+      // Synchronize database TestInstance status if it was still in CREATED
+      if (record.status === "NOT_STARTED" || record.status === "STARTING") {
+        if (typeof this.prisma.testInstance?.updateMany === "function") {
+          this.prisma.testInstance
+            .updateMany({
+              where: { id: attemptId, status: "CREATED" },
+              data: { status: "IN_PROGRESS", startedAt: new Date() },
+            })
+            .catch((err) => {
+              this.logger.warn("Failed updating TestInstance to IN_PROGRESS in DB on heartbeat", {
+                attemptId,
+                error: err,
+              });
+            });
+        }
+      }
     }
 
     // 3. Evaluate Needs Attention criteria
@@ -210,13 +236,23 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
 
     // Server-Authoritative Timer Recalculation
     let authoritativeRemainingSeconds = record.remainingTimeSeconds;
+    let hasAuthoritativeExpiry = false;
     if (record.expiresAt) {
       const expiresAtMs = new Date(record.expiresAt).getTime();
-      authoritativeRemainingSeconds = Math.max(0, Math.floor((expiresAtMs - now) / 1000));
+      if (!isNaN(expiresAtMs)) {
+        hasAuthoritativeExpiry = true;
+        authoritativeRemainingSeconds = Math.max(0, Math.floor((expiresAtMs - now) / 1000));
+      }
     }
 
     // Authoritative Server-Side Timeout Detection
-    if (authoritativeRemainingSeconds <= 0 && (newStatus === "ACTIVE" || newStatus === "STARTING")) {
+    // ONLY trigger auto-submission if expiresAt was genuinely set and is now in the past!
+    // Never auto-submit on routine client heartbeat if expiresAt is in the future.
+    if (
+      hasAuthoritativeExpiry &&
+      authoritativeRemainingSeconds <= 0 &&
+      newStatus === "ACTIVE"
+    ) {
       newStatus = "AUTO_SUBMITTED";
       isNeedsAttention = true;
       if (!incidentReasons.includes("Time Expired")) {
@@ -752,8 +788,20 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       remainingTime = Math.max(0, Math.floor((new Date(attempt.expiresAt).getTime() - Date.now()) / 1000));
     }
 
-    const status: CandidateLiveState =
+    let status: CandidateLiveState =
       TEST_INSTANCE_STATUS_TO_LIVE_STATE[attempt?.status || "CREATED"] || "ACTIVE";
+    if (status === "NOT_STARTED" && answersCount > 0) {
+      status = "ACTIVE";
+    }
+
+    if (attempt?.status === "CREATED" && answersCount > 0 && typeof this.prisma.testInstance?.updateMany === "function") {
+      this.prisma.testInstance
+        .updateMany({
+          where: { id: attemptId, status: "CREATED" },
+          data: { status: "IN_PROGRESS", startedAt: attempt.startedAt || new Date() },
+        })
+        .catch(() => {});
+    }
     const latestSubmission = attempt?.submissions?.[0];
 
     return {
@@ -946,6 +994,11 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
 
         // If DB status is ACTIVE or IN_PROGRESS but heartbeat is absent in Redis, candidate is DISCONNECTED
         if (att.status === "IN_PROGRESS" || (att.status as any) === "ACTIVE") {
+          status = "DISCONNECTED";
+          networkStatus = "OFFLINE";
+          isNeedsAttention = true;
+          incidentReasons.push("Heartbeat Offline / Key Expired");
+        } else if (status === "NOT_STARTED" && answersCount > 0) {
           status = "DISCONNECTED";
           networkStatus = "OFFLINE";
           isNeedsAttention = true;
