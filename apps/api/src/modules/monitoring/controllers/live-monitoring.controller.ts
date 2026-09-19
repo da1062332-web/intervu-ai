@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Param,
   Query,
   Body,
@@ -32,6 +33,10 @@ import {
   ForceSubmitDto,
   QueryCandidatesDto,
   ResolveAlertDto,
+  BulkExtendTimeDto,
+  BulkRecoverDto,
+  BulkForceSubmitDto,
+  BulkDeleteDto,
 } from "../dto/monitoring.dto";
 import { PrismaService } from "../../../prisma/prisma.service";
 
@@ -262,6 +267,157 @@ export class LiveMonitoringController {
       user.email,
       dto,
     );
+  }
+
+  @Delete("attempts/:attemptId")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Admin permanently deletes a candidate's test attempt and all associated data" })
+  async deleteAttempt(
+    @Param("attemptId") attemptId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.monitoringService.deleteAttempt(attemptId, user.id, user.email);
+  }
+
+  @Post("bulk/extend-time")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bulk admin add extra minutes to multiple candidate attempts" })
+  async bulkExtendTime(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: BulkExtendTimeDto,
+  ) {
+    const results = await Promise.allSettled(
+      dto.attemptIds.map(async (attemptId) => {
+        const assessmentId = await this.monitoringService.resolveAssessmentId(attemptId);
+        return this.recoveryService.adminExtendTime(
+          assessmentId,
+          attemptId,
+          user.id,
+          user.email,
+          {
+            extraMinutes: dto.extraMinutes,
+            reason: dto.reason || `Bulk +${dto.extraMinutes}m proctor extension`,
+          },
+        );
+      }),
+    );
+
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+
+    return {
+      total: dto.attemptIds.length,
+      succeeded,
+      failed,
+      results: results.map((r, i) => ({
+        attemptId: dto.attemptIds[i],
+        success: r.status === "fulfilled",
+        error: r.status === "rejected" ? (r as PromiseRejectedResult).reason?.message : undefined,
+      })),
+    };
+  }
+
+  @Post("bulk/recover")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bulk admin authorize resume for multiple candidate attempts" })
+  async bulkRecover(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: BulkRecoverDto,
+  ) {
+    const results = await Promise.allSettled(
+      dto.attemptIds.map(async (attemptId) => {
+        const assessmentId = await this.monitoringService.resolveAssessmentId(attemptId);
+        return this.recoveryService.authorizeResume(
+          assessmentId,
+          attemptId,
+          user.id,
+          user.email,
+          {
+            extraTimeMinutes: dto.extraTimeMinutes ?? 5,
+            reason: dto.reason || "Bulk administrative recovery authorization",
+          },
+        );
+      }),
+    );
+
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+
+    return {
+      total: dto.attemptIds.length,
+      succeeded,
+      failed,
+      results: results.map((r, i) => ({
+        attemptId: dto.attemptIds[i],
+        success: r.status === "fulfilled",
+        error: r.status === "rejected" ? (r as PromiseRejectedResult).reason?.message : undefined,
+      })),
+    };
+  }
+
+  @Post("bulk/force-submit")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bulk admin emergency force submit multiple candidate attempts" })
+  async bulkForceSubmit(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: BulkForceSubmitDto,
+  ) {
+    const results = await Promise.allSettled(
+      dto.attemptIds.map(async (attemptId) => {
+        const assessmentId = await this.monitoringService.resolveAssessmentId(attemptId);
+        return this.recoveryService.adminForceSubmit(
+          assessmentId,
+          attemptId,
+          user.id,
+          user.email,
+          {
+            reasonDetails: dto.reason || "Bulk administrative force submission",
+          },
+        );
+      }),
+    );
+
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+
+    return {
+      total: dto.attemptIds.length,
+      succeeded,
+      failed,
+      results: results.map((r, i) => ({
+        attemptId: dto.attemptIds[i],
+        success: r.status === "fulfilled",
+        error: r.status === "rejected" ? (r as PromiseRejectedResult).reason?.message : undefined,
+      })),
+    };
+  }
+
+  @Post("bulk/delete")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Bulk admin permanently deletes multiple candidates' test attempts and all associated data" })
+  async bulkDeleteAttempts(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: BulkDeleteDto,
+  ) {
+    const results = await Promise.allSettled(
+      dto.attemptIds.map((attemptId) =>
+        this.monitoringService.deleteAttempt(attemptId, user.id, user.email),
+      ),
+    );
+
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+
+    return {
+      total: dto.attemptIds.length,
+      succeeded,
+      failed,
+      results: results.map((r, i) => ({
+        attemptId: dto.attemptIds[i],
+        success: r.status === "fulfilled",
+        error: r.status === "rejected" ? (r as PromiseRejectedResult).reason?.message : undefined,
+      })),
+    };
   }
 
   @Get("assessments/:id/coding-stats")

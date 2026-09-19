@@ -52,7 +52,18 @@ export class GlobalErrorFilter implements ExceptionFilter {
       details = respObj.details || null;
     } else if (exception && typeof exception === "object") {
       const excObj = exception as Record<string, unknown>;
-      if (excObj.code && typeof excObj.code === "string") {
+      const dbConnectionCodes = new Set(["P1001", "P1002", "P1017", "P2024"]);
+      const isDbConnectionError =
+        dbConnectionCodes.has(excObj.code as string) ||
+        dbConnectionCodes.has(excObj.errorCode as string) ||
+        excObj.name === "PrismaClientInitializationError";
+
+      if (isDbConnectionError) {
+        status = HttpStatus.SERVICE_UNAVAILABLE;
+        errorCode = "DATABASE_UNAVAILABLE";
+        message =
+          "The database is temporarily unreachable. Please retry in a moment.";
+      } else if (excObj.code && typeof excObj.code === "string") {
         errorCode = excObj.code;
         message = (excObj.message as string) || message;
         details = excObj.details || null;

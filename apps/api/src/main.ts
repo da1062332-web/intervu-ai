@@ -40,39 +40,7 @@ async function bootstrap() {
     );
   }
 
-  // Security middleware
-  app.use(helmet());
-  app.use(compression());
-
-  // API prefix and versioning
-  app.setGlobalPrefix("api/v1");
-
-  // Root and health ping handler for load balancers and Render uptime checks (prevents 404 Cannot GET/HEAD /)
-  const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.get("/", (_req: any, res: any) =>
-    res.status(200).json({ status: "ok", service: "intervu-api" }),
-  );
-  expressApp.head("/", (_req: any, res: any) => res.status(200).end());
-  expressApp.get("/favicon.ico", (_req: any, res: any) => res.status(204).end());
-  expressApp.head("/favicon.ico", (_req: any, res: any) => res.status(204).end());
-
-  // Global pipes
-
-  app.useGlobalPipes(new ZodValidationPipe());
-
-  // Global filters
-  app.useGlobalFilters(new GlobalErrorFilter());
-
-  // Global Interceptors
-  const reflector = app.get(Reflector);
-  app.useGlobalInterceptors(
-    new TimeoutInterceptor(),
-    new ResponseInterceptor(),
-    new ResponseValidationInterceptor(reflector),
-    new ObservabilityInterceptor(),
-  );
-
-  // CORS configuration
+  // CORS configuration (must be enabled before other middleware)
   const defaultAllowedOrigins = [
     "http://localhost:3000",
     "http://localhost:3001",
@@ -122,7 +90,54 @@ async function bootstrap() {
       }
     },
     credentials: true,
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+      "X-Correlation-Id",
+      "X-Request-Id",
+    ],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    maxAge: 86400, // 24 hours preflight caching
   });
+
+  // Security middleware
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    }),
+  );
+  app.use(compression());
+
+  // API prefix and versioning
+  app.setGlobalPrefix("api/v1");
+
+  // Root and health ping handler for load balancers and Render uptime checks (prevents 404 Cannot GET/HEAD /)
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.get("/", (_req: any, res: any) =>
+    res.status(200).json({ status: "ok", service: "intervu-api" }),
+  );
+  expressApp.head("/", (_req: any, res: any) => res.status(200).end());
+  expressApp.get("/favicon.ico", (_req: any, res: any) => res.status(204).end());
+  expressApp.head("/favicon.ico", (_req: any, res: any) => res.status(204).end());
+
+  // Global pipes
+  app.useGlobalPipes(new ZodValidationPipe());
+
+  // Global filters
+  app.useGlobalFilters(new GlobalErrorFilter());
+
+  // Global Interceptors
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(
+    new TimeoutInterceptor(),
+    new ResponseInterceptor(),
+    new ResponseValidationInterceptor(reflector),
+    new ObservabilityInterceptor(),
+  );
 
   // Swagger documentation
   const configBuilder = new DocumentBuilder()

@@ -18,7 +18,10 @@ import {
   Eye,
   Plus,
   X,
+  Trash2,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { CandidateItem } from '../hooks/useLiveMonitoring';
 import { apiClient } from '@/services/api/client';
 import { toast } from 'sonner';
@@ -43,6 +46,10 @@ interface CandidateLiveTableProps {
   activeStatusFilter: string;
   searchQuery: string;
   isLoading?: boolean;
+  selectedAttemptIds?: Set<string>;
+  onToggleSelect?: (attemptId: string) => void;
+  onSelectAll?: () => void;
+  onClearSelection?: () => void;
 }
 
 export function CandidateLiveTable({
@@ -56,8 +63,27 @@ export function CandidateLiveTable({
   activeStatusFilter,
   searchQuery,
   isLoading = false,
+  selectedAttemptIds = new Set(),
+  onToggleSelect,
+  onSelectAll,
+  onClearSelection,
 }: CandidateLiveTableProps) {
   const [extendingId, setExtendingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteAttempt = async (candidate: CandidateItem) => {
+    setDeletingId(candidate.attemptId);
+    try {
+      await apiClient.request(`/admin/monitoring/attempts/${candidate.attemptId}`, {
+        method: 'DELETE',
+      });
+      toast.success(`Deleted attempt for ${candidate.candidateName || 'candidate'}`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to delete attempt');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleQuickExtendTime = async (candidate: CandidateItem, minutes = 5) => {
     setExtendingId(candidate.attemptId);
@@ -198,7 +224,26 @@ export function CandidateLiveTable({
         <table className='w-full text-left text-xs border-collapse'>
           <thead className='sticky top-0 z-10'>
             <tr className='border-b bg-muted/95 backdrop-blur-sm text-muted-foreground font-semibold'>
-              <th className='p-3 pl-4'>Candidate</th>
+              <th className='p-3 pl-4 w-9'>
+                <Checkbox
+                  checked={
+                    candidates.length > 0 &&
+                    candidates.every((c) => selectedAttemptIds.has(c.attemptId))
+                  }
+                  onCheckedChange={() => {
+                    const allSelected =
+                      candidates.length > 0 &&
+                      candidates.every((c) => selectedAttemptIds.has(c.attemptId));
+                    if (allSelected) {
+                      onClearSelection?.();
+                    } else {
+                      onSelectAll?.();
+                    }
+                  }}
+                  aria-label='Select all on page'
+                />
+              </th>
+              <th className='p-3'>Candidate</th>
               <th className='p-3'>Live State</th>
               <th className='p-3'>Section & Question</th>
               <th className='p-3'>Progress</th>
@@ -212,7 +257,10 @@ export function CandidateLiveTable({
             {isLoading && candidates.length === 0 ? (
               [...Array(5)].map((_, i) => (
                 <tr key={`skeleton-${i}`} className='animate-pulse'>
-                  <td className='p-3 pl-4'>
+                  <td className='p-3 pl-4 w-9'>
+                    <div className='size-4 bg-muted rounded' />
+                  </td>
+                  <td className='p-3'>
                     <div className='flex items-center gap-2.5'>
                       <div className='size-8 rounded-full bg-muted shrink-0' />
                       <div className='space-y-1'>
@@ -232,7 +280,7 @@ export function CandidateLiveTable({
               ))
             ) : candidates.length === 0 ? (
               <tr>
-                <td colSpan={8} className='p-8 text-center text-muted-foreground text-xs'>
+                <td colSpan={9} className='p-8 text-center text-muted-foreground text-xs'>
                   No candidate attempts found matching criteria.
                 </td>
               </tr>
@@ -246,14 +294,27 @@ export function CandidateLiveTable({
                 const isAutoSubmitted =
                   c.status === 'AUTO_SUBMITTED' || c.status === 'ADMIN_REVIEW';
                 const isTerminal = TERMINAL_STATUSES.has(c.status);
+                const isSelected = selectedAttemptIds.has(c.attemptId);
 
                 return (
                   <tr
                     key={c.attemptId}
                     className={`hover:bg-muted/40 transition-colors ${
-                      c.isNeedsAttention ? 'bg-amber-50/30 dark:bg-amber-950/20' : ''
+                      isSelected
+                        ? 'bg-primary/10 dark:bg-primary/15'
+                        : c.isNeedsAttention
+                          ? 'bg-amber-50/30 dark:bg-amber-950/20'
+                          : ''
                     }`}
                   >
+                    {/* Checkbox */}
+                    <td className='p-3 pl-4 w-9'>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onToggleSelect?.(c.attemptId)}
+                        aria-label={`Select ${c.candidateName}`}
+                      />
+                    </td>
                     {/* Candidate */}
                     <td className='p-3 pl-4'>
                       <div className='flex items-center gap-2.5'>
@@ -272,7 +333,15 @@ export function CandidateLiveTable({
                     </td>
 
                     {/* Status */}
-                    <td className='p-3 whitespace-nowrap'>{getStatusBadge(c.status)}</td>
+                    <td className='p-3 whitespace-nowrap'>
+                      {getStatusBadge(c.status)}
+                      {isAutoSubmitted &&
+                        (c.submissionReason || (c.incidentReasons?.length || 0) > 0) && (
+                          <div className='text-[10px] text-muted-foreground mt-1 max-w-[140px] truncate' title={c.submissionReason || c.incidentReasons.join(', ')}>
+                            {c.submissionReason || c.incidentReasons.join(', ')}
+                          </div>
+                        )}
+                    </td>
 
                     {/* Section & Question */}
                     <td className='p-3 whitespace-nowrap'>
@@ -393,6 +462,28 @@ export function CandidateLiveTable({
                           <Eye className='size-3' />
                           Inspect
                         </Button>
+
+                        <ConfirmationDialog
+                          title='Delete this test attempt?'
+                          description={`This permanently deletes ${
+                            c.candidateName || 'this candidate'
+                          }'s attempt and all associated answers, submissions, and results. This cannot be undone.`}
+                          confirmLabel='Delete Permanently'
+                          destructive
+                          isLoading={deletingId === c.attemptId}
+                          onConfirm={() => handleDeleteAttempt(c)}
+                          trigger={
+                            <Button
+                              size='sm'
+                              variant='outline'
+                              disabled={deletingId === c.attemptId}
+                              className='h-7 w-7 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-200 dark:border-rose-900'
+                              title='Delete attempt permanently'
+                            >
+                              <Trash2 className='size-3.5' />
+                            </Button>
+                          }
+                        />
                       </div>
                     </td>
                   </tr>

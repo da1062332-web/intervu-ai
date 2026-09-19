@@ -45,7 +45,16 @@ export class SubmissionController {
     @Query("autoSubmit") autoSubmit?: string,
     @Query("allowPartial") allowPartial?: string,
   ): Promise<any> {
-    const isAutoSubmit = autoSubmit === "true" || allowPartial === "true";
-    return this.submissionService.submitAssessment(id, user.id, isAutoSubmit);
+    const isAutoSubmit = autoSubmit === "true";
+    const isAllowPartial = allowPartial === "true";
+    return this.submissionService.submitAssessment(
+      id,
+      user.id,
+      isAutoSubmit,
+      isAutoSubmit ? "TIMEOUT" : "USER",
+      isAutoSubmit ? "TIME_EXPIRED" : "USER_SUBMIT",
+      undefined,
+      isAllowPartial,
+    );
   }
 }

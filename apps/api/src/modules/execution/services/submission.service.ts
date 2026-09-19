@@ -47,11 +47,13 @@ export class SubmissionService {
     source: "USER" | "SYSTEM" | "RULE_ENGINE" | "TIMEOUT" | "ADMIN" = isAutoSubmit ? "TIMEOUT" : "USER",
     reason: "USER_SUBMIT" | "TIME_EXPIRED" | "PROCTORING_LIMIT" | "NETWORK_FAILURE" | "SESSION_EXPIRY" | "SYSTEM_FAILURE" | "ADMIN_ACTION" | "OTHER" = isAutoSubmit ? "TIME_EXPIRED" : "USER_SUBMIT",
     reasonDetails?: string,
+    allowPartial = false,
   ): Promise<{ submissionId: string; status: string }> {
     this.logger.info("Initiating assessment submission", {
       testInstanceId,
       userId,
       isAutoSubmit,
+      allowPartial,
       source,
       reason,
     });
@@ -146,7 +148,7 @@ export class SubmissionService {
             message: "The allowed time window for this assessment has expired.",
           });
         }
-        if (validation.missingQuestionIds.length > 0 && !isAutoSubmit) {
+        if (validation.missingQuestionIds.length > 0 && !isAutoSubmit && !allowPartial) {
           throw new BadRequestException({
             code: "MISSING_ANSWERS",
             message: `${validation.missingQuestionIds.length} required questions have not been answered.`,
@@ -154,11 +156,17 @@ export class SubmissionService {
           });
         }
         if (!isAutoSubmit) {
-          throw new BadRequestException({
-            code: "VALIDATION_FAILED",
-            message: "Pre-submission validation pipeline failed.",
-            details: validation.errors,
-          });
+          const remainingErrors = allowPartial
+            ? validation.errors.filter((e) => !e.startsWith("Missing Answers:"))
+            : validation.errors;
+
+          if (remainingErrors.length > 0) {
+            throw new BadRequestException({
+              code: "VALIDATION_FAILED",
+              message: "Pre-submission validation pipeline failed.",
+              details: remainingErrors,
+            });
+          }
         }
       }
 

@@ -275,13 +275,18 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
           (prev || []).map((c) => {
             if (c && c.attemptId === p.attemptId) {
               matched = true;
+              const isAttentionState = p.newState === 'AUTO_SUBMITTED' || p.newState === 'ADMIN_REVIEW';
+              const isClearedState = p.newState === 'ACTIVE' || p.newState === 'COMPLETED';
               return {
                 ...c,
                 status: p.newState || c.status,
-                isNeedsAttention:
-                  p.newState === 'AUTO_SUBMITTED' || p.newState === 'ADMIN_REVIEW'
-                    ? true
-                    : c.isNeedsAttention,
+                isNeedsAttention: isAttentionState ? true : c.isNeedsAttention,
+                submissionReason: p.reason ?? c.submissionReason,
+                incidentReasons: isClearedState
+                  ? []
+                  : isAttentionState && p.reason
+                    ? Array.from(new Set([...(c.incidentReasons || []), p.reason]))
+                    : c.incidentReasons,
               };
             }
             return c;
@@ -344,6 +349,10 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         setAlerts((prev) =>
           (prev || []).map((a) => (a && a.id === targetAlertId ? { ...a, isResolved: true } : a)),
         );
+      } else if (data.type === 'ATTEMPT_DELETED') {
+        const p = data.payload || data;
+        if (!p || !p.attemptId) return;
+        setCandidates((prev) => (prev || []).filter((c) => c && c.attemptId !== p.attemptId));
       } else if (data.type === 'RECOVERY_RESUME_AUTHORIZED') {
         const p = data.payload || data;
         if (!p || !p.attemptId) return;
@@ -400,6 +409,7 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         es.addEventListener('ALERT_EMITTED', handleMessageEvent as any);
         es.addEventListener('ALERT_RESOLVED', handleMessageEvent as any);
         es.addEventListener('RECOVERY_RESUME_AUTHORIZED', handleMessageEvent as any);
+        es.addEventListener('ATTEMPT_DELETED', handleMessageEvent as any);
 
         es.onerror = () => {
           if (isCancelled) return;

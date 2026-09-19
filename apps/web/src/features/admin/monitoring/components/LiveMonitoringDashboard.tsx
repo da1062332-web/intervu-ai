@@ -14,6 +14,9 @@ import { AlertCenter } from './AlertCenter';
 import { CandidateLiveTable } from './CandidateLiveTable';
 import { CandidateDetailDrawer } from './CandidateDetailDrawer';
 import { RecoveryCenterModal } from './RecoveryCenterModal';
+import { BulkActionBar } from './BulkActionBar';
+import { apiClient } from '@/services/api/client';
+import { toast } from 'sonner';
 
 interface LiveMonitoringDashboardProps {
   assessmentId: string;
@@ -34,6 +37,10 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [recoveryCandidate, setRecoveryCandidate] = useState<CandidateItem | null>(null);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
+
+  // Multi-selection state for bulk operations
+  const [selectedAttemptIds, setSelectedAttemptIds] = useState<Set<string>>(new Set());
+  const [isBulkActing, setIsBulkActing] = useState(false);
 
   const {
     candidates,
@@ -71,20 +78,174 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
     setIsRecoveryOpen(true);
   };
 
-  // `selectedCandidate` is captured once, at the moment "Inspect" is
-  // clicked — it never sees the SSE heartbeats/state transitions that keep
-  // `candidates` current, so the open drawer would otherwise sit frozen at
-  // whatever status/progress/latency the candidate had at that instant.
-  // Re-resolving it from the live list on every render keeps it in sync;
-  // it only falls back to the captured snapshot if the candidate has
-  // dropped out of the current filtered/paginated view.
+  // Selection handlers
+  const handleToggleSelect = (attemptId: string) => {
+    setSelectedAttemptIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(attemptId)) {
+        next.delete(attemptId);
+      } else {
+        next.add(attemptId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectMultiple = (ids: string[]) => {
+    setSelectedAttemptIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const handleDeselectMultiple = (ids: string[]) => {
+    setSelectedAttemptIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.delete(id));
+      return next;
+    });
+  };
+
+  const handleSelectAllVisible = () => {
+    const ids = candidates.map((c) => c.attemptId);
+    setSelectedAttemptIds(new Set(ids));
+  };
+
+  const handleClearSelection = () => {
+    setSelectedAttemptIds(new Set());
+  };
+
+  // Bulk Actions
+  const handleBulkExtendTime = async (attemptIdsOrMinutes: string[] | number, minutesParam?: number) => {
+    let ids: string[];
+    let extraMinutes: number;
+
+    if (Array.isArray(attemptIdsOrMinutes)) {
+      ids = attemptIdsOrMinutes;
+      extraMinutes = minutesParam || 10;
+    } else {
+      ids = Array.from(selectedAttemptIds);
+      extraMinutes = attemptIdsOrMinutes;
+    }
+
+    if (ids.length === 0) return;
+
+    setIsBulkActing(true);
+    try {
+      const res = await apiClient.request<{ succeeded: number; failed: number; total: number }>(
+        '/admin/monitoring/bulk/extend-time',
+        {
+          method: 'POST',
+          body: { attemptIds: ids, extraMinutes, reason: `Bulk +${extraMinutes}m proctor extension` },
+        },
+      );
+      if (res.succeeded > 0) {
+        toast.success(`Granted +${extraMinutes}m to ${res.succeeded} candidate${res.succeeded > 1 ? 's' : ''}`);
+      }
+      if (res.failed > 0) {
+        toast.error(`Failed to extend time for ${res.failed} candidate${res.failed > 1 ? 's' : ''}`);
+      }
+      handleClearSelection();
+      await refetch();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to execute bulk time extension');
+    } finally {
+      setIsBulkActing(false);
+    }
+  };
+
+  const handleBulkRecover = async (attemptIdsParam?: string[], graceMinutes = 5) => {
+    const ids = attemptIdsParam && attemptIdsParam.length > 0 ? attemptIdsParam : Array.from(selectedAttemptIds);
+    if (ids.length === 0) return;
+
+    setIsBulkActing(true);
+    try {
+      const res = await apiClient.request<{ succeeded: number; failed: number; total: number }>(
+        '/admin/monitoring/bulk/recover',
+        {
+          method: 'POST',
+          body: { attemptIds: ids, extraTimeMinutes: graceMinutes, reason: 'Bulk admin recovery authorization' },
+        },
+      );
+      if (res.succeeded > 0) {
+        toast.success(`Authorized resume (+${graceMinutes}m) for ${res.succeeded} candidate${res.succeeded > 1 ? 's' : ''}`);
+      }
+      if (res.failed > 0) {
+        toast.error(`Could not resume ${res.failed} candidate${res.failed > 1 ? 's' : ''} (not in recoverable state)`);
+      }
+      handleClearSelection();
+      await refetch();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to execute bulk recovery');
+    } finally {
+      setIsBulkActing(false);
+    }
+  };
+
+  const handleBulkForceSubmit = async (attemptIdsParam?: string[]) => {
+    const ids = attemptIdsParam && attemptIdsParam.length > 0 ? attemptIdsParam : Array.from(selectedAttemptIds);
+    if (ids.length === 0) return;
+
+    setIsBulkActing(true);
+    try {
+      const res = await apiClient.request<{ succeeded: number; failed: number; total: number }>(
+        '/admin/monitoring/bulk/force-submit',
+        {
+          method: 'POST',
+          body: { attemptIds: ids, reason: 'Bulk administrative force submit' },
+        },
+      );
+      if (res.succeeded > 0) {
+        toast.success(`Force-submitted ${res.succeeded} attempt${res.succeeded > 1 ? 's' : ''}`);
+      }
+      if (res.failed > 0) {
+        toast.error(`Failed to force-submit ${res.failed} attempt${res.failed > 1 ? 's' : ''}`);
+      }
+      handleClearSelection();
+      await refetch();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to execute bulk force submit');
+    } finally {
+      setIsBulkActing(false);
+    }
+  };
+
+  const handleBulkDelete = async (attemptIdsParam?: string[]) => {
+    const ids = attemptIdsParam && attemptIdsParam.length > 0 ? attemptIdsParam : Array.from(selectedAttemptIds);
+    if (ids.length === 0) return;
+
+    setIsBulkActing(true);
+    try {
+      const res = await apiClient.request<{ succeeded: number; failed: number; total: number }>(
+        '/admin/monitoring/bulk/delete',
+        {
+          method: 'POST',
+          body: { attemptIds: ids },
+        },
+      );
+      if (res.succeeded > 0) {
+        toast.success(`Deleted ${res.succeeded} attempt${res.succeeded > 1 ? 's' : ''}`);
+      }
+      if (res.failed > 0) {
+        toast.error(`Failed to delete ${res.failed} attempt${res.failed > 1 ? 's' : ''} (still live or already removed)`);
+      }
+      handleClearSelection();
+      await refetch();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to execute bulk delete');
+    } finally {
+      setIsBulkActing(false);
+    }
+  };
+
   const liveSelectedCandidate = useMemo(() => {
     if (!selectedCandidate) return null;
     return candidates.find((c) => c.attemptId === selectedCandidate.attemptId) || selectedCandidate;
   }, [candidates, selectedCandidate]);
 
   return (
-    <div className='container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 pb-16'>
+    <div className='container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 pb-24'>
       {/* Header */}
       <SectionHeader
         title={isGlobalAll ? 'All Assessments — Live Monitoring' : assessmentName || 'Live Monitoring'}
@@ -254,6 +415,12 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
         candidates={candidates}
         onSelectCandidate={handleInspect}
         onOpenRecovery={handleOpenRecovery}
+        selectedAttemptIds={selectedAttemptIds}
+        onToggleSelect={handleToggleSelect}
+        onSelectMultiple={handleSelectMultiple}
+        onDeselectMultiple={handleDeselectMultiple}
+        onBulkRecover={handleBulkRecover}
+        onBulkExtendTime={handleBulkExtendTime}
       />
 
       {/* Centralized Alert Center */}
@@ -275,6 +442,10 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
         activeStatusFilter={statusFilter}
         searchQuery={search}
         isLoading={isLoading}
+        selectedAttemptIds={selectedAttemptIds}
+        onToggleSelect={handleToggleSelect}
+        onSelectAll={handleSelectAllVisible}
+        onClearSelection={handleClearSelection}
       />
 
       {/* 9-Tab Candidate Detail Drawer */}
@@ -292,6 +463,17 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
         isOpen={isRecoveryOpen}
         onClose={() => setIsRecoveryOpen(false)}
         onRecoveryComplete={() => refetch()}
+      />
+
+      {/* Floating Bulk Actions Bar */}
+      <BulkActionBar
+        selectedCount={selectedAttemptIds.size}
+        onExtendTime={(minutes) => handleBulkExtendTime(minutes)}
+        onRecover={(graceMinutes) => handleBulkRecover(undefined, graceMinutes)}
+        onForceSubmit={() => handleBulkForceSubmit()}
+        onDelete={() => handleBulkDelete()}
+        onClearSelection={handleClearSelection}
+        isActing={isBulkActing}
       />
     </div>
   );

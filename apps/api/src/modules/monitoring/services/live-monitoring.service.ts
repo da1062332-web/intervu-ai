@@ -450,6 +450,80 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     return record;
   }
 
+  private static readonly LIVE_SESSION_STATUSES = new Set([
+    "IN_PROGRESS",
+    "ACTIVE",
+    "STARTING",
+    "RECONNECTING",
+    "SUBMITTING",
+    "RESUME_AUTHORIZED",
+    "RESUMED",
+  ]);
+
+  /**
+   * Permanently deletes a candidate's test attempt and all cascaded data
+   * (answers, submissions, execution state, audit/event logs, results).
+   * Blocked while the candidate's session is still live to avoid corrupting
+   * an in-progress exam — force-submit or recover it first.
+   */
+  async deleteAttempt(
+    attemptId: string,
+    actorId: string,
+    actorEmail: string,
+  ): Promise<{ success: boolean; attemptId: string }> {
+    const attempt = await this.prisma.testInstance.findUnique({
+      where: { id: attemptId },
+      select: {
+        id: true,
+        status: true,
+        userId: true,
+        user: { select: { role: true, email: true } },
+      },
+    });
+
+    if (!attempt || attempt.user?.role === "ADMIN" || attempt.user?.role === "PLAN_MANAGER") {
+      throw new NotFoundException(`Attempt ${attemptId} not found`);
+    }
+
+    if (LiveMonitoringService.LIVE_SESSION_STATUSES.has(attempt.status)) {
+      throw new BadRequestException(
+        `Cannot delete attempt ${attemptId} while its session is still live (status: ${attempt.status}). Force-submit or recover it first.`,
+      );
+    }
+
+    const assessmentId = await this.resolveAssessmentId(attemptId);
+
+    await this.prisma.testInstance.delete({ where: { id: attemptId } });
+
+    if (this.isRedisAvailable()) {
+      try {
+        const redis = RedisConnectionManager.getInstance();
+        await redis.del(REDIS_KEYS.attemptState(assessmentId, attemptId));
+        await redis.del(REDIS_KEYS.attemptMetadata(attemptId));
+        await redis.srem(REDIS_KEYS.assessmentActiveSet(assessmentId), attemptId);
+        await redis.publish(
+          REDIS_KEYS.assessmentEventsChannel(assessmentId),
+          JSON.stringify({
+            type: "ATTEMPT_DELETED",
+            payload: { attemptId },
+            timestamp: new Date().toISOString(),
+          }),
+        );
+      } catch (err) {
+        this.logger.warn("Failed cleaning up Redis state after attempt deletion", { error: err });
+      }
+    }
+
+    // The attempt's own audit-log rows are cascade-deleted along with it, so this
+    // admin action is recorded in the application log stream instead.
+    this.logger.warn(
+      `[ADMIN ACTION] Attempt ${attemptId} (candidate: ${attempt.user?.email || attempt.userId}) permanently deleted by ${actorEmail || actorId}`,
+      { attemptId, assessmentId, actorId, actorEmail },
+    );
+
+    return { success: true, attemptId };
+  }
+
   /**
    * Watchdog cycle: Scans active attempts, detects disconnects and prolonged outages.
    */
