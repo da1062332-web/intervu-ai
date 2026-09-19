@@ -78,8 +78,33 @@ try {
   );
   console.log("✅ Database migrations completed successfully.");
 } catch (error) {
-  console.error("❌ Database migration failed:", error);
-  process.exit(1);
+  console.warn(
+    "⚠️ Initial migrate deploy failed, attempting automatic recovery for stuck migrations..."
+  );
+  const stuckMigrations = ["20260918120000_add_media_assets"];
+  for (const mig of stuckMigrations) {
+    try {
+      console.log(`🔧 Attempting migrate resolve --rolled-back "${mig}"...`);
+      execSync(
+        `npx prisma migrate resolve --rolled-back "${mig}" --schema=packages/database/prisma/schema.prisma`,
+        { stdio: "inherit" }
+      );
+    } catch (e) {
+      // Ignore if not in failed state
+    }
+  }
+
+  try {
+    console.log("🔄 Retrying database migrations...");
+    execSync(
+      "npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma",
+      { stdio: "inherit" },
+    );
+    console.log("✅ Database migrations completed successfully after recovery.");
+  } catch (retryError) {
+    console.error("❌ Database migration failed:", retryError);
+    process.exit(1);
+  }
 }
 
 // 3. Start NestJS API
