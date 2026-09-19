@@ -1,8 +1,8 @@
 export const MONITORING_CONFIG = {
   HEARTBEAT_INTERVAL_MS: 15000, // 15 seconds for scale
   HEARTBEAT_WARNING_THRESHOLD_MS: 30000, // 30 seconds
-  HEARTBEAT_DISCONNECT_THRESHOLD_MS: 45000, // 45 seconds -> Mark DISCONNECTED
-  PROLONGED_DISCONNECT_THRESHOLD_MS: 120000, // 120 seconds -> P1 Critical Alert
+  HEARTBEAT_DISCONNECT_THRESHOLD_MS: 90000, // 90 seconds -> Mark DISCONNECTED (client heartbeat cadence is ~28s with p95 latency up to ~11s under load; 45s left almost no margin and caused false OFFLINE flags on candidates who were actively answering)
+  PROLONGED_DISCONNECT_THRESHOLD_MS: 180000, // 180 seconds -> P1 Critical Alert
   SLOW_LATENCY_THRESHOLD_MS: 600, // 600ms latency -> SLOW
   HIGH_STRIKE_THRESHOLD: 3, // >= 3 strikes -> Needs Attention
   MAX_PROCTORING_STRIKES: 5, // 5 strikes -> Auto-submit
