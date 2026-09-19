@@ -36,30 +36,47 @@ interface AttemptHistoryTableProps {
 }
 
 const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
+  const resultId = attempt.instanceId || (attempt as any).attemptId || (attempt as any).id;
+  const configId =
+    attempt.examConfigId ||
+    attempt.testConfigId ||
+    attempt.configId ||
+    attempt.testId ||
+    attempt.assessmentId;
+  const isCompleted =
+    attempt.status === 'COMPLETED' ||
+    attempt.status === 'SUBMITTED' ||
+    attempt.status === 'EVALUATING';
+
+  const canReAttempt =
+    attempt.canReAttempt !== false &&
+    (attempt as any).canReattempt !== false &&
+    (attempt.remainingAttempts === undefined || attempt.remainingAttempts > 0);
+
   return (
     <div className='flex items-center justify-end gap-2 whitespace-nowrap shrink-0'>
-      {attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? (
+      {isCompleted ? (
         <>
-          <Button
-            size='sm'
-            variant='secondary'
-            asChild
-            className='h-8 px-3 text-xs font-bold rounded-lg'
-          >
-            <Link href={`/candidate/results/${attempt.instanceId}`}>
-              View Result
-            </Link>
-          </Button>
-          {attempt.canReAttempt !== false ? (
+          {resultId && (
+            <Button
+              size='sm'
+              variant='secondary'
+              asChild
+              className='h-8 px-3 text-xs font-bold rounded-lg'
+            >
+              <Link href={`/candidate/results/${resultId}`}>
+                View Result
+              </Link>
+            </Button>
+          )}
+          {canReAttempt && configId ? (
             <Button
               size='sm'
               variant='outline'
               asChild
               className='h-8 px-3 text-xs font-semibold rounded-lg gap-1.5'
             >
-              <Link
-                href={`/candidate/tests/${attempt.examConfigId || attempt.testConfigId || attempt.configId || attempt.testId || attempt.assessmentId}`}
-              >
+              <Link href={`/candidate/tests/${configId}`}>
                 <Play className='size-3 text-muted-foreground' />
                 <span>Re-Exam</span>
               </Link>
@@ -73,7 +90,7 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
           asChild
           className='h-8 px-4 text-xs font-bold rounded-lg gap-1.5'
         >
-          <Link href={`/candidate/tests/${attempt.instanceId}/launch?resume=true`}>
+          <Link href={`/candidate/tests/${resultId || configId}/launch?resume=true`}>
             <Play className='size-3 fill-current' /> Resume
           </Link>
         </Button>

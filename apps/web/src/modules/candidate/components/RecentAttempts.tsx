@@ -52,36 +52,63 @@ export function RecentAttempts() {
           </div>
         ) : (
           <div className='space-y-4'>
-            {history.slice(0, 5).map((attempt) => (
-              <div
-                key={attempt.id}
-                className='flex items-center justify-between p-3 rounded-md hover:bg-muted/50 transition-colors border border-border/20 bg-card/30'
-              >
-                <div className='space-y-1'>
-                  <p className='font-medium text-sm leading-none'>{attempt.assessmentName}</p>
-                  <div className='flex items-center text-xs text-muted-foreground gap-2 mt-1'>
-                    <span className='flex items-center gap-1'>
-                      <CalendarDays className='size-3' />
-                      {new Intl.DateTimeFormat('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      }).format(new Date(attempt.completedDate))}
-                    </span>
-                    <span>•</span>
-                    <span className='text-green-600 dark:text-green-400 font-medium'>
-                      {attempt.status}
-                    </span>
+            {history.slice(0, 5).map((attempt) => {
+              const resultId = attempt.instanceId || attempt.id;
+              const configId = attempt.testId;
+              return (
+                <div
+                  key={attempt.id || attempt.instanceId}
+                  className='flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl hover:bg-muted/50 transition-colors border border-border/40 bg-card/40 gap-3'
+                >
+                  <div className='space-y-1 min-w-0 flex-1'>
+                    <p className='font-bold text-sm leading-snug text-foreground truncate'>
+                      {attempt.assessmentName}
+                    </p>
+                    <div className='flex items-center text-xs text-muted-foreground gap-2 mt-1'>
+                      <span className='flex items-center gap-1 font-medium'>
+                        <CalendarDays className='size-3 text-muted-foreground/70' />
+                        {new Intl.DateTimeFormat('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        }).format(new Date(attempt.completedDate))}
+                      </span>
+                      <span>•</span>
+                      <span className='text-emerald-600 dark:text-emerald-400 font-bold'>
+                        {attempt.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className='flex items-center gap-2 shrink-0 self-end sm:self-center'>
+                    {attempt.score !== null && (
+                      <Badge
+                        variant='secondary'
+                        className='text-xs font-bold bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-lg'
+                      >
+                        {attempt.score}%
+                      </Badge>
+                    )}
+                    {resultId && (
+                      <a
+                        href={`/candidate/results/${resultId}`}
+                        className='text-xs font-bold bg-muted hover:bg-muted/80 text-foreground px-2.5 py-1 rounded-lg border border-border/60 transition-all'
+                      >
+                        Result
+                      </a>
+                    )}
+                    {configId && (
+                      <a
+                        href={`/candidate/tests/${configId}`}
+                        className='text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground px-2.5 py-1 rounded-lg transition-all'
+                      >
+                        Re-Exam
+                      </a>
+                    )}
                   </div>
                 </div>
-                <Badge
-                  variant='secondary'
-                  className='text-sm font-bold ml-4 bg-primary/10 text-primary border border-primary/20'
-                >
-                  {attempt.score}/100
-                </Badge>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

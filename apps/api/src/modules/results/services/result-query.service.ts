@@ -19,8 +19,19 @@ export class ResultQueryService {
   ) {}
 
   async getResult(attemptId: string) {
-    const result =
+    let result =
       await this.candidateResultRepo.findResultByAttemptId(attemptId);
+    if (!result) {
+      result = (await this.prisma.candidateResult.findUnique({
+        where: { id: attemptId },
+        include: {
+          attempt: {
+            include: { testConfig: true, examConfig: true, user: true },
+          },
+        },
+      })) as any;
+    }
+
     if (!result) {
       const testInstance = await this.prisma.testInstance.findUnique({
         where: { id: attemptId },
@@ -28,37 +39,91 @@ export class ResultQueryService {
       });
 
       if (testInstance) {
-        const state =
-          await this.candidateResultRepo.getEvaluationStatus(attemptId);
-        return {
-          attemptId,
-          assessmentName:
-            testInstance.testConfig?.displayName ||
-            testInstance.examConfig?.name ||
-            "Assessment",
-          score: 0,
-          percentage: 0,
-          accuracy: 0,
-          completion: 0,
-          status: state?.state?.status || "IN_PROGRESS",
-          submittedAt: testInstance.submittedAt || testInstance.createdAt,
-          rank: 0,
-          candidate: (testInstance as any).user
-            ? {
-                fullName:
-                  (testInstance as any).user.fullName ||
-                  (testInstance as any).user.name ||
-                  "Candidate",
-                email: (testInstance as any).user.email || "",
-              }
-            : undefined,
-        };
-      }
+        if (
+          testInstance.status === "SUBMITTED" ||
+          testInstance.status === "COMPLETED" ||
+          testInstance.submittedAt
+        ) {
+          try {
+            const answers = await this.prisma.candidateAnswer.findMany({
+              where: { testInstanceId: testInstance.id },
+            });
+            const executionResult = {
+              executionId: testInstance.id,
+              testId: testInstance.id,
+              status: "submitted",
+              submittedAt: testInstance.submittedAt || new Date(),
+              answers: answers.map((a) => {
+                let answerStr = "";
+                if (typeof a.answer === "string") {
+                  answerStr = a.answer;
+                } else if (typeof a.answer === "object" && a.answer !== null) {
+                  const ansObj = a.answer as Record<string, any>;
+                  answerStr =
+                    ansObj.selectedOptionId ||
+                    ansObj.answer ||
+                    ansObj.textResponse ||
+                    ansObj.value ||
+                    JSON.stringify(a.answer);
+                } else {
+                  answerStr = String(a.answer || "");
+                }
+                return {
+                  questionId: a.questionId,
+                  answer: answerStr,
+                  timeSpentSeconds: a.timeSpentSeconds || 0,
+                  isMarkedForReview: a.isMarkedForReview || false,
+                };
+              }),
+            };
+            const generated = await this.resultGenerator?.generateResult(
+              executionResult as any,
+            );
+            if (generated) {
+              const storage = new ResultStorageService(this.prisma);
+              await storage.saveResult(generated, 1000);
+              result = await this.candidateResultRepo.findResultByAttemptId(testInstance.id);
+            }
+          } catch (e) {
+            console.error(`[ResultQueryService] Auto-generation error in getResult for ${attemptId}:`, e);
+          }
+        }
 
+        if (!result) {
+          const state =
+            await this.candidateResultRepo.getEvaluationStatus(testInstance.id);
+          return {
+            attemptId: testInstance.id,
+            assessmentName:
+              testInstance.testConfig?.displayName ||
+              testInstance.examConfig?.name ||
+              "Assessment",
+            score: 0,
+            percentage: 0,
+            accuracy: 0,
+            completion: 0,
+            status: state?.state?.status || "IN_PROGRESS",
+            submittedAt: testInstance.submittedAt || testInstance.createdAt,
+            rank: 0,
+            candidate: (testInstance as any).user
+              ? {
+                  fullName:
+                    (testInstance as any).user.fullName ||
+                    (testInstance as any).user.name ||
+                    "Candidate",
+                  email: (testInstance as any).user.email || "",
+                }
+              : undefined,
+          };
+        }
+      }
+    }
+
+    if (!result) {
       throw new NotFoundException(`Result for attempt ${attemptId} not found`);
     }
 
-    const state = await this.candidateResultRepo.getEvaluationStatus(attemptId);
+    const state = await this.candidateResultRepo.getEvaluationStatus(result.attemptId);
 
     return {
       attemptId: result.attemptId,
