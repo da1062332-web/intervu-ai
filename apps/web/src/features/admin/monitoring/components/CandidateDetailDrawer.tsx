@@ -174,9 +174,13 @@ export function CandidateDetailDrawer({
     }
   };
 
+  const isAutoSubmitted =
+    candidate.status === 'AUTO_SUBMITTED' || candidate.status === 'ADMIN_REVIEW';
+  const isDone = ['SUBMITTED', 'COMPLETED', 'TERMINATED'].includes(candidate.status);
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
-    { id: 'adminActions', label: 'Admin Actions', icon: Lock, highlight: true },
+    { id: 'adminActions', label: 'Admin Actions', icon: Lock, highlight: !isDone && candidate.isNeedsAttention },
     { id: 'timeline', label: 'Timeline', icon: History },
     { id: 'answers', label: 'Answers', icon: FileText },
     { id: 'progress', label: 'Progress', icon: Activity },
@@ -342,9 +346,7 @@ export function CandidateDetailDrawer({
     );
   };
 
-  const isAutoSubmitted =
-    candidate.status === 'AUTO_SUBMITTED' || candidate.status === 'ADMIN_REVIEW';
-  const isDone = ['SUBMITTED', 'COMPLETED', 'TERMINATED'].includes(candidate.status);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
@@ -547,7 +549,11 @@ export function CandidateDetailDrawer({
 
                     <div className='border rounded-lg p-4 space-y-3 bg-card'>
                       <h4 className='font-semibold text-xs text-foreground flex items-center gap-1.5'>
-                        <ShieldAlert className='size-3.5 text-muted-foreground' />
+                        {isDone ? (
+                          <CheckCircle className='size-3.5 text-emerald-500' />
+                        ) : (
+                          <Activity className='size-3.5 text-muted-foreground' />
+                        )}
                         Submission status
                       </h4>
                       <dl className='space-y-2.5 text-xs divide-y'>
@@ -559,14 +565,25 @@ export function CandidateDetailDrawer({
                         </div>
                         <div className='flex items-center justify-between gap-3 pt-1.5'>
                           <dt className='text-muted-foreground'>Trigger</dt>
-                          <dd className='font-medium text-foreground shrink-0'>{candidate.submissionSource || '—'}</dd>
-                        </div>
-                        <div className='flex items-start justify-between gap-3 pt-1.5'>
-                          <dt className='text-muted-foreground shrink-0'>Incident reason</dt>
-                          <dd className='font-medium text-rose-600 dark:text-rose-400 text-right break-words'>
-                            {candidate.submissionReason || (candidate.incidentReasons?.length ? candidate.incidentReasons.join(', ') : 'None')}
+                          <dd className='font-medium text-foreground shrink-0'>
+                            {candidate.submissionSource === 'USER' ? 'Candidate (Self-Submitted)' : (candidate.submissionSource || '—')}
                           </dd>
                         </div>
+                        {isAutoSubmitted ? (
+                          <div className='flex items-start justify-between gap-3 pt-1.5'>
+                            <dt className='text-muted-foreground shrink-0'>Incident reason</dt>
+                            <dd className='font-medium text-rose-600 dark:text-rose-400 text-right break-words'>
+                              {candidate.submissionReason || (candidate.incidentReasons?.length ? candidate.incidentReasons.join(', ') : 'None')}
+                            </dd>
+                          </div>
+                        ) : (
+                          <div className='flex items-start justify-between gap-3 pt-1.5'>
+                            <dt className='text-muted-foreground shrink-0'>Submission reason</dt>
+                            <dd className='font-medium text-foreground text-right break-words'>
+                              {candidate.submissionReason === 'USER_SUBMIT' ? 'Voluntary Submission by Candidate' : (candidate.submissionReason || 'Completed normally')}
+                            </dd>
+                          </div>
+                        )}
                         <div className='flex items-center justify-between gap-3 pt-1.5'>
                           <dt className='text-muted-foreground'>Needs attention</dt>
                           <dd className={`font-semibold shrink-0 ${candidate.isNeedsAttention ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>
@@ -599,136 +616,181 @@ export function CandidateDetailDrawer({
               {/* TAB 2: ADMIN ACTIONS (COMPREHENSIVE CONTROL CENTER) */}
               {activeTab === 'adminActions' && (
                 <div className='space-y-6'>
-                  {/* Action Section 1: Quick Time Grants */}
-                  <div className='border rounded-lg p-4 bg-card space-y-3 shadow-2xs'>
-                    <div className='flex items-center justify-between'>
-                      <div>
-                        <h4 className='font-semibold text-xs text-foreground flex items-center gap-1.5'>
-                          <Clock className='size-3.5 text-primary' />
-                          Grant Additional Test Time
-                        </h4>
-                        <p className='text-[11px] text-muted-foreground'>
-                          Extend the candidate timer directly on server state without resetting exam progress.
-                        </p>
+                  {isDone ? (
+                    <div className='border rounded-lg p-5 bg-card space-y-4 shadow-2xs border-emerald-200 dark:border-emerald-900/40'>
+                      <div className='flex items-start gap-3.5'>
+                        <div className='size-9 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5'>
+                          <CheckCircle className='size-5' />
+                        </div>
+                        <div className='space-y-1.5 flex-1'>
+                          <div className='flex items-center gap-2'>
+                            <h4 className='font-semibold text-sm text-foreground'>
+                              Assessment Already Submitted & Finalized
+                            </h4>
+                            <Badge variant='outline' className='text-[10px] font-mono bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'>
+                              {candidate.status}
+                            </Badge>
+                          </div>
+                          <p className='text-xs text-muted-foreground leading-relaxed'>
+                            This candidate has already concluded and submitted their examination. Active proctoring controls (granting additional test time and emergency force submission) are disabled because the attempt state is locked.
+                          </p>
+                          <div className='flex flex-wrap items-center gap-4 pt-2 text-xs border-t mt-3'>
+                            <div>
+                              <span className='text-muted-foreground'>Submission Trigger: </span>
+                              <strong className='text-foreground'>
+                                {candidate.submissionSource === 'USER' ? 'Candidate (Self-Submitted)' : (candidate.submissionSource || 'Candidate Submission')}
+                              </strong>
+                            </div>
+                            {candidate.submissionReason && (
+                              <div>
+                                <span className='text-muted-foreground'>Reason: </span>
+                                <strong className='text-foreground'>
+                                  {candidate.submissionReason === 'USER_SUBMIT' ? 'Voluntary Submission by Candidate' : candidate.submissionReason}
+                                </strong>
+                              </div>
+                            )}
+                            <div>
+                              <span className='text-muted-foreground'>Questions Answered: </span>
+                              <strong className='text-foreground'>{candidate.answeredCount} / {candidate.totalQuestions}</strong>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <span className='font-mono font-bold text-xs text-primary bg-primary/10 px-2 py-1 rounded'>
-                        Current: {formatTime(candidate.remainingTimeSeconds)}
-                      </span>
                     </div>
+                  ) : (
+                    <>
+                      {/* Action Section 1: Quick Time Grants */}
+                      <div className='border rounded-lg p-4 bg-card space-y-3 shadow-2xs'>
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <h4 className='font-semibold text-xs text-foreground flex items-center gap-1.5'>
+                              <Clock className='size-3.5 text-primary' />
+                              Grant Additional Test Time
+                            </h4>
+                            <p className='text-[11px] text-muted-foreground'>
+                              Extend the candidate timer directly on server state without resetting exam progress.
+                            </p>
+                          </div>
+                          <span className='font-mono font-bold text-xs text-primary bg-primary/10 px-2 py-1 rounded'>
+                            Current: {formatTime(candidate.remainingTimeSeconds)}
+                          </span>
+                        </div>
 
-                    <div className='grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1'>
-                      {[5, 10, 15, 30].map((mins) => (
+                        <div className='grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1'>
+                          {[5, 10, 15, 30].map((mins) => (
+                            <Button
+                              key={mins}
+                              size='sm'
+                              variant='outline'
+                              disabled={extendingTime}
+                              onClick={() => handleExtendTime(mins, `Admin granted +${mins}m extension`)}
+                              className='h-8 text-xs font-semibold gap-1 hover:bg-primary hover:text-primary-foreground transition-colors'
+                            >
+                              <Plus className='size-3' />
+                              +{mins} Minutes
+                            </Button>
+                          ))}
+                        </div>
+
+                        <div className='pt-2 border-t flex flex-col sm:flex-row items-center gap-2'>
+                          <Input
+                            type='number'
+                            min='1'
+                            max='180'
+                            value={customMinutes}
+                            onChange={(e) => setCustomMinutes(e.target.value)}
+                            placeholder='Custom mins'
+                            className='w-full sm:w-32 h-8 text-xs'
+                          />
+                          <Input
+                            value={timeReason}
+                            onChange={(e) => setTimeReason(e.target.value)}
+                            placeholder='Extension justification for audit log...'
+                            className='flex-1 h-8 text-xs'
+                          />
+                          <Button
+                            size='sm'
+                            disabled={extendingTime || !customMinutes}
+                            onClick={() => handleExtendTime(Number(customMinutes) || 5, timeReason)}
+                            className='h-8 text-xs gap-1.5 shrink-0'
+                          >
+                            <Zap className='size-3' />
+                            Apply Custom
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Action Section 2: Recovery / Resume Control */}
+                      <div className='border rounded-lg p-4 bg-card space-y-3 shadow-2xs'>
+                        <div className='flex items-start justify-between gap-3'>
+                          <div>
+                            <h4 className='font-semibold text-xs text-foreground flex items-center gap-1.5'>
+                              <RotateCcw className='size-3.5 text-rose-500' />
+                              Safe Resume & State Recovery
+                            </h4>
+                            <p className='text-[11px] text-muted-foreground mt-0.5'>
+                              Authorize the candidate to resume testing if their session was prematurely auto-submitted or interrupted.
+                            </p>
+                          </div>
+                          <Button
+                            size='sm'
+                            variant={isAutoSubmitted ? 'destructive' : 'outline'}
+                            onClick={() => {
+                              onClose();
+                              onOpenRecovery(candidate);
+                            }}
+                            className='h-8 text-xs gap-1.5 shrink-0 font-semibold'
+                          >
+                            <RotateCcw className='size-3.5' />
+                            Launch Recovery Center
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Action Section 3: Emergency Force Submit */}
+                      <div className='border rounded-lg p-4 bg-card space-y-3 shadow-2xs border-rose-200 dark:border-rose-900/50'>
+                        <div className='space-y-1'>
+                          <h4 className='font-semibold text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1.5'>
+                            <StopCircle className='size-3.5' />
+                            Emergency Force Final Submission
+                          </h4>
+                          <p className='text-[11px] text-muted-foreground'>
+                            Immediately terminate candidate execution and lock final state for evaluation.
+                          </p>
+                        </div>
+
+                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1'>
+                          <select
+                            value={forceSubmitReason}
+                            onChange={(e) => setForceSubmitReason(e.target.value)}
+                            className='h-8 px-2 rounded-md border text-xs bg-background'
+                          >
+                            <option value='ADMIN_ACTION'>Admin Manual Decision</option>
+                            <option value='PROCTORING_LIMIT'>Cheating / Proctoring Strike Limit</option>
+                            <option value='TIME_EXPIRED'>Time Expired / Overdue</option>
+                            <option value='SYSTEM_FAILURE'>Unresolvable Client Failure</option>
+                          </select>
+                          <Input
+                            value={forceSubmitDetails}
+                            onChange={(e) => setForceSubmitDetails(e.target.value)}
+                            placeholder='Reason details (optional)...'
+                            className='h-8 text-xs'
+                          />
+                        </div>
+
                         <Button
-                          key={mins}
                           size='sm'
-                          variant='outline'
-                          disabled={extendingTime}
-                          onClick={() => handleExtendTime(mins, `Admin granted +${mins}m extension`)}
-                          className='h-8 text-xs font-semibold gap-1 hover:bg-primary hover:text-primary-foreground transition-colors'
+                          variant='destructive'
+                          disabled={isForceSubmitting}
+                          onClick={handleForceSubmit}
+                          className='h-8 text-xs gap-1.5 font-semibold'
                         >
-                          <Plus className='size-3' />
-                          +{mins} Minutes
+                          <StopCircle className='size-3.5' />
+                          {isForceSubmitting ? 'Submitting...' : 'Confirm Force Submit Attempt'}
                         </Button>
-                      ))}
-                    </div>
-
-                    <div className='pt-2 border-t flex flex-col sm:flex-row items-center gap-2'>
-                      <Input
-                        type='number'
-                        min='1'
-                        max='180'
-                        value={customMinutes}
-                        onChange={(e) => setCustomMinutes(e.target.value)}
-                        placeholder='Custom mins'
-                        className='w-full sm:w-32 h-8 text-xs'
-                      />
-                      <Input
-                        value={timeReason}
-                        onChange={(e) => setTimeReason(e.target.value)}
-                        placeholder='Extension justification for audit log...'
-                        className='flex-1 h-8 text-xs'
-                      />
-                      <Button
-                        size='sm'
-                        disabled={extendingTime || !customMinutes}
-                        onClick={() => handleExtendTime(Number(customMinutes) || 5, timeReason)}
-                        className='h-8 text-xs gap-1.5 shrink-0'
-                      >
-                        <Zap className='size-3' />
-                        Apply Custom
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Action Section 2: Recovery / Resume Control */}
-                  <div className='border rounded-lg p-4 bg-card space-y-3 shadow-2xs'>
-                    <div className='flex items-start justify-between gap-3'>
-                      <div>
-                        <h4 className='font-semibold text-xs text-foreground flex items-center gap-1.5'>
-                          <RotateCcw className='size-3.5 text-rose-500' />
-                          Safe Resume & State Recovery
-                        </h4>
-                        <p className='text-[11px] text-muted-foreground mt-0.5'>
-                          Authorize the candidate to resume testing if their session was prematurely auto-submitted or interrupted.
-                        </p>
                       </div>
-                      <Button
-                        size='sm'
-                        variant={isAutoSubmitted ? 'destructive' : 'outline'}
-                        onClick={() => {
-                          onClose();
-                          onOpenRecovery(candidate);
-                        }}
-                        className='h-8 text-xs gap-1.5 shrink-0 font-semibold'
-                      >
-                        <RotateCcw className='size-3.5' />
-                        Launch Recovery Center
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Action Section 3: Emergency Force Submit */}
-                  <div className='border rounded-lg p-4 bg-card space-y-3 shadow-2xs border-rose-200 dark:border-rose-900/50'>
-                    <div className='space-y-1'>
-                      <h4 className='font-semibold text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1.5'>
-                        <StopCircle className='size-3.5' />
-                        Emergency Force Final Submission
-                      </h4>
-                      <p className='text-[11px] text-muted-foreground'>
-                        Immediately terminate candidate execution and lock final state for evaluation.
-                      </p>
-                    </div>
-
-                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1'>
-                      <select
-                        value={forceSubmitReason}
-                        onChange={(e) => setForceSubmitReason(e.target.value)}
-                        className='h-8 px-2 rounded-md border text-xs bg-background'
-                      >
-                        <option value='ADMIN_ACTION'>Admin Manual Decision</option>
-                        <option value='PROCTORING_LIMIT'>Cheating / Proctoring Strike Limit</option>
-                        <option value='TIME_EXPIRED'>Time Expired / Overdue</option>
-                        <option value='SYSTEM_FAILURE'>Unresolvable Client Failure</option>
-                      </select>
-                      <Input
-                        value={forceSubmitDetails}
-                        onChange={(e) => setForceSubmitDetails(e.target.value)}
-                        placeholder='Reason details (optional)...'
-                        className='h-8 text-xs'
-                      />
-                    </div>
-
-                    <Button
-                      size='sm'
-                      variant='destructive'
-                      disabled={isForceSubmitting}
-                      onClick={handleForceSubmit}
-                      className='h-8 text-xs gap-1.5 font-semibold'
-                    >
-                      <StopCircle className='size-3.5' />
-                      {isForceSubmitting ? 'Submitting...' : 'Confirm Force Submit Attempt'}
-                    </Button>
-                  </div>
+                    </>
+                  )}
 
                   {/* Action Section 4: Administrative Audit Trail */}
                   <div className='space-y-2 pt-2'>
