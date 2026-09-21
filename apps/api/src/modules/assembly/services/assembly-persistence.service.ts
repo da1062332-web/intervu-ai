@@ -330,7 +330,8 @@ export class AssemblyPersistenceService {
       );
       this.logger.log(`    [SAVE-ASSEMBLY ⏱️] AssembledTest created in ${Date.now() - t0}ms (ID: ${assemblyId})`);
     } catch (err: any) {
-      this.logger.warn(`    [SAVE-ASSEMBLY ⚠️] Direct AssembledTest creation skipped: ${err?.message || err}. Creating TestInstance directly.`);
+      this.logger.error(`    [SAVE-ASSEMBLY ❌] Direct AssembledTest creation failed: ${err?.message || err}`, err?.stack);
+      throw err;
     }
 
     await this.auditService.log(assemblyId, "CREATED", userId, {
@@ -436,6 +437,9 @@ export class AssemblyPersistenceService {
     let assembly: any = null;
     try {
       assembly = await this.repository.findById(id);
+      if (!assembly) {
+        assembly = await this.repository.findByConfigId(id);
+      }
       if (assembly) {
         assembly.sourceType = "ASSEMBLED_TEST";
       }

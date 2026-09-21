@@ -190,6 +190,7 @@ export class ConfigPublisherService {
       { timeout: 120000, maxWait: 60000 },
     );
 
+    await this.cacheService.invalidateBlueprint(configId);
     await this.cacheService.delete("dashboard:examConfigs:available:v2");
 
     return {
