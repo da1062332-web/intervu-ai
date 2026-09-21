@@ -1196,31 +1196,40 @@ export function TopicDetailPageClient({ topicId }: ClientProps) {
           </div>
           <div>
             <Label>Difficulty</Label>
-            <select
-              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            <Select
               value={templateFormData.difficulty}
-              onChange={(e) =>
-                setTemplateFormData({ ...templateFormData, difficulty: e.target.value })
+              onValueChange={(val: string) =>
+                setTemplateFormData({ ...templateFormData, difficulty: val })
               }
             >
-              <option value='EASY'>EASY</option>
-              <option value='MEDIUM'>MEDIUM</option>
-              <option value='HARD'>HARD</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder='Select difficulty' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='EASY'>EASY</SelectItem>
+                <SelectItem value='MEDIUM'>MEDIUM</SelectItem>
+                <SelectItem value='HARD'>HARD</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Generation Strategy</Label>
-            <select
-              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            <Select
               value={templateFormData.generationStrategy}
-              onChange={(e) =>
-                setTemplateFormData({ ...templateFormData, generationStrategy: e.target.value })
+              onValueChange={(val: string) =>
+                setTemplateFormData({ ...templateFormData, generationStrategy: val })
               }
             >
-              <option value='VARIABLE'>Variable Generation</option>
-              <option value='DATASET'>Dataset-backed</option>
-              <option value='HYBRID'>Hybrid Scenario</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder='Select strategy' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='VARIABLE'>Variable Generation</SelectItem>
+                <SelectItem value='DATASET'>Dataset-backed</SelectItem>
+                <SelectItem value='HYBRID'>Hybrid Scenario</SelectItem>
+                <SelectItem value='MANUAL'>Manual Strategy</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className='flex justify-end space-x-2 mt-6'>
             <Button variant='outline' onClick={() => setIsTemplateModalOpen(false)}>
