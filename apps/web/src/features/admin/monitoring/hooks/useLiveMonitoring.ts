@@ -29,6 +29,7 @@ export interface CandidateItem {
     | 'RESUME_AUTHORIZED'
     | 'RESUMED';
   currentSectionKey: string;
+  currentSectionName?: string;
   currentSectionIndex: number;
   currentQuestionId: string;
   currentQuestionIndex: number;
@@ -36,6 +37,7 @@ export interface CandidateItem {
   totalQuestions: number;
   markedQuestionsCount: number;
   remainingTimeSeconds: number;
+  expiresAt?: string;
   lastHeartbeatAt: number;
   latencyMs: number;
   networkStatus: string;
@@ -225,33 +227,119 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
     let isCancelled = false;
     let retryCount = 0;
 
-    // High-concurrency telemetry buffer: flushes buffered heartbeats once every 1,000ms
-    // to maintain a silky smooth 60 FPS UI under 1,000 to 2,000 simultaneous candidates
+    // High-concurrency telemetry buffer & real-time second-by-second countdown ticker
     const flushInterval = setInterval(() => {
-      if (heartbeatBufferRef.current.size === 0) return;
-      const updates = new Map(heartbeatBufferRef.current);
-      heartbeatBufferRef.current.clear();
+      const hasHeartbeats = heartbeatBufferRef.current.size > 0;
+      const updates = hasHeartbeats ? new Map(heartbeatBufferRef.current) : null;
+      if (hasHeartbeats) {
+        heartbeatBufferRef.current.clear();
+      }
 
-      setCandidates((prev) =>
-        (prev || []).map((c) => {
+      setCandidates((prev) => {
+        if (!prev || prev.length === 0) {
+          if (!updates || updates.size === 0) return prev;
+        }
+
+        const existingIds = new Set((prev || []).map((c) => c.attemptId));
+
+        // Update existing candidates with buffered heartbeats AND tick down remaining time in real time
+        const updated = (prev || []).map((c) => {
           if (!c) return c;
-          const p = updates.get(c.attemptId);
-          if (!p) return c;
+          const p = updates?.get(c.attemptId);
+
+          const isTerminal =
+            c.status === 'SUBMITTED' ||
+            c.status === 'COMPLETED' ||
+            c.status === 'TERMINATED' ||
+            p?.status === 'SUBMITTED' ||
+            p?.status === 'COMPLETED';
+
+          // Real-time remaining time calculation:
+          // If expiresAt is set, calculate authoritative difference from Date.now();
+          // otherwise countdown second-by-second for non-terminal candidates.
+          let nextRemainingSeconds = c.remainingTimeSeconds;
+          if (!isTerminal) {
+            if (p?.remainingTimeSeconds !== undefined) {
+              nextRemainingSeconds = p.remainingTimeSeconds;
+            } else if (c.expiresAt) {
+              nextRemainingSeconds = Math.max(
+                0,
+                Math.floor((new Date(c.expiresAt).getTime() - Date.now()) / 1000),
+              );
+            } else {
+              nextRemainingSeconds = Math.max(0, c.remainingTimeSeconds - 1);
+            }
+          }
+
+          if (!p) {
+            // No new heartbeat, but tick down real-time remaining seconds
+            if (nextRemainingSeconds !== c.remainingTimeSeconds) {
+              return { ...c, remainingTimeSeconds: nextRemainingSeconds };
+            }
+            return c;
+          }
+
           return {
             ...c,
             status: p.status ?? c.status,
             currentSectionKey: p.currentSectionKey ?? c.currentSectionKey,
+            currentSectionName: p.currentSectionName ?? c.currentSectionName,
             currentQuestionIndex: p.currentQuestionIndex ?? c.currentQuestionIndex,
             answeredCount: p.answeredCount ?? c.answeredCount,
-            remainingTimeSeconds: p.remainingTimeSeconds ?? c.remainingTimeSeconds,
+            remainingTimeSeconds: nextRemainingSeconds,
             latencyMs: p.latencyMs ?? c.latencyMs,
             autosaveHealth: p.autosaveHealth ?? c.autosaveHealth,
             networkStatus: p.networkStatus ?? c.networkStatus,
             isNeedsAttention: p.isNeedsAttention ?? c.isNeedsAttention,
             lastHeartbeatAt: p.lastHeartbeatAt ?? Date.now(),
           };
-        }),
-      );
+        });
+
+        // If new candidates arrived that weren't in previous state, add them immediately!
+        if (updates) {
+          const newCandidates: CandidateItem[] = [];
+          for (const [attemptId, p] of updates.entries()) {
+            if (
+              !existingIds.has(attemptId) &&
+              p.candidateRole !== 'ADMIN' &&
+              p.candidateRole !== 'PLAN_MANAGER'
+            ) {
+              newCandidates.push({
+                assessmentId: p.assessmentId || assessmentId,
+                attemptId: p.attemptId,
+                candidateId: p.candidateId || '',
+                candidateName: p.candidateName || 'Candidate',
+                candidateEmail: p.candidateEmail || '',
+                candidateRole: p.candidateRole || 'CANDIDATE',
+                status: p.status || 'ACTIVE',
+                currentSectionKey: p.currentSectionKey || 'section-1',
+                currentSectionName: p.currentSectionName,
+                currentSectionIndex: p.currentSectionIndex ?? 0,
+                currentQuestionId: p.currentQuestionId || '',
+                currentQuestionIndex: p.currentQuestionIndex ?? 0,
+                answeredCount: p.answeredCount ?? 0,
+                totalQuestions: p.totalQuestions ?? 20,
+                markedQuestionsCount: p.markedQuestionsCount ?? 0,
+                remainingTimeSeconds: p.remainingTimeSeconds ?? 3600,
+                expiresAt: p.expiresAt,
+                lastHeartbeatAt: p.lastHeartbeatAt ?? Date.now(),
+                latencyMs: p.latencyMs ?? 0,
+                networkStatus: p.networkStatus || 'ONLINE',
+                autosaveHealth: p.autosaveHealth || 'HEALTHY',
+                unsyncedAnswersCount: 0,
+                proctoringStrikes: p.proctoringStrikes ?? 0,
+                isNeedsAttention: p.isNeedsAttention ?? false,
+                incidentReasons: p.incidentReasons || [],
+              });
+            }
+          }
+          if (newCandidates.length > 0) {
+            return [...newCandidates, ...updated];
+          }
+        }
+
+        return updated;
+      });
     }, 1000);
 
     const handleEventData = (data: any) => {

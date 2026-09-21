@@ -106,6 +106,7 @@ describe("LiveMonitoringService", () => {
     alertServiceMock = {
       emitAlert: jest.fn().mockResolvedValue({ id: "alert-1" }),
       createAlert: jest.fn().mockResolvedValue({ id: "alert-1" }),
+      autoResolveDisconnectAlertsForAttempt: jest.fn().mockResolvedValue(1),
     };
 
     systemHealthServiceMock = {
@@ -487,6 +488,94 @@ describe("LiveMonitoringService", () => {
           title: "Prolonged Candidate Disconnect",
         }),
       );
+    });
+
+    it("should evict submitted candidate from active set and not emit disconnect alert", async () => {
+      const pastTime = Date.now() - 100000;
+      const submittedRecord = {
+        assessmentId: "assessment-uuid",
+        attemptId: "attempt-sub-1",
+        candidateId: "candidate-user-1",
+        candidateName: "Jane Doe",
+        candidateEmail: "jane@example.com",
+        status: "SUBMITTED",
+        currentSectionKey: "sec-1",
+        currentSectionIndex: 0,
+        currentQuestionId: "q-1",
+        currentQuestionIndex: 0,
+        answeredCount: 10,
+        totalQuestions: 10,
+        markedQuestionsCount: 0,
+        remainingTimeSeconds: 500,
+        lastHeartbeatAt: pastTime,
+        lastStateSyncAt: pastTime,
+        latencyMs: 50,
+        networkStatus: "ONLINE",
+        autosaveHealth: "HEALTHY",
+        unsyncedAnswersCount: 0,
+        proctoringStrikes: 0,
+        isNeedsAttention: false,
+        incidentReasons: [],
+      };
+
+      const key = REDIS_KEYS.attemptState("assessment-uuid", "attempt-sub-1");
+      redisStorage.set(key, JSON.stringify(submittedRecord));
+      const activeSet = new Set(["attempt-sub-1"]);
+      redisSets.set("assessment:assessment-uuid:active_attempts", activeSet);
+
+      alertServiceMock.emitAlert.mockClear();
+      await service.runWatchdogAudit();
+
+      expect(activeSet.has("attempt-sub-1")).toBe(false);
+      expect(alertServiceMock.emitAlert).not.toHaveBeenCalled();
+      expect(alertServiceMock.autoResolveDisconnectAlertsForAttempt).toHaveBeenCalledWith(
+        "assessment-uuid",
+        "attempt-sub-1",
+      );
+    });
+
+    it("should check DB status and evict candidate if DB has SUBMITTED without raising alerts", async () => {
+      const pastTime = Date.now() - 100000;
+      const record = {
+        assessmentId: "assessment-uuid",
+        attemptId: "attempt-sub-2",
+        candidateId: "candidate-user-2",
+        candidateName: "John Smith",
+        candidateEmail: "john@example.com",
+        status: "ACTIVE",
+        currentSectionKey: "sec-1",
+        currentSectionIndex: 0,
+        currentQuestionId: "q-1",
+        currentQuestionIndex: 0,
+        answeredCount: 10,
+        totalQuestions: 10,
+        markedQuestionsCount: 0,
+        remainingTimeSeconds: 500,
+        lastHeartbeatAt: pastTime,
+        lastStateSyncAt: pastTime,
+        latencyMs: 50,
+        networkStatus: "ONLINE",
+        autosaveHealth: "HEALTHY",
+        unsyncedAnswersCount: 0,
+        proctoringStrikes: 0,
+        isNeedsAttention: false,
+        incidentReasons: [],
+      };
+
+      const key = REDIS_KEYS.attemptState("assessment-uuid", "attempt-sub-2");
+      redisStorage.set(key, JSON.stringify(record));
+      const activeSet = new Set(["attempt-sub-2"]);
+      redisSets.set("assessment:assessment-uuid:active_attempts", activeSet);
+
+      prismaMock.testInstance.findUnique.mockResolvedValueOnce({
+        status: "SUBMITTED",
+      });
+
+      alertServiceMock.emitAlert.mockClear();
+      await service.runWatchdogAudit();
+
+      expect(activeSet.has("attempt-sub-2")).toBe(false);
+      expect(alertServiceMock.emitAlert).not.toHaveBeenCalled();
     });
   });
 

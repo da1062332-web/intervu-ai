@@ -237,4 +237,87 @@ export class LiveAlertService {
       return false;
     }
   }
+
+  /**
+   * Automatically resolves any open disconnect alerts for a candidate attempt
+   * once the candidate has submitted their assessment or session has ended.
+   */
+  async autoResolveDisconnectAlertsForAttempt(
+    assessmentId: string,
+    attemptId: string,
+  ): Promise<number> {
+    try {
+      const openAlerts = await this.prisma.liveAssessmentAlert.findMany({
+        where: {
+          attemptId,
+          category: "DISCONNECT",
+          isResolved: false,
+        },
+        select: { id: true },
+      });
+
+      if (openAlerts.length === 0) return 0;
+
+      await this.prisma.liveAssessmentAlert.updateMany({
+        where: {
+          attemptId,
+          category: "DISCONNECT",
+          isResolved: false,
+        },
+        data: {
+          isResolved: true,
+          resolvedAt: new Date(),
+          resolvedBy: "SYSTEM_AUTORESOLVE_ON_SUBMISSION",
+          metadata: { note: "Candidate successfully submitted assessment" },
+        },
+      });
+
+      if (this.isRedisAvailable()) {
+        const redis = RedisConnectionManager.getInstance();
+        const listKey = REDIS_KEYS.assessmentAlertsList(assessmentId);
+        const resolvedIds = new Set(openAlerts.map((a) => a.id));
+
+        try {
+          const rawAlerts = await redis.lrange(listKey, 0, -1);
+          if (rawAlerts && rawAlerts.length > 0) {
+            const remaining = rawAlerts
+              .map((r) => {
+                try {
+                  return JSON.parse(r);
+                } catch {
+                  return null;
+                }
+              })
+              .filter((a) => a && !resolvedIds.has(a.id) && !a.isResolved);
+
+            await redis.del(listKey);
+            if (remaining.length > 0) {
+              const serialized = remaining.reverse().map((a) => JSON.stringify(a));
+              await redis.lpush(listKey, ...serialized);
+              await redis.expire(listKey, MONITORING_CONFIG.REDIS_ALERT_TTL_SECONDS);
+            }
+          }
+        } catch (redisErr) {
+          this.logger.warn("Failed updating Redis alerts list during auto-resolve", { error: redisErr });
+        }
+
+        for (const alert of openAlerts) {
+          await redis.publish(
+            REDIS_KEYS.assessmentEventsChannel(assessmentId),
+            JSON.stringify({
+              type: "ALERT_RESOLVED",
+              payload: { alertId: alert.id, resolvedBy: "SYSTEM", resolvedAt: new Date().toISOString() },
+              timestamp: new Date().toISOString(),
+            }),
+          );
+        }
+      }
+
+      this.logger.info(`Auto-resolved ${openAlerts.length} disconnect alerts for submitted attempt ${attemptId}`);
+      return openAlerts.length;
+    } catch (err) {
+      this.logger.error(`Error auto-resolving disconnect alerts for attempt ${attemptId}`, err);
+      return 0;
+    }
+  }
 }

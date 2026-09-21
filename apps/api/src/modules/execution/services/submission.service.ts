@@ -22,6 +22,8 @@ import {
 
 import { ExecutionResultDto } from "../dto";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
+import { RedisConnectionManager } from "../../../cache/redis-connection.manager";
+import { REDIS_KEYS } from "../../monitoring/constants/monitoring.constants";
 
 @Injectable()
 export class SubmissionService {
@@ -314,14 +316,57 @@ export class SubmissionService {
         (testInstanceCheck as any)?.examConfigId ||
         (testInstanceCheck as any)?.testConfigId ||
         "";
-      await Promise.allSettled([
+
+      const cacheTasks: Promise<any>[] = [
         this.cacheService.delete(`test-instance:meta:${testInstanceId}`),
         this.cacheService.delete(`execution-state:${testInstanceId}`),
         this.cacheService.delete(`assessment-snapshot:${testInstanceId}`),
-        ...(assessmentId
-          ? [this.cacheService.delete(`assessment:${assessmentId}:attempt:${testInstanceId}:state`)]
-          : []),
-      ]);
+      ];
+
+      if (assessmentId) {
+        cacheTasks.push(
+          this.cacheService.delete(`assessment:${assessmentId}:attempt:${testInstanceId}:state`),
+        );
+        if (RedisConnectionManager.isConnected()) {
+          try {
+            const redis = RedisConnectionManager.getInstance();
+            cacheTasks.push(
+              redis.srem(REDIS_KEYS.assessmentActiveSet(assessmentId), testInstanceId),
+              redis.publish(
+                REDIS_KEYS.assessmentEventsChannel(assessmentId),
+                JSON.stringify({
+                  type: "STATE_TRANSITION",
+                  payload: {
+                    attemptId: testInstanceId,
+                    newState: "SUBMITTED",
+                    reason: reason || "USER_SUBMIT",
+                  },
+                  timestamp: new Date().toISOString(),
+                }),
+              ),
+            );
+          } catch (_) {}
+        }
+      }
+
+      // Auto-resolve any disconnect alerts in DB for this attempt upon successful submission
+      try {
+        await this.prisma.liveAssessmentAlert.updateMany({
+          where: {
+            attemptId: testInstanceId,
+            category: "DISCONNECT",
+            isResolved: false,
+          },
+          data: {
+            isResolved: true,
+            resolvedAt: new Date(),
+            resolvedBy: "SYSTEM_AUTORESOLVE_ON_SUBMISSION",
+            metadata: { note: "Candidate successfully submitted assessment" },
+          },
+        });
+      } catch (_) {}
+
+      await Promise.allSettled(cacheTasks);
       // 8. Convert answers array to map for the queue
       const answersMap: Record<string, string> = {};
       executionResult.answers.forEach((ans) => {

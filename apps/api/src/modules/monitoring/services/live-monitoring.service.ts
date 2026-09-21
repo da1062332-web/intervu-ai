@@ -22,6 +22,7 @@ export interface CandidateLiveRecord {
   candidateRole?: string;
   status: CandidateLiveState;
   currentSectionKey: string;
+  currentSectionName?: string;
   currentSectionIndex: number;
   currentQuestionId: string;
   currentQuestionIndex: number;
@@ -643,10 +644,54 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
             await redis.srem(key, attemptId);
             continue;
           }
+
+          // Terminal states should not be audited as active candidates
+          if (
+            record.status === "SUBMITTED" ||
+            record.status === "COMPLETED" ||
+            record.status === "TERMINATED" ||
+            record.status === "EVALUATING"
+          ) {
+            await redis.srem(key, attemptId);
+            await this.alertService.autoResolveDisconnectAlertsForAttempt(assessmentId, attemptId);
+            continue;
+          }
+
           const silentDuration = now - (record.lastHeartbeatAt || 0);
 
           if (record.status === "ACTIVE" && silentDuration > MONITORING_CONFIG.HEARTBEAT_DISCONNECT_THRESHOLD_MS) {
-            // Silent for > 30s -> DISCONNECTED
+            // Guard: Verify Postgres status before marking disconnected or raising alerts.
+            // If the candidate has already submitted or completed, evict from active set and auto-resolve alerts.
+            if (this.prisma?.testInstance?.findUnique) {
+              try {
+                const dbAtt = await this.prisma.testInstance.findUnique({
+                  where: { id: attemptId },
+                  select: { status: true },
+                });
+                if (
+                  dbAtt &&
+                  (dbAtt.status === "SUBMITTED" ||
+                    dbAtt.status === "COMPLETED" ||
+                    dbAtt.status === "TERMINATED")
+                ) {
+                  await redis.srem(key, attemptId);
+                  record.status = dbAtt.status as any;
+                  record.networkStatus = "ONLINE";
+                  record.isNeedsAttention = false;
+                  record.incidentReasons = [];
+                  await redis.set(
+                    REDIS_KEYS.attemptState(assessmentId, attemptId),
+                    JSON.stringify(record),
+                    "EX",
+                    60,
+                  );
+                  await this.alertService.autoResolveDisconnectAlertsForAttempt(assessmentId, attemptId);
+                  continue;
+                }
+              } catch (_) {}
+            }
+
+            // Silent for > 90s -> DISCONNECTED
             record.status = "DISCONNECTED";
             record.networkStatus = "OFFLINE";
             record.isNeedsAttention = true;
@@ -943,6 +988,10 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
           orderBy: { attemptSequence: "desc" },
           take: 1,
         },
+        sections: {
+          select: { sectionKey: true, sectionName: true, orderIndex: true },
+          orderBy: { orderIndex: "asc" },
+        },
         _count: {
           select: { candidateAnswers: true, questions: true },
         },
@@ -969,8 +1018,33 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       })
       .map((att) => {
         seenAttemptIds.add(att.id);
+
+        const matchedSection = (att as any).sections?.find(
+          (s: any) =>
+            s.sectionKey === att.executionState?.currentSectionKey ||
+            s.orderIndex === att.executionState?.currentSectionIndex,
+        );
+        const currentSectionName =
+          matchedSection?.sectionName ||
+          `Section ${(att.executionState?.currentSectionIndex ?? 0) + 1}`;
+
         const live = redisMap.get(att.id);
         if (live) {
+          live.currentSectionName = live.currentSectionName || currentSectionName;
+          // If DB has recorded a terminal status (SUBMITTED, COMPLETED, TERMINATED),
+          // DB state ALWAYS trumps transient Redis heartbeat state!
+          if (
+            att.status === "SUBMITTED" ||
+            att.status === "COMPLETED" ||
+            att.status === "TERMINATED"
+          ) {
+            live.status = att.status as CandidateLiveState;
+            live.networkStatus = "ONLINE";
+            live.isNeedsAttention = false;
+            live.incidentReasons = [];
+            live.submissionSource = att.submissions?.[0]?.source;
+            live.submissionReason = att.submissions?.[0]?.reason;
+          }
           return live;
         }
 
@@ -992,17 +1066,38 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
         let isNeedsAttention = false;
         const incidentReasons: string[] = [];
 
-        // If DB status is ACTIVE or IN_PROGRESS but heartbeat is absent in Redis, candidate is DISCONNECTED
+        // Startup grace period: if the candidate recently started (within 45 seconds),
+        // give them grace to load the assessment and emit their first heartbeat before flagging offline
+        const attemptAgeMs =
+          now -
+          (att.startedAt
+            ? new Date(att.startedAt).getTime()
+            : new Date(att.createdAt).getTime());
+        const isWithinStartupGrace = attemptAgeMs < 45000;
+
+        // If DB status is ACTIVE or IN_PROGRESS but heartbeat is absent in Redis
         if (att.status === "IN_PROGRESS" || (att.status as any) === "ACTIVE") {
-          status = "DISCONNECTED";
-          networkStatus = "OFFLINE";
-          isNeedsAttention = true;
-          incidentReasons.push("Heartbeat Offline / Key Expired");
+          if (isWithinStartupGrace) {
+            status = "STARTING";
+            networkStatus = "ONLINE";
+            isNeedsAttention = false;
+          } else {
+            status = "DISCONNECTED";
+            networkStatus = "OFFLINE";
+            isNeedsAttention = true;
+            incidentReasons.push("Heartbeat Offline / Key Expired");
+          }
         } else if (status === "NOT_STARTED" && answersCount > 0) {
-          status = "DISCONNECTED";
-          networkStatus = "OFFLINE";
-          isNeedsAttention = true;
-          incidentReasons.push("Heartbeat Offline / Key Expired");
+          if (isWithinStartupGrace) {
+            status = "STARTING";
+            networkStatus = "ONLINE";
+            isNeedsAttention = false;
+          } else {
+            status = "DISCONNECTED";
+            networkStatus = "OFFLINE";
+            isNeedsAttention = true;
+            incidentReasons.push("Heartbeat Offline / Key Expired");
+          }
         } else if (att.status === "AUTO_SUBMITTED" || att.status === "ADMIN_REVIEW") {
           isNeedsAttention = true;
           incidentReasons.push(att.submissions?.[0]?.reason || "Auto-submitted");
@@ -1018,8 +1113,9 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
           candidateEmail: att.user?.email || "candidate@intervu.ai",
           candidateRole: (att.user as any)?.role || "CANDIDATE",
           status,
-        currentSectionKey: att.executionState?.currentSectionKey || "section-1",
-        currentSectionIndex: att.executionState?.currentSectionIndex ?? 0,
+          currentSectionKey: att.executionState?.currentSectionKey || "section-1",
+          currentSectionName,
+          currentSectionIndex: att.executionState?.currentSectionIndex ?? 0,
         currentQuestionId: att.executionState?.currentQuestionId || "",
         currentQuestionIndex: att.executionState?.currentQuestionIndex ?? 0,
         answeredCount: answersCount,

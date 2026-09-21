@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,62 @@ const STATUS_FILTER_LABELS: Record<string, string> = {
   AUTO_SUBMITTED: 'Auto-Submitted',
   SUBMITTED: 'Submitted / Done',
 };
+
+function formatRemainingTime(seconds: number): string {
+  if (seconds <= 0) return '00:00';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) {
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+interface LiveCountdownProps {
+  expiresAt?: string;
+  initialSeconds: number;
+  isTerminal: boolean;
+}
+
+export function LiveCountdown({ expiresAt, initialSeconds, isTerminal }: LiveCountdownProps) {
+  const [seconds, setSeconds] = useState<number>(initialSeconds);
+
+  useEffect(() => {
+    setSeconds(initialSeconds);
+  }, [initialSeconds]);
+
+  useEffect(() => {
+    if (isTerminal) return;
+
+    const interval = setInterval(() => {
+      if (expiresAt) {
+        const remaining = Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
+        setSeconds(remaining);
+      } else {
+        setSeconds((prev) => Math.max(0, prev - 1));
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt, isTerminal]);
+
+  if (isTerminal) {
+    return <span className='text-muted-foreground text-xs'>Ended</span>;
+  }
+
+  const isLow = seconds < 300;
+  return (
+    <div
+      className={`font-mono font-bold text-xs flex items-center gap-1 ${
+        isLow ? 'text-rose-500 animate-pulse' : 'text-foreground'
+      }`}
+    >
+      <Clock className={`size-3 ${isLow ? 'text-rose-500' : 'text-muted-foreground'}`} />
+      <span>{formatRemainingTime(seconds)}</span>
+    </div>
+  );
+}
 
 interface CandidateLiveTableProps {
   candidates: CandidateItem[];
@@ -155,12 +211,6 @@ export function CandidateLiveTable({
     }
   };
 
-  const formatRemainingTime = (seconds: number) => {
-    if (seconds <= 0) return '00:00';
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
 
   // Once an attempt has ended, its remaining-time/latency fields are stale
   // snapshots, not live values — showing them as "00:00" / "0ms" next to a
@@ -174,8 +224,13 @@ export function CandidateLiveTable({
     'TERMINATED',
   ]);
 
-  const formatSectionLabel = (key: string) => {
+  const formatSectionLabel = (c: CandidateItem) => {
+    if (c.currentSectionName) return c.currentSectionName;
+    const key = c.currentSectionKey;
     if (!key || key === 'default') return 'General Section';
+    if (key.startsWith('cms') || key.startsWith('cmu') || (key.length >= 20 && !key.includes(' '))) {
+      return `Section ${c.currentSectionIndex + 1}`;
+    }
     return key
       .replace(/[-_]/g, ' ')
       .replace(/\b\w/g, (ch) => ch.toUpperCase());
@@ -345,8 +400,11 @@ export function CandidateLiveTable({
 
                     {/* Section & Question */}
                     <td className='p-3 whitespace-nowrap'>
-                      <div className='text-xs font-semibold text-foreground truncate max-w-[140px]'>
-                        {formatSectionLabel(c.currentSectionKey)}
+                      <div
+                        className='text-xs font-semibold text-foreground truncate max-w-[140px]'
+                        title={c.currentSectionName || c.currentSectionKey}
+                      >
+                        {formatSectionLabel(c)}
                       </div>
                       <div className='text-[11px] text-muted-foreground'>
                         Q{c.currentQuestionIndex + 1} of {c.totalQuestions}
@@ -373,18 +431,11 @@ export function CandidateLiveTable({
 
                     {/* Remaining Time */}
                     <td className='p-3 whitespace-nowrap'>
-                      {isTerminal ? (
-                        <span className='text-muted-foreground text-xs'>Ended</span>
-                      ) : (
-                        <div
-                          className={`font-mono font-bold text-xs flex items-center gap-1 ${
-                            c.remainingTimeSeconds < 300 ? 'text-rose-500' : 'text-foreground'
-                          }`}
-                        >
-                          <Clock className='size-3 text-muted-foreground' />
-                          {formatRemainingTime(c.remainingTimeSeconds)}
-                        </div>
-                      )}
+                      <LiveCountdown
+                        expiresAt={c.expiresAt}
+                        initialSeconds={c.remainingTimeSeconds}
+                        isTerminal={isTerminal}
+                      />
                     </td>
 
                     {/* Network & Latency */}
