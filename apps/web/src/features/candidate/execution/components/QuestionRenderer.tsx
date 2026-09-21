@@ -5,6 +5,7 @@ import { useExecutionStore } from '../stores/execution.store';
 import { Input } from '@/components/ui/input';
 import { EmbeddedCompiler } from './EmbeddedCompiler';
 import { MarkdownRenderer, formatNormalInput, formatNormalOutput } from '@/components/ui/markdown-renderer';
+import { ImageRenderer } from '@/components/media/ImageRenderer';
 import { executionService } from '../services/execution.service';
 
 export function QuestionRenderer() {
@@ -251,6 +252,16 @@ export function QuestionRenderer() {
             selectedOptionId === optText ||
             selectedOptionId === (typeof option === 'object' ? option?.id : null);
 
+          const optMediaUrl =
+            typeof option === 'object' && option !== null
+              ? option.mediaUrl || option.url || option.media?.url || option.image || null
+              : null;
+
+          const isDiagramOnly =
+            option?.mode === 'diagram-only' ||
+            (optMediaUrl &&
+              (optText.trim() === letter || optText.trim() === letter.toLowerCase() || !optText.trim()));
+
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
@@ -258,7 +269,7 @@ export function QuestionRenderer() {
               key={optKey}
               htmlFor={htmlId}
               className={`
-                flex items-center p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
+                flex items-start p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
                 ${
                   isSelected
                     ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-500 text-blue-950 font-medium'
@@ -278,7 +289,7 @@ export function QuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-7 h-7 rounded-full border mr-3.5 text-xs font-bold shrink-0
+                flex items-center justify-center w-7 h-7 rounded-full border mr-3.5 text-xs font-bold shrink-0 mt-0.5
                 ${
                   isSelected
                     ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
@@ -289,9 +300,16 @@ export function QuestionRenderer() {
               >
                 {letter}
               </div>
-              <span className='text-sm font-medium leading-relaxed break-words text-slate-900'>
-                {optText}
-              </span>
+              <div className='flex flex-col space-y-2 flex-1'>
+                {optText && !isDiagramOnly && (
+                  <span className='text-sm font-medium leading-relaxed break-words text-slate-900'>
+                    {optText}
+                  </span>
+                )}
+                {optMediaUrl && (
+                  <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
+                )}
+              </div>
             </label>
           );
         })}
@@ -330,6 +348,16 @@ export function QuestionRenderer() {
             selectedOptionIds.includes(optText) ||
             (typeof option === 'object' && option?.id && selectedOptionIds.includes(option.id));
 
+          const optMediaUrl =
+            typeof option === 'object' && option !== null
+              ? option.mediaUrl || option.url || option.media?.url || option.image || null
+              : null;
+
+          const isDiagramOnly =
+            option?.mode === 'diagram-only' ||
+            (optMediaUrl &&
+              (optText.trim() === letter || optText.trim() === letter.toLowerCase() || !optText.trim()));
+
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
@@ -337,7 +365,7 @@ export function QuestionRenderer() {
               key={`opt-${currentQuestion.id}-${index}`}
               htmlFor={htmlId}
               className={`
-                flex items-center p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
+                flex items-start p-3.5 border rounded-lg cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-blue-500 shadow-xs
                 ${
                   isSelected
                     ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-500 text-blue-950 font-medium'
@@ -355,7 +383,7 @@ export function QuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-7 h-7 rounded border mr-3.5 text-xs font-bold shrink-0
+                flex items-center justify-center w-7 h-7 rounded border mr-3.5 text-xs font-bold shrink-0 mt-0.5
                 ${
                   isSelected
                     ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
@@ -366,9 +394,16 @@ export function QuestionRenderer() {
               >
                 {letter}
               </div>
-              <span className='text-sm font-medium leading-relaxed break-words text-slate-900'>
-                {optText}
-              </span>
+              <div className='flex flex-col space-y-2 flex-1'>
+                {optText && !isDiagramOnly && (
+                  <span className='text-sm font-medium leading-relaxed break-words text-slate-900'>
+                    {optText}
+                  </span>
+                )}
+                {optMediaUrl && (
+                  <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
+                )}
+              </div>
             </label>
           );
         })}
@@ -767,6 +802,33 @@ export function QuestionRenderer() {
                 content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim() || 'No question text provided.'}
                 className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-800 font-sans'
               />
+
+              {(() => {
+                const qAny = currentQuestion as any;
+                const questionMediaUrl =
+                  qAny.questionImage ||
+                  qAny.questionMedia?.mediaUrl ||
+                  qAny.questionMedia?.url ||
+                  (Array.isArray(qAny.media) && qAny.media[0]?.url) ||
+                  qAny.metadata?.questionMedia?.mediaUrl ||
+                  qAny.metadata?.questionMedia?.url ||
+                  qAny.mcqData?.questionMedia?.mediaUrl ||
+                  qAny.mcqData?.questionMedia?.url ||
+                  qAny.questionSnapshot?.questionImage ||
+                  qAny.questionSnapshot?.questionMedia?.mediaUrl ||
+                  qAny.questionSnapshot?.questionMedia?.url ||
+                  qAny.questionSnapshot?.metadata?.questionMedia?.mediaUrl ||
+                  qAny.questionSnapshot?.mcqData?.questionMedia?.mediaUrl ||
+                  null;
+
+                if (!questionMediaUrl) return null;
+
+                return (
+                  <div className='mt-3 p-2 bg-slate-50 border border-slate-200 rounded-lg flex justify-center shadow-2xs'>
+                    <ImageRenderer url={questionMediaUrl} altText='Question diagram' maxHeight='max-h-72' />
+                  </div>
+                );
+              })()}
             </div>
 
             {parsedInstructions?.constraints && (

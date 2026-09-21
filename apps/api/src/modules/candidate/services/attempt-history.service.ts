@@ -143,7 +143,7 @@ export class AttemptHistoryService {
 
       const maxAttempts =
         attemptsPerExamOverride ??
-        ((t.examConfig?.ruleFlags?.maxAttempts as number) || 3);
+        ((t.examConfig?.ruleFlags?.maxAttempts as number) || (t.examConfig as any)?.maxAttempts || (t.testConfig as any)?.maxAttempts || 10);
 
       const attemptCount = (userInstances || []).filter(
         (inst: any) =>

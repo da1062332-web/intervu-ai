@@ -27,32 +27,47 @@ export function ManualStrategyPanel({ templateId, template }: StrategyPanelProps
   const { configs, updateConfig } = useStrategyConfigStore();
   const manualConfig = (configs.MANUAL as Record<string, any>) || {};
 
-  const [questionText, setQuestionText] = useState<string>(
-    manualConfig.questionText || template?.structure?.stem || template?.name || ''
-  );
+  const rawQuestionText = manualConfig.questionText || template?.structure?.stem || (template?.name !== 'New Template' ? template?.name : '') || '';
+  const [questionText, setQuestionText] = useState<string>(rawQuestionText);
   const [questionMedia, setQuestionMedia] = useState<{ mediaId: string; mediaUrl: string; altText?: string } | null>(
     manualConfig.questionMedia || null
   );
 
-  const [richOptions, setRichOptions] = useState<RichOption[]>(
-    manualConfig.richOptions || [
-      { key: 'A', mode: 'text-only', text: 'Option A', mediaId: null, mediaUrl: null, isCorrect: true },
-      { key: 'B', mode: 'text-only', text: 'Option B', mediaId: null, mediaUrl: null, isCorrect: false },
-      { key: 'C', mode: 'text-only', text: 'Option C', mediaId: null, mediaUrl: null, isCorrect: false },
-      { key: 'D', mode: 'text-only', text: 'Option D', mediaId: null, mediaUrl: null, isCorrect: false },
-    ]
-  );
+  const [richOptions, setRichOptions] = useState<RichOption[]>(() => {
+    if (Array.isArray(manualConfig.richOptions) && manualConfig.richOptions.length > 0) {
+      return manualConfig.richOptions;
+    }
+    if (Array.isArray(manualConfig.options) && manualConfig.options.length > 0) {
+      return manualConfig.options.map((opt: any, idx: number) => ({
+        key: opt.key || String.fromCharCode(65 + idx),
+        mode: opt.mode || 'text-only',
+        text: typeof opt === 'string' ? opt : opt.text || '',
+        mediaId: opt.mediaId || null,
+        mediaUrl: opt.mediaUrl || null,
+        isCorrect: typeof opt.isCorrect === 'boolean' ? opt.isCorrect : idx === 0,
+      }));
+    }
+    return [
+      { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: true },
+      { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: false },
+      { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: false },
+      { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: false },
+    ];
+  });
 
   const [pickerOptIdx, setPickerOptIdx] = useState<number | null>(null);
   const [uploaderOptIdx, setUploaderOptIdx] = useState<number | null>(null);
 
   useEffect(() => {
+    const correctOpt = richOptions.find((opt) => opt.isCorrect);
     updateConfig({
       manualStrategyMode: 'PRE_AUTHORED',
       questionText,
       questionMedia,
       richOptions,
       questionMediaId: questionMedia?.mediaId || null,
+      correctAnswer: correctOpt?.key || 'A',
+      correctOptionKey: correctOpt?.key || 'A',
       options: richOptions.map((opt) => ({
         key: opt.key,
         mode: opt.mode,

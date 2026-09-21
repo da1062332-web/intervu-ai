@@ -44,24 +44,46 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
   const structure = template?.structure || {};
 
   const [questionText, setQuestionText] = useState<string>(
-    config.questionText || structure.stem || template?.name || ''
+    config.questionText || structure.stem || (template?.name !== 'New Template' ? template?.name : '') || ''
   );
   const [questionMedia, setQuestionMedia] = useState<{ mediaId: string; mediaUrl: string; altText?: string } | null>(
     config.questionMedia || structure.media || null
   );
 
   const [richOptions, setRichOptions] = useState<RichOption[]>(() => {
-    if (Array.isArray(config.richOptions) && config.richOptions.length > 0) {
-      return config.richOptions;
+    const rawOpts =
+      Array.isArray(config.richOptions) && config.richOptions.length > 0
+        ? config.richOptions
+        : Array.isArray(config.options) && config.options.length > 0
+          ? config.options
+          : null;
+
+    const correctKey =
+      config.correctAnswer ||
+      config.correctOptionKey ||
+      structure.correctAnswer ||
+      rawOpts?.find((o: any) => o && o.isCorrect === true)?.key ||
+      'A';
+
+    if (rawOpts && rawOpts.length > 0) {
+      return rawOpts.map((opt: any, idx: number) => {
+        const key = opt.key || String.fromCharCode(65 + idx);
+        return {
+          key,
+          mode: opt.mode || 'text-only',
+          text: opt.text || (typeof opt === 'string' ? opt : ''),
+          mediaId: opt.mediaId || null,
+          mediaUrl: opt.mediaUrl || null,
+          isCorrect: key === correctKey,
+        };
+      });
     }
-    if (Array.isArray(config.options) && config.options.length > 0) {
-      return config.options;
-    }
+
     return [
-      { key: 'A', mode: 'text-only', text: 'Option A text', mediaId: null, mediaUrl: null, isCorrect: true },
-      { key: 'B', mode: 'text-only', text: 'Option B text', mediaId: null, mediaUrl: null, isCorrect: false },
-      { key: 'C', mode: 'text-only', text: 'Option C text', mediaId: null, mediaUrl: null, isCorrect: false },
-      { key: 'D', mode: 'text-only', text: 'Option D text', mediaId: null, mediaUrl: null, isCorrect: false },
+      { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: correctKey === 'A' },
+      { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: correctKey === 'B' },
+      { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: correctKey === 'C' },
+      { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: correctKey === 'D' },
     ];
   });
 
@@ -77,13 +99,40 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
     if (config.questionMedia || structure.media) {
       setQuestionMedia(config.questionMedia || structure.media || null);
     }
-    if (Array.isArray(config.richOptions) && config.richOptions.length > 0) {
-      setRichOptions(config.richOptions);
+
+    const rawOpts =
+      Array.isArray(config.richOptions) && config.richOptions.length > 0
+        ? config.richOptions
+        : Array.isArray(config.options) && config.options.length > 0
+          ? config.options
+          : null;
+
+    const correctKey =
+      config.correctAnswer ||
+      config.correctOptionKey ||
+      structure.correctAnswer ||
+      rawOpts?.find((o: any) => o && o.isCorrect === true)?.key ||
+      'A';
+
+    if (rawOpts && rawOpts.length > 0) {
+      setRichOptions(
+        rawOpts.map((opt: any, idx: number) => {
+          const key = opt.key || String.fromCharCode(65 + idx);
+          return {
+            key,
+            mode: opt.mode || 'text-only',
+            text: opt.text || (typeof opt === 'string' ? opt : ''),
+            mediaId: opt.mediaId || null,
+            mediaUrl: opt.mediaUrl || null,
+            isCorrect: key === correctKey,
+          };
+        }),
+      );
     }
     if (config.solutionExplanation || structure.solution) {
       setSolutionExplanation(config.solutionExplanation || structure.solution || '');
     }
-  }, [template?.id]);
+  }, [template?.id, config.correctAnswer, config.correctOptionKey, structure.correctAnswer]);
 
   const [pickerOptIdx, setPickerOptIdx] = useState<number | null>(null);
   const [uploaderOptIdx, setUploaderOptIdx] = useState<number | null>(null);
@@ -132,8 +181,22 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
   };
 
   const handleSave = () => {
-    if (!questionText.trim()) {
-      toast.error('Question text cannot be empty.');
+    if (!questionText || !questionText.trim()) {
+      toast.error('Please enter the question prompt.');
+      return;
+    }
+
+    const missingOptions = richOptions.filter(
+      (opt) => opt.mode !== 'diagram-only' && (!opt.text || !opt.text.trim()) && !opt.mediaUrl
+    );
+    if (missingOptions.length > 0) {
+      toast.error(`Please provide text or an image for Option ${missingOptions.map((o) => o.key).join(', ')}.`);
+      return;
+    }
+
+    const correctOptionObj = richOptions.find((opt) => opt.isCorrect);
+    if (!correctOptionObj) {
+      toast.error('Please select a correct answer option.');
       return;
     }
 
@@ -147,19 +210,24 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
       generationStrategy: 'MANUAL',
       isActive: template.isActive,
       structure: {
-        stem: questionText,
-        options: richOptions.map((opt) => opt.text),
-        correctAnswer: richOptions.find((opt) => opt.isCorrect)?.key || 'A',
+        stem: questionText.trim(),
+        options: richOptions.map((opt) => opt.text || opt.key),
+        correctAnswer: correctOptionObj.key,
         media: questionMedia,
         solution: solutionExplanation,
       },
       config: {
         ...config,
         manualStrategyMode: 'PRE_AUTHORED',
-        questionText,
+        questionText: questionText.trim(),
         questionMedia,
-        richOptions,
+        richOptions: richOptions.map((opt) => ({
+          ...opt,
+          isCorrect: opt.isCorrect,
+        })),
         options: richOptions,
+        correctAnswer: correctOptionObj.key,
+        correctOptionKey: correctOptionObj.key,
         questionMediaId: questionMedia?.mediaId || null,
         solutionExplanation,
       },

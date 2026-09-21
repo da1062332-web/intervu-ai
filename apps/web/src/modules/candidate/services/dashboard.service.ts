@@ -75,7 +75,7 @@ export const dashboardService = {
         sections: t.sections || [],
         status: t.enrollmentStatus || 'AVAILABLE',
         attemptCount: data.attemptsByConfig?.[t.id || t.configId] ?? t.attemptCount ?? 0,
-        maxAttempts: t.maxAttempts ?? 3,
+        maxAttempts: t.maxAttempts ?? t.allowedAttempts ?? 10,
         canReattempt: t.canReattempt ?? true,
         hasActiveAttempt: t.hasActiveAttempt ?? false,
         questionCount: t.totalQuestions ?? t.questionCount ?? 0,
@@ -164,7 +164,7 @@ export const dashboardService = {
         questionCount: t.totalQuestions ?? t.questionCount ?? 0,
         sections: t.sections || [],
         difficulty: t.difficulty || 'Medium',
-        maxAttempts: t.maxAttempts ?? 3,
+        maxAttempts: t.maxAttempts ?? t.allowedAttempts ?? 10,
         attemptCount: t.attemptCount ?? 0,
         canReattempt: t.canReattempt ?? true,
       }));

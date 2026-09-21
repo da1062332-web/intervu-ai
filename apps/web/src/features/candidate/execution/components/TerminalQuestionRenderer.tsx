@@ -5,6 +5,7 @@ import { useExecutionStore } from '../stores/execution.store';
 import { Input } from '@/components/ui/input';
 import { EmbeddedCompiler } from './EmbeddedCompiler';
 import { MarkdownRenderer, formatNormalInput, formatNormalOutput } from '@/components/ui/markdown-renderer';
+import { ImageRenderer } from '@/components/media/ImageRenderer';
 import { executionService } from '../services/execution.service';
 
 export function TerminalQuestionRenderer() {
@@ -247,6 +248,16 @@ export function TerminalQuestionRenderer() {
             selectedOptionId === optText ||
             selectedOptionId === (typeof option === 'object' ? option?.id : null);
 
+          const optMediaUrl =
+            typeof option === 'object' && option !== null
+              ? option.mediaUrl || option.url || option.media?.url || option.image || null
+              : null;
+
+          const isDiagramOnly =
+            option?.mode === 'diagram-only' ||
+            (optMediaUrl &&
+              (optText.trim() === letter || optText.trim() === letter.toLowerCase() || !optText.trim()));
+
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
@@ -254,7 +265,7 @@ export function TerminalQuestionRenderer() {
               key={optKey}
               htmlFor={htmlId}
               className={`
-                flex items-center p-3.5 border rounded-xl cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-emerald-500/50 shadow-xs
+                flex items-start p-3.5 border rounded-xl cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-emerald-500/50 shadow-xs
                 ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-950/60 ring-1 ring-emerald-500/50 text-emerald-100 font-medium'
@@ -274,7 +285,7 @@ export function TerminalQuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-8 h-8 rounded-lg border mr-3.5 text-xs font-mono font-bold shrink-0 transition-colors
+                flex items-center justify-center w-8 h-8 rounded-lg border mr-3.5 text-xs font-mono font-bold shrink-0 transition-colors mt-0.5
                 ${
                   isSelected
                     ? 'bg-emerald-500 border-emerald-400 text-slate-950 shadow-xs'
@@ -285,9 +296,16 @@ export function TerminalQuestionRenderer() {
               >
                 {letter}
               </div>
-              <span className='text-sm font-medium leading-relaxed break-words text-slate-200'>
-                {optText}
-              </span>
+              <div className='flex flex-col space-y-2 flex-1'>
+                {optText && !isDiagramOnly && (
+                  <span className='text-sm font-medium leading-relaxed break-words text-slate-200'>
+                    {optText}
+                  </span>
+                )}
+                {optMediaUrl && (
+                  <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
+                )}
+              </div>
             </label>
           );
         })}
@@ -326,6 +344,11 @@ export function TerminalQuestionRenderer() {
             selectedOptionIds.includes(optText) ||
             (typeof option === 'object' && option?.id && selectedOptionIds.includes(option.id));
 
+          const optMediaUrl =
+            typeof option === 'object' && option !== null
+              ? option.mediaUrl || option.url || option.media?.url || option.image || null
+              : null;
+
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
           return (
@@ -333,7 +356,7 @@ export function TerminalQuestionRenderer() {
               key={`opt-${currentQuestion.id}-${index}`}
               htmlFor={htmlId}
               className={`
-                flex items-center p-3.5 border rounded-xl cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-emerald-500/50 shadow-xs
+                flex items-start p-3.5 border rounded-xl cursor-pointer transition-all duration-150 focus-within:ring-2 focus-within:ring-emerald-500/50 shadow-xs
                 ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-950/60 ring-1 ring-emerald-500/50 text-emerald-100 font-medium'
@@ -351,7 +374,7 @@ export function TerminalQuestionRenderer() {
               />
               <div
                 className={`
-                flex items-center justify-center w-8 h-8 rounded-lg border mr-3.5 text-xs font-mono font-bold shrink-0 transition-colors
+                flex items-center justify-center w-8 h-8 rounded-lg border mr-3.5 text-xs font-mono font-bold shrink-0 transition-colors mt-0.5
                 ${
                   isSelected
                     ? 'bg-emerald-500 border-emerald-400 text-slate-950 shadow-xs'
@@ -362,9 +385,16 @@ export function TerminalQuestionRenderer() {
               >
                 {letter}
               </div>
-              <span className='text-sm font-medium leading-relaxed break-words text-slate-200'>
-                {optText}
-              </span>
+              <div className='flex flex-col space-y-2 flex-1'>
+                {optText && (
+                  <span className='text-sm font-medium leading-relaxed break-words text-slate-200'>
+                    {optText}
+                  </span>
+                )}
+                {optMediaUrl && (
+                  <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
+                )}
+              </div>
             </label>
           );
         })}
@@ -760,6 +790,33 @@ export function TerminalQuestionRenderer() {
                 content={currentQuestion.text?.replace(/^Question\s*:\s*/i, '').trim() || 'No question text provided.'}
                 className='text-[15px] sm:text-[16px] font-normal leading-relaxed text-slate-100 font-sans'
               />
+
+              {(() => {
+                const qAny = currentQuestion as any;
+                const questionMediaUrl =
+                  qAny.questionImage ||
+                  qAny.questionMedia?.mediaUrl ||
+                  qAny.questionMedia?.url ||
+                  (Array.isArray(qAny.media) && qAny.media[0]?.url) ||
+                  qAny.metadata?.questionMedia?.mediaUrl ||
+                  qAny.metadata?.questionMedia?.url ||
+                  qAny.mcqData?.questionMedia?.mediaUrl ||
+                  qAny.mcqData?.questionMedia?.url ||
+                  qAny.questionSnapshot?.questionImage ||
+                  qAny.questionSnapshot?.questionMedia?.mediaUrl ||
+                  qAny.questionSnapshot?.questionMedia?.url ||
+                  qAny.questionSnapshot?.metadata?.questionMedia?.mediaUrl ||
+                  qAny.questionSnapshot?.mcqData?.questionMedia?.mediaUrl ||
+                  null;
+
+                if (!questionMediaUrl) return null;
+
+                return (
+                  <div className='mt-3 p-2 bg-[#161b22] border border-slate-800 rounded-lg flex justify-center shadow-xs'>
+                    <ImageRenderer url={questionMediaUrl} altText='Question diagram' maxHeight='max-h-72' />
+                  </div>
+                );
+              })()}
             </div>
 
             {parsedInstructions?.constraints && (

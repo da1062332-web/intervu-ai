@@ -21,6 +21,7 @@ import { ImagePreview } from '@/components/media/ImagePreview';
 import { ImagePicker } from '@/components/media/ImagePicker';
 import { ImageUploader } from '@/components/media/ImageUploader';
 import { MediaAsset, OptionMode } from '@/services/media/types';
+import toast from 'react-hot-toast';
 
 const formSchema = z.object({
   questionText: z.string().min(1, 'Question text is required'),
@@ -293,6 +294,16 @@ export function ManualQuestionModal({
   const onSubmit = async (data: FormValues) => {
     try {
       const isMcq = data.questionType === 'MCQ';
+
+      if (isMcq) {
+        const missingOptions = richOptions.filter(
+          (opt) => opt.mode !== 'diagram-only' && (!opt.text || !opt.text.trim()) && !opt.mediaId
+        );
+        if (missingOptions.length > 0) {
+          toast.error(`Please provide text or diagram for Option ${missingOptions.map((o) => o.key).join(', ')}.`);
+          return;
+        }
+      }
 
       const payloadRichOptions = isMcq
         ? richOptions.map((opt: RichOptionState) => ({

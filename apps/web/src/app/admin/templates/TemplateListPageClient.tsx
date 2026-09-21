@@ -481,16 +481,20 @@ export function TemplateListPageClient() {
           </div>
           <div>
             <Label>Question Type</Label>
-            <select
-              className='flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'
+            <Select
               value={formData.questionType}
-              onChange={(e) => setFormData({ ...formData, questionType: e.target.value })}
+              onValueChange={(val: string) => setFormData({ ...formData, questionType: val })}
             >
-              <option value='MULTIPLE_CHOICE'>Multiple Choice (MCQ)</option>
-              <option value='CODING'>Coding Problem</option>
-              <option value='NUMERIC'>Numeric Entry</option>
-              <option value='TRUE_FALSE'>True / False</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder='Select a question type' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='MULTIPLE_CHOICE'>Multiple Choice (MCQ)</SelectItem>
+                <SelectItem value='CODING'>Coding Problem</SelectItem>
+                <SelectItem value='NUMERIC'>Numeric Entry</SelectItem>
+                <SelectItem value='TRUE_FALSE'>True / False</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Difficulty</Label>

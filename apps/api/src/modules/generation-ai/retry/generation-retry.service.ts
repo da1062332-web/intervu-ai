@@ -254,6 +254,67 @@ export class GenerationRetryService {
       styleProfileId?: string;
     },
   ): Promise<RetryResult> {
+    // For MANUAL strategy templates, return the pre-authored static question immediately without AI generation
+    if (
+      template.generationStrategy === "MANUAL" ||
+      (template as any)?.strategy === "MANUAL"
+    ) {
+      const config = (template.config as Record<string, any>) || {};
+      const structure = (template.structure as Record<string, any>) || {};
+      const metadata = (template.metadata as Record<string, any>) || {};
+
+      const questionText =
+        config.questionText || structure.stem || structure.mcq?.questionText || template.name;
+      const richOptions =
+        config.richOptions ||
+        config.options ||
+        structure.mcq?.options ||
+        structure.options ||
+        metadata.options ||
+        [];
+      const questionMedia =
+        config.questionMedia ||
+        structure.mcq?.questionMedia ||
+        structure.media ||
+        metadata.questionMedia ||
+        null;
+
+      const correctAnswer =
+        structure.correctAnswer ||
+        richOptions.find((o: any) => o.isCorrect)?.key ||
+        "A";
+      const explanation =
+        config.solutionExplanation || structure.solution || "";
+
+      const manualQuestion = {
+        id: `manual_${template.id || "tpl"}_${Date.now()}`,
+        questionText,
+        answer: correctAnswer,
+        explanation,
+        options: richOptions,
+        difficulty: template.difficultyLevel || "MEDIUM",
+        questionType: template.questionType || "MCQ",
+        mcqData: {
+          options: richOptions,
+          correctOptionId: correctAnswer,
+          questionMedia,
+        },
+        questionMedia,
+        metadata: {
+          isManual: true,
+          questionMedia,
+          richOptions,
+          templateId: template.id,
+        },
+      };
+
+      return {
+        success: true,
+        question: manualQuestion as any,
+        attempts: 1,
+      };
+    }
+
     let attempts = 0;
     const errors: string[] = [];
 

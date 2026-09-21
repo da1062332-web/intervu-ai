@@ -215,11 +215,11 @@ export class EligibilityService {
       });
     }
 
-    // Attempt Limit – check plan override first, then ruleFlags from config, default 3
     let effectiveMaxAttempts: number =
-      isExamConfig && config.ruleFlags?.maxAttempts != null
-        ? config.ruleFlags.maxAttempts
-        : 3;
+      (config as any)?.ruleFlags?.maxAttempts ??
+      (config as any)?.maxAttempts ??
+      (config as any)?.allowedAttempts ??
+      10;
 
     if (this.entitlementService) {
       try {

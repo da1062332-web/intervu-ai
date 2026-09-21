@@ -13,7 +13,7 @@ const UpdateRuleFlagsSchema = z.object({
   shuffleQuestionsEnabled: z.boolean(),
   shuffleOptionsEnabled: z.boolean(),
   allowSectionNavigation: z.boolean(),
-  maxAttempts: z.number().int().min(1).max(10).optional(),
+  maxAttempts: z.number().int().min(1).max(100).optional(),
   candidateNoRepeatEnabled: z.boolean().optional(),
   runtimeGenerationOnDeficit: z.boolean().optional(),
   poolEnabled: z.boolean().optional(),
@@ -54,7 +54,7 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
   const [shuffleQuestionsEnabled, setShuffleQuestionsEnabled] = useState(false);
   const [shuffleOptionsEnabled, setShuffleOptionsEnabled] = useState(false);
   const [allowSectionNavigation, setAllowSectionNavigation] = useState(false);
-  const [maxAttempts, setMaxAttempts] = useState<number>(3);
+  const [maxAttempts, setMaxAttempts] = useState<number>(10);
   const [candidateNoRepeatEnabled, setCandidateNoRepeatEnabled] = useState(false);
   const [runtimeGenerationOnDeficit, setRuntimeGenerationOnDeficit] = useState(false);
   const [poolEnabled, setPoolEnabled] = useState(false);

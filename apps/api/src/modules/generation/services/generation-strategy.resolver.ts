@@ -76,6 +76,22 @@ export class GenerationStrategyResolver {
 
     // 2. Dispatch to the correct pipeline
     switch (strategy.toUpperCase()) {
+      case "MANUAL": {
+        const config = (template.config as Record<string, any>) || {};
+        const structure = (template.structure as Record<string, any>) || {};
+        const questionText = config.questionText || structure.stem || template.name;
+        const richOptions = config.richOptions || config.options || [];
+        return {
+          templateId: template.id,
+          conceptKey: template.conceptKey,
+          generationStrategy: "MANUAL",
+          variables: {
+            questionText,
+            options: richOptions,
+            isManual: true,
+          },
+        };
+      }
       case "VARIABLE": {
         // VARIABLE: Runs Parameter & Formula evaluation
         const variables = this.paramGenerator.generateParameters(

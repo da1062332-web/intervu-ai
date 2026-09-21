@@ -101,13 +101,26 @@ export const executionService = {
                           : typeof opt.optionText === 'string'
                             ? opt.optionText
                             : String(opt.text || opt.value || opt.label || '');
+                  const mediaUrl =
+                    opt.mediaUrl || opt.url || opt.image || opt.media?.url || null;
                   return {
+                    ...opt,
                     id: typeof opt.id === 'string' ? opt.id : `opt-${idx}`,
                     text: extracted,
+                    mediaUrl,
+                    mode: opt.mode || (mediaUrl ? 'diagram-only' : 'text-only'),
                   };
                 }
                 return { id: `opt-${idx}`, text: String(opt) };
               });
+
+              const questionImage =
+                snap.questionImage ||
+                snap.questionMedia?.mediaUrl ||
+                snap.questionMedia?.url ||
+                snap.mcqData?.questionMedia?.mediaUrl ||
+                snap.metadata?.questionMedia?.mediaUrl ||
+                null;
 
               return {
                 id: q.questionId,
@@ -116,6 +129,12 @@ export const executionService = {
                 type: questionType,
                 text: snap.questionText || snap.text || '',
                 stem: snap.questionStatement || snap.stem || '',
+                questionImage,
+                questionMedia:
+                  snap.questionMedia ||
+                  snap.mcqData?.questionMedia ||
+                  snap.metadata?.questionMedia ||
+                  (questionImage ? { mediaUrl: questionImage } : null),
                 candidateInstructions: snap.instructions || '',
                 codingData: snap.codingData,
                 questionSnapshot: snap,
