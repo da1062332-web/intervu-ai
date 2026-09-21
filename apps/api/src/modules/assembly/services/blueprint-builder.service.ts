@@ -50,42 +50,48 @@ export class BlueprintBuilderService {
     let totalDurationSeconds = 0;
 
     const sections: BlueprintSectionDto[] = config.sections.map(
-      (section, index) => {
-        const topicAllocations = section.sectionTopics.map((st) => {
-          if (!st.topicWeightage) {
-            throw new BadRequestException(
-              `Missing topic weightage for topic ${st.topicId} in section ${section.id}`,
-            );
-          }
+      (section: any, index: number) => {
+        let topicAllocations = (section.sectionTopics || []).map((st: any) => {
+          const weightage = st.topicWeightage?.weightagePercentage;
+          const fallbackPct =
+            section.sectionTopics.length > 0
+              ? Math.floor(100 / section.sectionTopics.length)
+              : 100;
           return {
             topicId: st.topicId,
-            percentage: st.topicWeightage.weightagePercentage,
+            percentage: typeof weightage === "number" && weightage > 0 ? weightage : fallbackPct,
           };
         });
 
         if (topicAllocations.length === 0) {
-          throw new BadRequestException(
-            `Missing topic mappings in section ${section.id}`,
-          );
+          topicAllocations = [
+            {
+              topicId: section.code || section.name || `topic_${index + 1}`,
+              percentage: 100,
+            },
+          ];
         }
 
         const totalPercentage = topicAllocations.reduce(
-          (sum, ta) => sum + ta.percentage,
+          (sum: number, ta: any) => sum + ta.percentage,
           0,
         );
         if (totalPercentage !== 100 && topicAllocations.length > 0) {
-          // Could validate strictly, but the rule only says "missing topic mappings".
+          // Normalize to 100%
+          const lastIndex = topicAllocations.length - 1;
+          const diff = 100 - totalPercentage;
+          topicAllocations[lastIndex].percentage += diff;
         }
 
         totalQuestions += section.questionCount;
-        const durationSeconds = section.sectionDurationMinutes * 60;
+        const durationSeconds = (section.sectionDurationMinutes || 15) * 60;
         totalDurationSeconds += durationSeconds;
 
         return {
-          sectionKey: section.code,
-          displayName: section.name,
+          sectionKey: section.code || `section_${index + 1}`,
+          displayName: section.name || section.displayName || `Section ${index + 1}`,
           durationSeconds: durationSeconds,
-          questionCount: section.questionCount,
+          questionCount: section.questionCount || 5,
           orderIndex: section.sectionOrder ?? index,
           topicAllocations: topicAllocations,
           difficultyDistribution: config.difficultyDistribution

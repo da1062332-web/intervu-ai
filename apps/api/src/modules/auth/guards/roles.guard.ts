@@ -41,7 +41,8 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException("No user context found in request");
     }
 
-    const hasRole = requiredRoles.includes(user.role as UserRole);
+    const hasRole =
+      user.role === UserRole.ADMIN || requiredRoles.includes(user.role as UserRole);
     if (!hasRole) {
       throw new ForbiddenException(
         `Access denied. Requires role: [${requiredRoles.join(", ")}]. Your role: ${user.role}`,

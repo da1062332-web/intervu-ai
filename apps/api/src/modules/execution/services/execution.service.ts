@@ -73,6 +73,24 @@ export class ExecutionService {
     // 2. Validate ownership
     this.validator.validateOwnership(testInstance, userId);
 
+    // 2b. Transition CREATED -> IN_PROGRESS on initial load
+    if (testInstance.status === "CREATED") {
+      try {
+        if (typeof this.prisma.testInstance?.update === "function") {
+          await this.prisma.testInstance.update({
+            where: { id: testInstanceId },
+            data: {
+              status: "IN_PROGRESS",
+              startedAt: testInstance.startedAt || new Date(),
+            },
+          });
+        }
+        (testInstance as any).status = "IN_PROGRESS";
+      } catch (err) {
+        this.logger.warn(`[EXECUTION ⚠️] Failed updating status to IN_PROGRESS for ${testInstanceId}: ${err}`);
+      }
+    }
+
     // 2a. Check Redis cache for cached full snapshot
     const cacheKey = `assessment-snapshot:${testInstanceId}`;
     if (this.cacheService) {
@@ -511,7 +529,7 @@ export class ExecutionService {
     const result: AssessmentSnapshotResponse = {
       testInstanceId: snapshot.id,
       testConfigId: snapshot.testConfigId,
-      status: snapshot.status,
+      status: snapshot.status === "CREATED" ? "IN_PROGRESS" : snapshot.status,
       expiresAt: snapshot.expiresAt,
       sectionTimingEnabled,
       currentSectionIndex,

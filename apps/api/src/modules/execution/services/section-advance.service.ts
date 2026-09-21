@@ -160,9 +160,17 @@ export class SectionAdvanceService {
 
       // Fire and forget – we return immediately; submission is idempotent
       this.submissionService
-        .submitAssessment(testInstanceId, userId, true)
+        .submitAssessment(
+          testInstanceId,
+          userId,
+          false,
+          "USER",
+          "USER_SUBMIT",
+          "Assessment completed via final section completion",
+          true,
+        )
         .catch((err) => {
-          this.logger.error("Auto-submit after last section failed", {
+          this.logger.error("Final section submission failed", {
             testInstanceId,
             error: err instanceof Error ? err.message : err,
           });

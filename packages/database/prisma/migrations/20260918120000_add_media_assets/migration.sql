@@ -1,11 +1,19 @@
 -- CreateEnum
-CREATE TYPE "MediaType" AS ENUM ('IMAGE');
+DO $$ BEGIN
+    CREATE TYPE "MediaType" AS ENUM ('IMAGE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "MediaStatus" AS ENUM ('ACTIVE', 'ARCHIVED');
+DO $$ BEGIN
+    CREATE TYPE "MediaStatus" AS ENUM ('ACTIVE', 'ARCHIVED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateTable
-CREATE TABLE "media_assets" (
+CREATE TABLE IF NOT EXISTS "media_assets" (
     "id" TEXT NOT NULL,
     "type" "MediaType" NOT NULL DEFAULT 'IMAGE',
     "file_name" TEXT NOT NULL,
@@ -24,7 +32,7 @@ CREATE TABLE "media_assets" (
 );
 
 -- CreateTable
-CREATE TABLE "question_media" (
+CREATE TABLE IF NOT EXISTS "question_media" (
     "id" TEXT NOT NULL,
     "question_id" TEXT NOT NULL,
     "media_asset_id" TEXT NOT NULL,
@@ -35,31 +43,43 @@ CREATE TABLE "question_media" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "media_assets_storage_key_key" ON "media_assets"("storage_key");
+CREATE UNIQUE INDEX IF NOT EXISTS "media_assets_storage_key_key" ON "media_assets"("storage_key");
 
 -- CreateIndex
-CREATE INDEX "media_assets_status_idx" ON "media_assets"("status");
+CREATE INDEX IF NOT EXISTS "media_assets_status_idx" ON "media_assets"("status");
 
 -- CreateIndex
-CREATE INDEX "media_assets_created_by_idx" ON "media_assets"("created_by");
+CREATE INDEX IF NOT EXISTS "media_assets_created_by_idx" ON "media_assets"("created_by");
 
 -- CreateIndex
-CREATE INDEX "media_assets_mime_type_idx" ON "media_assets"("mime_type");
+CREATE INDEX IF NOT EXISTS "media_assets_mime_type_idx" ON "media_assets"("mime_type");
 
 -- CreateIndex
-CREATE INDEX "question_media_question_id_idx" ON "question_media"("question_id");
+CREATE INDEX IF NOT EXISTS "question_media_question_id_idx" ON "question_media"("question_id");
 
 -- CreateIndex
-CREATE INDEX "question_media_media_asset_id_idx" ON "question_media"("media_asset_id");
+CREATE INDEX IF NOT EXISTS "question_media_media_asset_id_idx" ON "question_media"("media_asset_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "question_media_question_id_position_key" ON "question_media"("question_id", "position");
+CREATE UNIQUE INDEX IF NOT EXISTS "question_media_question_id_position_key" ON "question_media"("question_id", "position");
 
 -- AddForeignKey
-ALTER TABLE "media_assets" ADD CONSTRAINT "media_assets_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "media_assets" ADD CONSTRAINT "media_assets_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "question_media" ADD CONSTRAINT "question_media_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "question_media" ADD CONSTRAINT "question_media_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "question_media" ADD CONSTRAINT "question_media_media_asset_id_fkey" FOREIGN KEY ("media_asset_id") REFERENCES "media_assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "question_media" ADD CONSTRAINT "question_media_media_asset_id_fkey" FOREIGN KEY ("media_asset_id") REFERENCES "media_assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;

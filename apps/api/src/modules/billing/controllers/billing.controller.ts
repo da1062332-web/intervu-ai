@@ -41,7 +41,7 @@ import { CandidateDashboardRepository } from "../../candidate/repositories/candi
 @ApiTags("billing")
 @Controller("billing")
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.CANDIDATE)
+@Roles(UserRole.CANDIDATE, UserRole.ADMIN, UserRole.PLAN_MANAGER)
 @ApiBearerAuth("jwt-auth")
 export class BillingController {
   private readonly logger = new Logger(BillingController.name);

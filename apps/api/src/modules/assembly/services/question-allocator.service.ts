@@ -879,17 +879,6 @@ export class QuestionAllocatorService {
       const isRuntimeGen =
         (ruleFlags as any)?.runtimeGenerationOnDeficit ?? false;
 
-      // Allow runtime AI generation if runtimeGenerationOnDeficit or candidateNoRepeat is true, or fallback to auto-recovery on deficit
-      if (
-        ruleFlags &&
-        !isRuntimeGen &&
-        !isCandidateNoRepeat &&
-        !isCodingTopic
-      ) {
-        // If explicitly both turned off by admin, return what we have
-        return generatedAllocations;
-      }
-
       let styleProfile = null;
       if (examId) {
         const bp = await this.prisma.blueprint.findUnique({
@@ -921,9 +910,9 @@ export class QuestionAllocatorService {
           : Promise.resolve(null),
       ]);
 
-      // ── Single-batch AI generation ─────────────────────────────────────────
+      // ── Single-batch AI generation (attempted if orchestrator is present) ─────────────────────────
       let batchQuestions: any[] = [];
-      if (this.orchestrator && remainingDeficit > 0) {
+      if (this.orchestrator && remainingDeficit > 0 && (isRuntimeGen || isCandidateNoRepeat || !ruleFlags)) {
         const tAiCall = Date.now();
         this.logger.log(`        [AI-GEN 🤖 ⏱️] Requesting ${remainingDeficit} question(s) for topic "${topicDisplayName}" (${difficulty}) from AI Orchestrator...`);
         try {

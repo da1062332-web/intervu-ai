@@ -1,5 +1,6 @@
 import {
   Injectable,
+  HttpException,
   BadRequestException,
   ForbiddenException,
   InternalServerErrorException,
@@ -312,6 +313,9 @@ export class StartTestService {
         },
       );
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
         `[START-TEST ❌] Failed assembling test for candidate ${userId}, configId: ${targetConfigId}. Cause: ${errorMsg}`,

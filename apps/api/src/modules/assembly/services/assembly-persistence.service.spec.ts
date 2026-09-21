@@ -48,6 +48,7 @@ describe("AssemblyPersistenceService", () => {
           provide: PrismaService,
           useValue: {
             testInstance: { create: jest.fn().mockResolvedValue({}) },
+            examConfig: { findFirst: jest.fn().mockResolvedValue({ id: "cfg-1" }) },
             assembledTest: { create: jest.fn().mockResolvedValue({}) },
             testInstanceSection: { create: jest.fn().mockResolvedValue({}) },
             testInstanceQuestion: { createMany: jest.fn().mockResolvedValue({}) },

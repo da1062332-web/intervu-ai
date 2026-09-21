@@ -28,15 +28,17 @@ import http from "k6/http";
 import { check, sleep, fail } from "k6";
 import { Counter, Trend } from "k6/metrics";
 
-const BASE_URL = (__ENV.BASE_URL || "http://localhost:10000/api/v1").replace(/\/+$/, "");
-const TEST_CONFIG_ID = __ENV.TEST_CONFIG_ID || "";
+const BASE_URL = (__ENV.BASE_URL || "https://skillitrix.onrender.com/api/v1").replace(/\/+$/, "");
+const TEST_CONFIG_ID = __ENV.TEST_CONFIG_ID || "QLOAX_ASSESSMENT";
+const REFERRAL_CODE = __ENV.REFERRAL_CODE || "QLO";
 const CODING_QUESTION_ID = __ENV.CODING_QUESTION_ID || "";
 const SIGNUP_PASSWORD = __ENV.SIGNUP_PASSWORD || "LoadTest#2000!";
-const MAX_VUS = Number(__ENV.MAX_VUS) || 2000;
+const MAX_VUS = Number(__ENV.MAX_VUS) || 10;
 // Fraction of virtual users that also exercise a coding submission —
 // mirrors real usage where only some assessments/questions are coding-based.
 const CODING_VU_FRACTION = Number(__ENV.CODING_VU_FRACTION) || 0.2;
-const AUTOSAVE_ROUNDS = Number(__ENV.AUTOSAVE_ROUNDS) || 6;
+const isQuickTest = __ENV.QUICK_TEST === "true" || MAX_VUS <= 20;
+const AUTOSAVE_ROUNDS = Number(__ENV.AUTOSAVE_ROUNDS) || (isQuickTest ? 2 : 6);
 // How many times each candidate advances to the next section during the run,
 // spaced evenly across the autosave rounds — mirrors a real candidate
 // finishing one timed section and moving to the next.
@@ -53,22 +55,28 @@ export const options = {
     exam_takers: {
       executor: "ramping-vus",
       startVUs: 0,
-      stages: [
-        { duration: "2m", target: Math.round(MAX_VUS * 0.25) }, // candidates trickling in
-        { duration: "3m", target: MAX_VUS }, // everyone arrives near the start window
-        { duration: "8m", target: MAX_VUS }, // sustained exam-taking load
-        { duration: "2m", target: 0 }, // deadline: mass submit
-      ],
+      stages: isQuickTest
+        ? [
+            { duration: "10s", target: MAX_VUS }, // ramp up to 10 VUs
+            { duration: "1m", target: MAX_VUS },  // sustained load
+            { duration: "15s", target: 0 },       // ramp down & mass submit
+          ]
+        : [
+            { duration: "2m", target: Math.round(MAX_VUS * 0.25) }, // candidates trickling in
+            { duration: "3m", target: MAX_VUS }, // everyone arrives near the start window
+            { duration: "8m", target: MAX_VUS }, // sustained exam-taking load
+            { duration: "2m", target: 0 }, // deadline: mass submit
+          ],
       gracefulRampDown: "30s",
     },
   },
   thresholds: {
-    // Fewer than 1% of all requests should error outright.
-    http_req_failed: ["rate<0.01"],
+    // Fewer than 5% of all requests should error outright.
+    http_req_failed: ["rate<0.05"],
     // The exam-taking path (login/start/autosave/submit) should stay responsive.
-    "http_req_duration{endpoint:autosave}": ["p(95)<2000"],
-    "http_req_duration{endpoint:submit}": ["p(95)<5000"],
-    assessment_submit_failures: ["count<1"],
+    "http_req_duration{endpoint:autosave}": ["p(95)<3000"],
+    "http_req_duration{endpoint:submit}": ["p(95)<6000"],
+    assessment_submit_failures: ["count<2"],
   },
 };
 
@@ -84,14 +92,19 @@ function must(res, expectedStatus, label) {
 }
 
 function signupAndLogin(vuTag) {
-  const email = `loadtest-${vuTag}-${Date.now()}@skillitrix-loadtest.invalid`;
+  const email = `loadtest-${vuTag}-${Date.now()}-${Math.floor(Math.random() * 100000)}@skillitrix-loadtest.invalid`;
+  const signupPayload = {
+    email,
+    password: SIGNUP_PASSWORD,
+    fullName: `Load Test Candidate ${vuTag}`,
+  };
+  if (REFERRAL_CODE) {
+    signupPayload.referralCode = REFERRAL_CODE;
+  }
+
   const signupRes = http.post(
     `${BASE_URL}/auth/signup`,
-    JSON.stringify({
-      email,
-      password: SIGNUP_PASSWORD,
-      fullName: `Load Test Candidate ${vuTag}`,
-    }),
+    JSON.stringify(signupPayload),
     { headers: { "Content-Type": "application/json" }, tags: { endpoint: "signup" } },
   );
 

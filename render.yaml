@@ -36,7 +36,7 @@ services:
           name: intervu-redis
           property: connectionString
       - key: NODE_OPTIONS
-        value: --max-old-space-size=1536 # 1.5GB heap to prevent blocking GC pauses
+        value: --max-old-space-size=400 # Starter plan only has 512MB RAM total — 1536 told V8 it had 3x that, causing OOM kills under load; 400 leaves headroom for non-heap overhead (Node baseline, Prisma engine, network buffers)
       - key: CODE_EXECUTION_CONCURRENCY
         value: 20 # Bounded concurrency to sustain up to 1,200 code evaluations/min for 2,000 candidates
       - key: CODE_EXECUTION_MAX_QUEUE_DEPTH
@@ -82,7 +82,7 @@ services:
           name: intervu-redis
           property: connectionString
       - key: NODE_OPTIONS
-        value: --max-old-space-size=1024
+        value: --max-old-space-size=400 # Starter plan only has 512MB RAM total — 1024 told V8 it had 2x that, same OOM risk as intervu-api
       - key: WORKER_CONCURRENCY
         value: 4
       - key: ENABLE_GENERATION_QUEUE

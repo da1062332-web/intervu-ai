@@ -104,6 +104,15 @@ export function TestLaunchPage({ testId }: TestLaunchPageProps) {
       const errCode = err?.code || err?.response?.data?.code || err?.error?.code;
       if (errCode === 'QUOTA_EXHAUSTED' || errCode === 'NO_ACTIVE_PLAN' || errCode === 'MONTHLY_QUOTA_EXCEEDED') {
         useSubscriptionStore.getState().openQuotaExhaustedModal();
+      } else {
+        const errorMsg =
+          err?.message ||
+          err?.error?.message ||
+          err?.response?.data?.message ||
+          'Failed to initialize assessment. Please try again.';
+        toast.error('Assessment Launch Error', {
+          description: errorMsg,
+        });
       }
     }
   };

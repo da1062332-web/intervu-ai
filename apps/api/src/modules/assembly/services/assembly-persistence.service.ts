@@ -64,6 +64,14 @@ export class AssemblyPersistenceService {
       this.logger.log(`    [CLONE-SERVICE 🔀] Applied candidate shuffle (Questions: ${shuffleQuestions}, Options: ${shuffleOptions})`);
     }
 
+    // 1. Resolve whether configId is an ExamConfig or TestConfig
+    const examConfig = await this.prisma.examConfig.findFirst({
+      where: { OR: [{ id: configId }, { code: configId }] },
+      select: { id: true },
+    });
+    const examConfigId = examConfig?.id ?? null;
+    const testConfigId = !examConfig ? configId : null;
+
     const queries: Prisma.PrismaPromise<unknown>[] = [];
 
     // 1. Create candidate TestInstance
@@ -72,22 +80,10 @@ export class AssemblyPersistenceService {
         data: {
           id: testInstanceId,
           userId,
-          examConfigId: configId,
+          examConfigId,
+          testConfigId,
           status: "CREATED",
           expiresAt,
-        },
-      }),
-    );
-
-    // 1b. Create AssembledTest reference for audit and snapshot compatibility
-    queries.push(
-      this.prisma.assembledTest.create({
-        data: {
-          id: testInstanceId,
-          configId,
-          status: "DRAFT",
-          totalDurationSeconds: durationSeconds || reusable.totalDurationSeconds || 3600,
-          totalQuestions: reusable.totalQuestions || 0,
         },
       }),
     );
@@ -96,18 +92,18 @@ export class AssemblyPersistenceService {
     // 2. Clone sections & questions
     for (let i = 0; i < sectionsToClone.length; i++) {
       const sec = sectionsToClone[i];
-      const instanceSectionId = `sec_inst_${testInstanceId}_${sec.sectionKey}`;
+      const instanceSectionId = createId();
 
       queries.push(
         this.prisma.testInstanceSection.create({
           data: {
             id: instanceSectionId,
             testInstanceId,
-            sectionKey: sec.sectionKey,
+            sectionKey: sec.sectionKey || `section_${i + 1}`,
             sectionName: sec.sectionName || `Section ${i + 1}`,
             durationSeconds: sec.durationSeconds,
             questionCount: sec.questionCount || sec.questions?.length || 0,
-            orderIndex: sec.orderIndex ?? i,
+            orderIndex: i,
             status: i === 0 ? "ACTIVE" : "UPCOMING",
           },
         }),
@@ -121,7 +117,7 @@ export class AssemblyPersistenceService {
               testInstanceId,
               sectionId: instanceSectionId,
               questionId: q.questionId,
-              questionOrder: q.questionOrder ?? qIdx,
+              questionOrder: qIdx,
               questionSnapshot: (q.questionSnapshot as Prisma.InputJsonValue) || {},
             })),
           }),
@@ -211,6 +207,13 @@ export class AssemblyPersistenceService {
       );
     }
 
+    const examConfig = await this.prisma.examConfig.findFirst({
+      where: { OR: [{ id: claimedInstance.configId }, { code: claimedInstance.configId }] },
+      select: { id: true },
+    });
+    const examConfigId = examConfig?.id ?? null;
+    const testConfigId = !examConfig ? claimedInstance.configId : null;
+
     const queries: Prisma.PrismaPromise<unknown>[] = [];
 
     // 1. Create candidate TestInstance
@@ -219,7 +222,8 @@ export class AssemblyPersistenceService {
         data: {
           id: testInstanceId,
           userId,
-          examConfigId: claimedInstance.configId,
+          examConfigId,
+          testConfigId,
           status: "CREATED",
           expiresAt,
         },
@@ -230,18 +234,18 @@ export class AssemblyPersistenceService {
     // 2. Persist sections & questions
     for (let i = 0; i < sectionsToPersist.length; i++) {
       const sec = sectionsToPersist[i];
-      const instanceSectionId = `sec_inst_${testInstanceId}_${sec.sectionKey}`;
+      const instanceSectionId = createId();
 
       queries.push(
         this.prisma.testInstanceSection.create({
           data: {
             id: instanceSectionId,
             testInstanceId,
-            sectionKey: sec.sectionKey,
+            sectionKey: sec.sectionKey || `section_${i + 1}`,
             sectionName: sec.sectionName || sec.displayName || `Section ${i + 1}`,
             durationSeconds: sec.durationSeconds || 600,
             questionCount: sec.questionCount || sec.questions?.length || 0,
-            orderIndex: sec.orderIndex ?? i,
+            orderIndex: i,
             status: i === 0 ? "ACTIVE" : "UPCOMING",
           },
         }),
@@ -255,7 +259,7 @@ export class AssemblyPersistenceService {
               testInstanceId,
               sectionId: instanceSectionId,
               questionId: q.questionId,
-              questionOrder: q.questionOrder ?? qIdx,
+              questionOrder: qIdx,
               questionSnapshot: (q.questionSnapshot as Prisma.InputJsonValue) || {},
             })),
           }),
@@ -272,7 +276,7 @@ export class AssemblyPersistenceService {
           currentQuestionIndex: 0,
           currentSectionIndex: 0,
           currentSectionKey: firstSection?.sectionKey || "default",
-          remainingTimeSeconds: durationSeconds || 3600,
+          remainingTimeSeconds: effectiveDurationSeconds,
           lockedSectionKeys: [],
           markedQuestions: [],
           visitedQuestions: [],
@@ -300,14 +304,34 @@ export class AssemblyPersistenceService {
       0,
     );
 
-    const t0 = Date.now();
-    const assemblyId = await this.repository.createAssemblyWithTransaction(
-      configId,
-      sections,
-      totalDuration,
-      totalQuestions,
-    );
-    this.logger.log(`    [SAVE-ASSEMBLY ⏱️] AssembledTest created in ${Date.now() - t0}ms (ID: ${assemblyId})`);
+    const examConfig = await this.prisma.examConfig.findFirst({
+      where: { OR: [{ id: configId }, { code: configId }] },
+      select: { id: true },
+    });
+    const testConfig = !examConfig
+      ? await this.prisma.testConfig.findFirst({
+          where: { OR: [{ id: configId }, { configKey: configId }] },
+          select: { id: true },
+        })
+      : null;
+
+    const examConfigId = examConfig?.id ?? null;
+    const testConfigId = testConfig?.id ?? (!examConfig ? configId : null);
+
+    let assemblyId = createId();
+
+    try {
+      const t0 = Date.now();
+      assemblyId = await this.repository.createAssemblyWithTransaction(
+        configId,
+        sections,
+        totalDuration,
+        totalQuestions,
+      );
+      this.logger.log(`    [SAVE-ASSEMBLY ⏱️] AssembledTest created in ${Date.now() - t0}ms (ID: ${assemblyId})`);
+    } catch (err: any) {
+      this.logger.warn(`    [SAVE-ASSEMBLY ⚠️] Direct AssembledTest creation skipped: ${err?.message || err}. Creating TestInstance directly.`);
+    }
 
     await this.auditService.log(assemblyId, "CREATED", userId, {
       configId,
@@ -315,78 +339,95 @@ export class AssemblyPersistenceService {
       totalDuration,
     });
 
-    // Create candidate test instance and nested sections & questions in testInstance table for execution controller session resolution
-    try {
-      const tTi = Date.now();
-      const expiresAt = new Date(Date.now() + (totalDuration || 3600) * 1000);
-      const queries: Prisma.PrismaPromise<unknown>[] = [];
+    const tTi = Date.now();
+    const expiresAt = new Date(Date.now() + (totalDuration || 3600) * 1000);
+    const queries: Prisma.PrismaPromise<unknown>[] = [];
 
+    queries.push(
+      this.prisma.testInstance.create({
+        data: {
+          id: assemblyId,
+          userId,
+          examConfigId,
+          testConfigId,
+          status: "CREATED",
+          expiresAt,
+        },
+      }),
+    );
+
+    // Randomize question and option order for candidate test instance so no two candidates get identical sequences
+    let candidateSections = sections;
+    if (this.finalShuffler) {
+      const ruleFlags = examConfigId
+        ? await this.prisma.ruleFlags.findUnique({
+            where: { examConfigId },
+          })
+        : null;
+      const shuffleQuestions = ruleFlags?.shuffleQuestionsEnabled !== false;
+      const shuffleOptions = ruleFlags?.shuffleOptionsEnabled !== false;
+
+      if (shuffleQuestions || shuffleOptions) {
+        candidateSections = this.finalShuffler.shuffleSections(
+          sections as any,
+          { shuffleQuestionsEnabled: shuffleQuestions, shuffleOptionsEnabled: shuffleOptions },
+        ) as any;
+        this.logger.log(`    [SAVE-ASSEMBLY 🔀] Applied candidate shuffle (Questions: ${shuffleQuestions}, Options: ${shuffleOptions})`);
+      }
+    }
+
+    for (let i = 0; i < candidateSections.length; i++) {
+      const section = candidateSections[i];
+      const sectionId = createId();
       queries.push(
-        this.prisma.testInstance.create({
+        this.prisma.testInstanceSection.create({
           data: {
-            id: assemblyId,
-            userId,
-            examConfigId: configId,
-            status: "CREATED",
-            expiresAt,
+            id: sectionId,
+            testInstanceId: assemblyId,
+            sectionKey: section.sectionKey || `section_${i + 1}`,
+            sectionName: (section as any).sectionName || section.displayName || `Section ${i + 1}`,
+            durationSeconds: section.durationSeconds,
+            questionCount: section.questionCount,
+            orderIndex: i,
+            status: i === 0 ? "ACTIVE" : "UPCOMING",
           },
         }),
       );
 
-      // Randomize question and option order for candidate test instance so no two candidates get identical sequences
-      let candidateSections = sections;
-      if (this.finalShuffler) {
-        const ruleFlags = await this.prisma.ruleFlags.findUnique({
-          where: { examConfigId: configId },
-        });
-        const shuffleQuestions = ruleFlags?.shuffleQuestionsEnabled !== false;
-        const shuffleOptions = ruleFlags?.shuffleOptionsEnabled !== false;
-
-        if (shuffleQuestions || shuffleOptions) {
-          candidateSections = this.finalShuffler.shuffleSections(
-            sections as any,
-            { shuffleQuestionsEnabled: shuffleQuestions, shuffleOptionsEnabled: shuffleOptions },
-          ) as any;
-          this.logger.log(`    [SAVE-ASSEMBLY 🔀] Applied candidate shuffle (Questions: ${shuffleQuestions}, Options: ${shuffleOptions})`);
-        }
-      }
-
-      for (const section of candidateSections) {
-        const sectionId = `sec_inst_${assemblyId}_${section.sectionKey}`;
+      if (section.questions && section.questions.length > 0) {
         queries.push(
-          this.prisma.testInstanceSection.create({
-            data: {
-              id: sectionId,
+          this.prisma.testInstanceQuestion.createMany({
+            data: section.questions.map((q, idx) => ({
               testInstanceId: assemblyId,
-              sectionKey: section.sectionKey,
-              sectionName: (section as any).sectionName || section.displayName || "Section",
-              durationSeconds: section.durationSeconds,
-              questionCount: section.questionCount,
-              orderIndex: section.orderIndex || 0,
-            },
+              sectionId,
+              questionId: q.questionId,
+              questionOrder: idx,
+              questionSnapshot: (q.questionSnapshot as unknown as Prisma.InputJsonValue) || {},
+            })),
           }),
         );
-
-        if (section.questions && section.questions.length > 0) {
-          queries.push(
-            this.prisma.testInstanceQuestion.createMany({
-              data: section.questions.map((q, idx) => ({
-                testInstanceId: assemblyId,
-                sectionId,
-                questionId: q.questionId,
-                questionOrder: q.questionOrder ?? idx,
-                questionSnapshot: (q.questionSnapshot as unknown as Prisma.InputJsonValue) || {},
-              })),
-            }),
-          );
-        }
       }
-
-      await this.prisma.$transaction(queries);
-      this.logger.log(`    [SAVE-ASSEMBLY ⏱️] TestInstance snapshot committed to DB in ${Date.now() - tTi}ms!`);
-    } catch (e: any) {
-      console.error("AssemblyPersistenceService testInstance transaction error:", e?.message || e);
     }
+
+    // Initialize ExecutionState for session
+    const firstSection = candidateSections[0];
+    queries.push(
+      this.prisma.executionState.create({
+        data: {
+          testInstanceId: assemblyId,
+          currentQuestionIndex: 0,
+          currentSectionIndex: 0,
+          currentSectionKey: firstSection?.sectionKey || "default",
+          remainingTimeSeconds: totalDuration || 3600,
+          lockedSectionKeys: [],
+          markedQuestions: [],
+          visitedQuestions: [],
+        },
+      }),
+    );
+
+    await this.prisma.$transaction(queries);
+    this.logger.log(`    [SAVE-ASSEMBLY ⏱️] TestInstance snapshot committed to DB in ${Date.now() - tTi}ms!`);
 
     return assemblyId;
   }

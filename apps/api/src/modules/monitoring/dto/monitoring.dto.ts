@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsBoolean,
   IsEnum,
+  IsArray,
   Min,
   Max,
 } from "class-validator";
@@ -204,4 +205,60 @@ export class QueryCandidatesDto {
   @IsOptional()
   @IsString()
   endDate?: string;
+}
+
+export class BulkExtendTimeDto {
+  @ApiProperty({ description: "Array of attempt IDs to extend time for", type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  attemptIds!: string[];
+
+  @ApiProperty({ description: "Extra minutes to add to active attempts", default: 5 })
+  @IsNumber()
+  @Min(1)
+  @Max(120)
+  extraMinutes!: number;
+
+  @ApiPropertyOptional({ description: "Reason for extending time" })
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+
+export class BulkRecoverDto {
+  @ApiProperty({ description: "Array of attempt IDs to authorize resume for", type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  attemptIds!: string[];
+
+  @ApiPropertyOptional({ description: "Extra grace minutes (default: 5)" })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(120)
+  extraTimeMinutes?: number;
+
+  @ApiPropertyOptional({ description: "Administrative reason for authorizing resume" })
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+
+export class BulkForceSubmitDto {
+  @ApiProperty({ description: "Array of attempt IDs to force submit", type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  attemptIds!: string[];
+
+  @ApiPropertyOptional({ description: "Reason for forced submission" })
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+
+export class BulkDeleteDto {
+  @ApiProperty({ description: "Array of attempt IDs to permanently delete", type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  attemptIds!: string[];
 }

@@ -73,11 +73,17 @@ export class EntitlementService {
   }
 
   private async computeUserEntitlements(userId: string): Promise<UserEntitlements> {
-    if (await this.isVipUser(userId)) {
+    const userRecord = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, role: true },
+    });
+    const isVip = await this.isVipUser(userId);
+
+    if (userRecord?.role === "ADMIN" || isVip) {
       const proDef = PLAN_ENTITLEMENT_DEFINITIONS.PRO || PLAN_ENTITLEMENT_DEFINITIONS.TEAMS || {};
       return {
         plan: "VIP_UNLIMITED" as any,
-        planName: "VIP Tester (All Access)",
+        planName: userRecord?.role === "ADMIN" ? "Administrator (All Access)" : "VIP Tester (All Access)",
         planSlug: "vip-unlimited",
         status: "ACTIVE" as any,
         hasActivePlan: true,

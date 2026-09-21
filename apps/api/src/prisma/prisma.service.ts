@@ -7,6 +7,7 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   private readonly logger = new Logger(PrismaService.name);
+  private keepAliveInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     super({
@@ -25,7 +26,7 @@ export class PrismaService
     // Add automatic retry middleware for transient connection drops (e.g. Supabase socket resets)
     this.$use(async (params, next) => {
       let retries = 0;
-      const maxRetries = 4;
+      const maxRetries = 3;
       while (true) {
         try {
           return await next(params);
@@ -36,16 +37,18 @@ export class PrismaService
             msg.includes("connection closed") ||
             msg.includes("can't reach database server") ||
             msg.includes("connection terminated") ||
+            msg.includes("timed out fetching a new connection") ||
             err?.code === "P1017" ||
             err?.code === "P1001" ||
-            err?.code === "P1002";
+            err?.code === "P1002" ||
+            err?.code === "P2024";
 
           if (isConnectionError && retries < maxRetries) {
             retries++;
             this.logger.warn(
               `[PrismaService] Transient DB connection error on ${params.model}.${params.action} (${err?.message || err?.code}). Retrying attempt ${retries}/${maxRetries}...`,
             );
-            await new Promise((res) => setTimeout(res, 400 * retries));
+            await new Promise((res) => setTimeout(res, 300 * retries));
             continue;
           }
           throw err;
@@ -65,9 +68,22 @@ export class PrismaService
     }
 
     await this.$connect();
+
+    // Periodic heartbeat every 45 seconds to keep Supabase pooler connections warm and avoid idle socket resets
+    this.keepAliveInterval = setInterval(async () => {
+      try {
+        await this.$queryRaw`SELECT 1`;
+      } catch (_) {
+        // Ignored; if a socket dropped, next query/retry will reconnect cleanly
+      }
+    }, 45000);
   }
 
   async onModuleDestroy(): Promise<void> {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+      this.keepAliveInterval = null;
+    }
     await this.$disconnect();
   }
 }

@@ -44,18 +44,19 @@ export class TestInstanceRepository {
       }),
     );
 
-    for (const section of data.sections) {
+    for (let i = 0; i < data.sections.length; i++) {
+      const section = data.sections[i];
       const sectionId = createId();
       queries.push(
         this.prisma.testInstanceSection.create({
           data: {
             id: sectionId,
             testInstanceId: instanceId,
-            sectionKey: section.sectionKey,
-            sectionName: section.sectionName,
+            sectionKey: section.sectionKey || `section_${i + 1}`,
+            sectionName: section.sectionName || `Section ${i + 1}`,
             durationSeconds: section.durationSeconds,
             questionCount: section.questionCount,
-            orderIndex: section.orderIndex,
+            orderIndex: i,
           },
         }),
       );
@@ -63,11 +64,11 @@ export class TestInstanceRepository {
       if (section.questions.length > 0) {
         queries.push(
           this.prisma.testInstanceQuestion.createMany({
-            data: section.questions.map((q) => ({
+            data: section.questions.map((q, qIdx) => ({
               testInstanceId: instanceId,
               sectionId: sectionId,
               questionId: q.questionId,
-              questionOrder: q.questionOrder,
+              questionOrder: qIdx,
               questionSnapshot: q.questionSnapshot,
             })),
           }),
