@@ -185,12 +185,16 @@ export class TestPackageService {
 
     return {
       negativeMarkingEnabled: Boolean(flags["negativeMarkingEnabled"] ?? false),
-      sectionLockingEnabled: Boolean(flags["sectionLockingEnabled"] ?? false),
+      sectionLockingEnabled: Boolean(
+        flags["sectionLockingEnabled"] ?? flags["sectionTimingEnabled"] ?? false,
+      ),
       shuffleQuestionsEnabled: Boolean(
         flags["shuffleQuestionsEnabled"] ?? false,
       ),
       shuffleOptionsEnabled: Boolean(flags["shuffleOptionsEnabled"] ?? false),
-      allowNavigation: Boolean(flags["allowNavigation"] ?? true),
+      allowNavigation: Boolean(
+        flags["allowNavigation"] ?? flags["allowSectionNavigation"] ?? true,
+      ),
     };
   }
 
