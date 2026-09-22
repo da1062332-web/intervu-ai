@@ -873,8 +873,16 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       autosaveHealth: "HEALTHY",
       unsyncedAnswersCount: 0,
       proctoringStrikes: 0,
-      isNeedsAttention: status === "AUTO_SUBMITTED" || status === "ADMIN_REVIEW",
-      incidentReasons: status === "AUTO_SUBMITTED" ? ["Auto-submitted"] : [],
+      isNeedsAttention:
+        (status === "AUTO_SUBMITTED" || status === "ADMIN_REVIEW") &&
+        latestSubmission?.reason !== "TIME_EXPIRED" &&
+        (latestSubmission?.source as any) !== "TIMEOUT",
+      incidentReasons:
+        status === "AUTO_SUBMITTED" &&
+        latestSubmission?.reason !== "TIME_EXPIRED" &&
+        (latestSubmission?.source as any) !== "TIMEOUT"
+          ? ["Auto-submitted"]
+          : [],
       submissionSource: latestSubmission?.source,
       submissionReason: latestSubmission?.reason,
     };
@@ -1031,19 +1039,30 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
         const live = redisMap.get(att.id);
         if (live) {
           live.currentSectionName = live.currentSectionName || currentSectionName;
-          // If DB has recorded a terminal status (SUBMITTED, COMPLETED, TERMINATED),
-          // DB state ALWAYS trumps transient Redis heartbeat state!
+          const subReason = att.submissions?.[0]?.reason || live.submissionReason;
+          const isNaturalTimeExpired =
+            subReason === "TIME_EXPIRED" ||
+            (att.submissions?.[0]?.source as any) === "TIMEOUT" ||
+            live.incidentReasons?.includes("TIME_EXPIRED") ||
+            live.incidentReasons?.includes("Time Expired");
+
+          // If DB has recorded a terminal status (SUBMITTED, COMPLETED, TERMINATED)
+          // or an AUTO_SUBMITTED attempt where all time was consumed (TIME_EXPIRED),
+          // calculate it as a completed SUBMITTED attempt!
           if (
             att.status === "SUBMITTED" ||
             att.status === "COMPLETED" ||
-            att.status === "TERMINATED"
+            att.status === "TERMINATED" ||
+            (att.status === "AUTO_SUBMITTED" && isNaturalTimeExpired)
           ) {
-            live.status = att.status as CandidateLiveState;
+            live.status = (att.status === "AUTO_SUBMITTED" && isNaturalTimeExpired)
+              ? "SUBMITTED"
+              : (att.status as CandidateLiveState);
             live.networkStatus = "ONLINE";
             live.isNeedsAttention = false;
             live.incidentReasons = [];
             live.submissionSource = att.submissions?.[0]?.source;
-            live.submissionReason = att.submissions?.[0]?.reason;
+            live.submissionReason = subReason;
           }
           return live;
         }
@@ -1099,8 +1118,17 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
             incidentReasons.push("Heartbeat Offline / Key Expired");
           }
         } else if (att.status === "AUTO_SUBMITTED" || att.status === "ADMIN_REVIEW") {
-          isNeedsAttention = true;
-          incidentReasons.push(att.submissions?.[0]?.reason || "Auto-submitted");
+          const subReason = att.submissions?.[0]?.reason;
+          const isNaturalTimeExpired =
+            subReason === "TIME_EXPIRED" ||
+            (att.submissions?.[0]?.source as any) === "TIMEOUT";
+          if (isNaturalTimeExpired) {
+            status = "SUBMITTED";
+            isNeedsAttention = false;
+          } else {
+            isNeedsAttention = true;
+            incidentReasons.push(subReason || "Auto-submitted");
+          }
         }
 
         return {
@@ -1170,16 +1198,30 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     let healthyAutosaveCount = 0;
 
     for (const c of candidateRecords) {
+      const isNaturalTimeExpired =
+        c.submissionReason === "TIME_EXPIRED" ||
+        c.submissionReason === "TIMEOUT" ||
+        c.incidentReasons?.includes("TIME_EXPIRED") ||
+        c.incidentReasons?.includes("Time Expired");
+
       if (c.status === "ACTIVE") active++;
       else if (c.status === "DISCONNECTED") disconnected++;
       else if (c.status === "RECONNECTING") reconnecting++;
       else if (c.status === "SUBMITTING") submitting++;
-      else if (c.status === "AUTO_SUBMITTED") autoSubmitted++;
+      else if (c.status === "AUTO_SUBMITTED") {
+        if (isNaturalTimeExpired) {
+          submitted++;
+        } else {
+          autoSubmitted++;
+        }
+      }
       else if (c.status === "SUBMITTED") submitted++;
       else if (c.status === "COMPLETED") completed++;
       else if (c.status === "TERMINATED") terminated++;
 
-      if (c.isNeedsAttention) needsAttentionCount++;
+      if (c.isNeedsAttention && !(c.status === "AUTO_SUBMITTED" && isNaturalTimeExpired)) {
+        needsAttentionCount++;
+      }
       totalLatency += c.latencyMs || 0;
       if (c.autosaveHealth === "HEALTHY") healthyAutosaveCount++;
     }

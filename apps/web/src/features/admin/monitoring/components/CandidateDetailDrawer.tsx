@@ -103,10 +103,15 @@ export function CandidateDetailDrawer({
     if (!candidate || !isOpen) return;
     fetchDetail(false);
     // Land admins directly on the actionable tab for a candidate who needs
-    // attention, instead of requiring a click through from Overview —
-    // this is also why the header no longer duplicates a "Launch Recovery
-    // Center" shortcut that Admin Actions already provides.
-    const needsAction = candidate.status === 'AUTO_SUBMITTED' || candidate.status === 'ADMIN_REVIEW';
+    // attention, instead of requiring a click through from Overview.
+    const isNaturalTimeExpired =
+      candidate?.submissionReason === 'TIME_EXPIRED' ||
+      candidate?.submissionReason === 'TIMEOUT' ||
+      candidate?.incidentReasons?.includes('TIME_EXPIRED') ||
+      candidate?.incidentReasons?.includes('Time Expired');
+    const needsAction =
+      (candidate?.status === 'AUTO_SUBMITTED' || candidate?.status === 'ADMIN_REVIEW') &&
+      !isNaturalTimeExpired;
     setActiveTab(needsAction ? 'adminActions' : 'overview');
   }, [candidate?.attemptId, isOpen]);
 
@@ -119,7 +124,12 @@ export function CandidateDetailDrawer({
   // since that data can no longer change.
   useEffect(() => {
     if (!candidate || !isOpen) return;
-    const isEnded = ['SUBMITTED', 'COMPLETED', 'TERMINATED'].includes(candidate.status);
+    const isNaturalTimeExpired =
+      candidate.submissionReason === 'TIME_EXPIRED' ||
+      candidate.submissionReason === 'TIMEOUT' ||
+      candidate.incidentReasons?.includes('TIME_EXPIRED') ||
+      candidate.incidentReasons?.includes('Time Expired');
+    const isEnded = ['SUBMITTED', 'COMPLETED', 'TERMINATED'].includes(candidate.status) || isNaturalTimeExpired;
     if (isEnded) return;
 
     const interval = setInterval(() => {
@@ -174,9 +184,14 @@ export function CandidateDetailDrawer({
     }
   };
 
+  const isNaturalTimeExpired =
+    candidate.submissionReason === 'TIME_EXPIRED' ||
+    candidate.submissionReason === 'TIMEOUT' ||
+    candidate.incidentReasons?.includes('TIME_EXPIRED') ||
+    candidate.incidentReasons?.includes('Time Expired');
   const isAutoSubmitted =
-    candidate.status === 'AUTO_SUBMITTED' || candidate.status === 'ADMIN_REVIEW';
-  const isDone = ['SUBMITTED', 'COMPLETED', 'TERMINATED'].includes(candidate.status);
+    (candidate.status === 'AUTO_SUBMITTED' || candidate.status === 'ADMIN_REVIEW') && !isNaturalTimeExpired;
+  const isDone = ['SUBMITTED', 'COMPLETED', 'TERMINATED'].includes(candidate.status) || isNaturalTimeExpired;
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },

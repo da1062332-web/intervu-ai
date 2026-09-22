@@ -346,9 +346,15 @@ export function CandidateLiveTable({
                     ? Math.round((c.answeredCount / c.totalQuestions) * 100)
                     : 0;
 
+                const isNaturalTimeExpired =
+                  c.submissionReason === 'TIME_EXPIRED' ||
+                  c.submissionReason === 'TIMEOUT' ||
+                  c.incidentReasons?.includes('TIME_EXPIRED') ||
+                  c.incidentReasons?.includes('Time Expired');
                 const isAutoSubmitted =
-                  c.status === 'AUTO_SUBMITTED' || c.status === 'ADMIN_REVIEW';
-                const isTerminal = TERMINAL_STATUSES.has(c.status);
+                  (c.status === 'AUTO_SUBMITTED' || c.status === 'ADMIN_REVIEW') && !isNaturalTimeExpired;
+                const effectiveStatus = (c.status === 'AUTO_SUBMITTED' && isNaturalTimeExpired) ? 'SUBMITTED' : c.status;
+                const isTerminal = TERMINAL_STATUSES.has(effectiveStatus);
                 const isSelected = selectedAttemptIds.has(c.attemptId);
 
                 return (
@@ -357,7 +363,7 @@ export function CandidateLiveTable({
                     className={`hover:bg-muted/40 transition-colors ${
                       isSelected
                         ? 'bg-primary/10 dark:bg-primary/15'
-                        : c.isNeedsAttention
+                        : (c.isNeedsAttention && !isNaturalTimeExpired)
                           ? 'bg-amber-50/30 dark:bg-amber-950/20'
                           : ''
                     }`}
@@ -389,7 +395,7 @@ export function CandidateLiveTable({
 
                     {/* Status */}
                     <td className='p-3 whitespace-nowrap'>
-                      {getStatusBadge(c.status)}
+                      {getStatusBadge(effectiveStatus)}
                       {isAutoSubmitted &&
                         (c.submissionReason || (c.incidentReasons?.length || 0) > 0) && (
                           <div className='text-[10px] text-muted-foreground mt-1 max-w-[140px] truncate' title={c.submissionReason || c.incidentReasons.join(', ')}>
