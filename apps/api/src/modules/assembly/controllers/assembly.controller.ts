@@ -78,9 +78,11 @@ export class AssemblyController {
     console.log(`[TEST-GEN ⏱️ START] Starting Test Generation request for configId: ${dto.configId}, user: ${user.id}`);
     console.log(`================================================================================`);
 
+    const isMasterAssembly = user?.role === UserRole.ADMIN;
     const testInstanceId = await this.assemblyService.assembleTest(
       dto.configId,
       user.id,
+      isMasterAssembly,
     );
 
     const totalMs = Date.now() - t0;

@@ -14,14 +14,14 @@ export class BlueprintBuilderService {
     private readonly redisCacheService?: RedisCacheService,
   ) {}
 
-  async generateBlueprint(configId: string): Promise<BlueprintDto> {
+  async generateBlueprint(configId: string, forceRefresh: boolean = false): Promise<BlueprintDto> {
     const t0 = Date.now();
-    const cached = this.redisCacheService
-      ? await this.redisCacheService.getBlueprint<BlueprintDto>(configId)
-      : null;
-    if (cached) {
-      console.log(`    [BLUEPRINT 💾 HIT] Cached blueprint retrieved in ${Date.now() - t0}ms for ${configId}`);
-      return cached;
+    if (!forceRefresh && this.redisCacheService) {
+      const cached = await this.redisCacheService.getBlueprint<BlueprintDto>(configId);
+      if (cached) {
+        console.log(`    [BLUEPRINT 💾 HIT] Cached blueprint retrieved in ${Date.now() - t0}ms for ${configId}`);
+        return cached;
+      }
     }
 
     const tDb = Date.now();

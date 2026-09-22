@@ -6,6 +6,7 @@ import {
 import { PrismaService } from "../../../prisma/prisma.service";
 import { Prisma, AssemblyStatus } from "@prisma/client";
 import { AllocatedSectionDto, AllocatedQuestionDto } from "@intervu/shared";
+import { createId } from "@paralleldrive/cuid2";
 
 @Injectable()
 export class AssembledTestRepository {
@@ -61,26 +62,27 @@ export class AssembledTestRepository {
           });
 
           // 2. Create Sections and Questions
-          for (const section of sections) {
+          for (let i = 0; i < sections.length; i++) {
+            const section = sections[i];
             const testSection = await tx.assembledTestSection.create({
               data: {
                 assemblyId: assembly.id,
-                sectionKey: section.sectionKey,
-                sectionName: section.displayName,
-                durationSeconds: section.durationSeconds,
-                questionCount: section.questionCount,
-                orderIndex: section.orderIndex,
+                sectionKey: section.sectionKey || `section_${i + 1}`,
+                sectionName: section.displayName || (section as any).sectionName || section.sectionKey || `Section ${i + 1}`,
+                durationSeconds: section.durationSeconds || 600,
+                questionCount: section.questionCount || section.questions?.length || 0,
+                orderIndex: section.orderIndex ?? i,
               },
             });
 
-            if (section.questions.length > 0) {
+            if (section.questions && section.questions.length > 0) {
               await tx.assembledTestQuestion.createMany({
-                data: section.questions.map((q: AllocatedQuestionDto) => ({
+                data: section.questions.map((q: AllocatedQuestionDto, qIdx: number) => ({
                   assemblyId: assembly.id,
                   sectionId: testSection.id,
-                  questionId: q.questionId,
-                  questionOrder: q.questionOrder,
-                  questionSnapshot: q.questionSnapshot as Prisma.InputJsonValue,
+                  questionId: q.questionId || createId(),
+                  questionOrder: q.questionOrder ?? qIdx,
+                  questionSnapshot: ((q.questionSnapshot || {}) as unknown) as Prisma.InputJsonValue,
                 })),
               });
             }
@@ -124,26 +126,27 @@ export class AssembledTestRepository {
           });
 
           // Create new sections and questions
-          for (const section of sections) {
+          for (let i = 0; i < sections.length; i++) {
+            const section = sections[i];
             const testSection = await tx.assembledTestSection.create({
               data: {
                 assemblyId,
-                sectionKey: section.sectionKey,
-                sectionName: section.displayName,
-                durationSeconds: section.durationSeconds,
-                questionCount: section.questionCount,
-                orderIndex: section.orderIndex,
+                sectionKey: section.sectionKey || `section_${i + 1}`,
+                sectionName: section.displayName || (section as any).sectionName || section.sectionKey || `Section ${i + 1}`,
+                durationSeconds: section.durationSeconds || 600,
+                questionCount: section.questionCount || section.questions?.length || 0,
+                orderIndex: section.orderIndex ?? i,
               },
             });
 
-            if (section.questions.length > 0) {
+            if (section.questions && section.questions.length > 0) {
               await tx.assembledTestQuestion.createMany({
-                data: section.questions.map((q: AllocatedQuestionDto) => ({
+                data: section.questions.map((q: AllocatedQuestionDto, qIdx: number) => ({
                   assemblyId,
                   sectionId: testSection.id,
-                  questionId: q.questionId,
-                  questionOrder: q.questionOrder,
-                  questionSnapshot: q.questionSnapshot as Prisma.InputJsonValue,
+                  questionId: q.questionId || createId(),
+                  questionOrder: q.questionOrder ?? qIdx,
+                  questionSnapshot: ((q.questionSnapshot || {}) as unknown) as Prisma.InputJsonValue,
                 })),
               });
             }

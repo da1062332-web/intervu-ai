@@ -197,8 +197,19 @@ export class ConfigVersionService {
               snapshot.ruleFlags.adaptiveDifficultyEnabled,
             shuffleQuestionsEnabled: snapshot.ruleFlags.shuffleQuestionsEnabled,
             shuffleOptionsEnabled: snapshot.ruleFlags.shuffleOptionsEnabled,
-            candidateNoRepeatEnabled: (snapshot.ruleFlags as any)?.candidateNoRepeatEnabled ?? false,
-            runtimeGenerationOnDeficit: (snapshot.ruleFlags as any)?.runtimeGenerationOnDeficit ?? false,
+            allowSectionNavigation:
+              (snapshot.ruleFlags as any)?.allowSectionNavigation ?? false,
+            sectionTimingEnabled:
+              (snapshot.ruleFlags as any)?.sectionTimingEnabled ?? false,
+            maxAttempts: (snapshot.ruleFlags as any)?.maxAttempts ?? 3,
+            candidateNoRepeatEnabled:
+              (snapshot.ruleFlags as any)?.candidateNoRepeatEnabled ?? false,
+            runtimeGenerationOnDeficit:
+              (snapshot.ruleFlags as any)?.runtimeGenerationOnDeficit ?? false,
+            poolEnabled: (snapshot.ruleFlags as any)?.poolEnabled ?? false,
+            poolTargetSize: (snapshot.ruleFlags as any)?.poolTargetSize ?? 10,
+            poolMinThreshold: (snapshot.ruleFlags as any)?.poolMinThreshold ?? 3,
+            poolRefillBatchSize: (snapshot.ruleFlags as any)?.poolRefillBatchSize ?? 5,
           } as any,
         });
       }
