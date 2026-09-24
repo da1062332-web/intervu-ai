@@ -248,13 +248,11 @@ export class SubmissionService {
           return submission;
         },
         {
-          // The transaction now only does a handful of indexed point-writes
-          // (status update, submission count/create, one event insert) — if
-          // that doesn't finish in a few seconds something is actually wrong,
-          // and failing fast releases the pooled connection instead of
-          // holding it for up to the previous 90s ceiling.
-          timeout: 15000,
-          maxWait: 10000,
+          // Under high-concurrency bursts (e.g. 1,000 students submitting at the exact
+          // same second), maxWait allows sufficient queueing headroom across the pool
+          // without premature P2024 connection timeout errors.
+          timeout: 25000,
+          maxWait: 20000,
         },
       );
 

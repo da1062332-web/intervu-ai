@@ -132,7 +132,7 @@ export class AutosaveService {
           include: { section: true },
         });
         sectionStatus = questionSection?.section?.status ?? "";
-        await this.cacheService.set(sectionStatusCacheKey, sectionStatus, { ttl: 5 });
+        await this.cacheService.set(sectionStatusCacheKey, sectionStatus, { ttl: 60 });
       }
 
       if (

@@ -31,13 +31,17 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     if (req.params?.id) {
       return `attempt:${req.params.id}`;
     }
+    const email = req.body?.email || req.query?.email;
     const forwarded = req.headers?.["x-forwarded-for"];
-    if (forwarded) {
-      const ip = (typeof forwarded === "string" ? forwarded : forwarded[0])
-        .split(",")[0]
-        .trim();
-      if (ip) return `ip:${ip}`;
+    const ip = forwarded
+      ? (typeof forwarded === "string" ? forwarded : forwarded[0])
+          .split(",")[0]
+          .trim()
+      : req.ip || req.socket?.remoteAddress || "anonymous";
+
+    if (email && typeof email === "string") {
+      return `auth:${ip}:${email.toLowerCase().trim()}`;
     }
-    return req.ip || req.socket?.remoteAddress || "anonymous";
+    return `ip:${ip}`;
   }
 }

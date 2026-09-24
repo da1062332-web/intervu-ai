@@ -34,9 +34,14 @@ export class EvaluationQueueProcessor {
     this.internalServiceToken =
       process.env.INTERNAL_SERVICE_TOKEN || "internal_secret_token";
 
+    const concurrency =
+      Number(
+        process.env.EVALUATION_CONCURRENCY || process.env.WORKER_CONCURRENCY,
+      ) || 15;
+
     this.worker = new Worker("evaluation", this.processJob.bind(this), {
       connection,
-      concurrency: 3,
+      concurrency,
     });
 
     this.setupEventHandlers();
