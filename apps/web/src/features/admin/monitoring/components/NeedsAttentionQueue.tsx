@@ -72,7 +72,18 @@ export function NeedsAttentionQueue({
   onBulkExtendTime,
 }: NeedsAttentionQueueProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const attentionCandidates = (candidates || []).filter((c) => c && c.isNeedsAttention);
+  const attentionCandidates = (candidates || []).filter((c) => {
+    if (!c || !c.isNeedsAttention) return false;
+    const isNaturalTimeExpired =
+      c.submissionReason === 'TIME_EXPIRED' ||
+      c.submissionReason === 'TIMEOUT' ||
+      c.incidentReasons?.includes('TIME_EXPIRED') ||
+      c.incidentReasons?.includes('Time Expired');
+    if ((c.status === 'AUTO_SUBMITTED' || c.status === 'SUBMITTED') && isNaturalTimeExpired) {
+      return false;
+    }
+    return true;
+  });
 
   if (attentionCandidates.length === 0) {
     return null;

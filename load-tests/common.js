@@ -19,6 +19,8 @@ export const metrics = {
   candidatesFailed: new Counter("candidates_failed"),
   submissionsSuccess: new Counter("submissions_success"),
   submissionsFailed: new Counter("submissions_failed"),
+  answersSuccess: new Counter("answers_success"),
+  answersFailed: new Counter("answers_failed"),
   authSessionFailures: new Counter("auth_session_failures"),
   errorRate: new Rate("app_error_rate"),
   loginDuration: new Trend("login_duration_ms"),
@@ -104,3 +106,94 @@ export function safeGet(url, headers, tag = "request") {
   trackResponseStatus(res);
   return res;
 }
+
+/**
+ * Generates a clean markdown and console performance report from k6 test metrics
+ */
+export function generateSummaryReport(data, title, description = "") {
+  const getMetricVal = (name, field = "value") => {
+    if (data.metrics[name] && data.metrics[name].values) {
+      return data.metrics[name].values[field] ?? 0;
+    }
+    return 0;
+  };
+
+  const getLatency = (name) => {
+    const m = data.metrics[name];
+    if (!m || !m.values) return { avg: "0ms", p90: "0ms", p95: "0ms", p99: "0ms", max: "0ms" };
+    const v = m.values;
+    const toMs = (n) => `${Math.round(n || 0)}ms`;
+    return {
+      avg: toMs(v.avg),
+      med: toMs(v.med),
+      p90: toMs(v["p(90)"]),
+      p95: toMs(v["p(95)"]),
+      p99: toMs(v["p(99)"]),
+      max: toMs(v.max),
+    };
+  };
+
+  const totalReqs = getMetricVal("http_reqs", "count");
+  const reqRate = getMetricVal("http_reqs", "rate").toFixed(2);
+  const failRate = (getMetricVal("http_req_failed", "rate") * 100).toFixed(2);
+  const err4xx = getMetricVal("errors_4xx", "count");
+  const err5xx = getMetricVal("errors_5xx", "count");
+  const err401 = getMetricVal("errors_401_unauthorized", "count");
+  const err403 = getMetricVal("errors_403_forbidden", "count");
+  const candSuccess = getMetricVal("candidates_success", "count");
+  const candFailed = getMetricVal("candidates_failed", "count");
+  const subsSuccess = getMetricVal("submissions_success", "count");
+  const subsFailed = getMetricVal("submissions_failed", "count");
+  const ansSuccess = getMetricVal("answers_success", "count");
+  const ansFailed = getMetricVal("answers_failed", "count");
+
+  const ansLat = getLatency("answer_duration_ms");
+  const startLat = getLatency("start_test_duration_ms");
+  const snapLat = getLatency("snapshot_duration_ms");
+  const hbLat = getLatency("heartbeat_duration_ms");
+  const subLat = getLatency("submit_duration_ms");
+  const overallLat = getLatency("http_req_duration");
+
+  const report = `
+================================================================================
+# ${title}
+================================================================================
+Generated: ${new Date().toISOString()}
+Target API: ${BASE_URL}
+Assessment ID: ${ASSESSMENT_ID}
+Test Run ID: ${TEST_RUN_ID}
+${description ? `Description: ${description}\n` : ""}
+--------------------------------------------------------------------------------
+## 1. Executive Summary & Throughput
+- Total HTTP Requests:     ${totalReqs}
+- Throughput (RPS):        ${reqRate} req/s
+- Overall Error Rate:      ${failRate}%
+- Successful Candidates:   ${candSuccess}
+- Failed Candidates:       ${candFailed}
+- Successful Submissions:  ${subsSuccess}
+- Failed Submissions:      ${subsFailed}
+- Successful Answers:      ${ansSuccess}
+- Failed Answers:          ${ansFailed}
+
+--------------------------------------------------------------------------------
+## 2. HTTP Status & Error Breakdown
+- HTTP 4xx Errors:         ${err4xx}
+- HTTP 5xx Errors:         ${err5xx}
+- 401 Unauthorized:        ${err401}
+- 403 Forbidden:           ${err403}
+
+--------------------------------------------------------------------------------
+## 3. Latency Metrics (p90, p95, p99)
+| Endpoint / Action     | Avg     | Med     | p90     | p95     | p99     | Max     |
+|-----------------------|---------|---------|---------|---------|---------|---------|
+| Overall HTTP Duration | ${overallLat.avg.padEnd(7)} | ${overallLat.med.padEnd(7)} | ${overallLat.p90.padEnd(7)} | ${overallLat.p95.padEnd(7)} | ${overallLat.p99.padEnd(7)} | ${overallLat.max.padEnd(7)} |
+| Start Test (Postgres) | ${startLat.avg.padEnd(7)} | ${startLat.med.padEnd(7)} | ${startLat.p90.padEnd(7)} | ${startLat.p95.padEnd(7)} | ${startLat.p99.padEnd(7)} | ${startLat.max.padEnd(7)} |
+| Snapshot Fetch        | ${snapLat.avg.padEnd(7)} | ${snapLat.med.padEnd(7)} | ${snapLat.p90.padEnd(7)} | ${snapLat.p95.padEnd(7)} | ${snapLat.p99.padEnd(7)} | ${snapLat.max.padEnd(7)} |
+| Answer Autosave       | ${ansLat.avg.padEnd(7)} | ${ansLat.med.padEnd(7)} | ${ansLat.p90.padEnd(7)} | ${ansLat.p95.padEnd(7)} | ${ansLat.p99.padEnd(7)} | ${ansLat.max.padEnd(7)} |
+| Telemetry Heartbeat   | ${hbLat.avg.padEnd(7)} | ${hbLat.med.padEnd(7)} | ${hbLat.p90.padEnd(7)} | ${hbLat.p95.padEnd(7)} | ${hbLat.p99.padEnd(7)} | ${hbLat.max.padEnd(7)} |
+| Submit Assessment     | ${subLat.avg.padEnd(7)} | ${subLat.med.padEnd(7)} | ${subLat.p90.padEnd(7)} | ${subLat.p95.padEnd(7)} | ${subLat.p99.padEnd(7)} | ${subLat.max.padEnd(7)} |
+================================================================================
+`;
+  return report;
+}
+

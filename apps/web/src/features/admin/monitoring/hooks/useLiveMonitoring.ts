@@ -359,17 +359,27 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         const p = data.payload || data;
         if (!p || p.candidateRole === 'ADMIN' || p.candidateRole === 'PLAN_MANAGER') return;
         let matched = false;
+        let isNaturalTimeExpired = false;
         setCandidates((prev) =>
           (prev || []).map((c) => {
             if (c && c.attemptId === p.attemptId) {
               matched = true;
-              const isAttentionState = p.newState === 'AUTO_SUBMITTED' || p.newState === 'ADMIN_REVIEW';
-              const isClearedState = p.newState === 'ACTIVE' || p.newState === 'COMPLETED';
+              const subReason = p.reason ?? c.submissionReason;
+              isNaturalTimeExpired =
+                subReason === 'TIME_EXPIRED' ||
+                subReason === 'TIMEOUT' ||
+                c.incidentReasons?.includes('TIME_EXPIRED') ||
+                c.incidentReasons?.includes('Time Expired');
+              const isAttentionState =
+                ((p.newState === 'AUTO_SUBMITTED' && !isNaturalTimeExpired) || p.newState === 'ADMIN_REVIEW');
+              const isClearedState =
+                p.newState === 'ACTIVE' || p.newState === 'COMPLETED' || (p.newState === 'AUTO_SUBMITTED' && isNaturalTimeExpired);
+              const effectiveStatus = (p.newState === 'AUTO_SUBMITTED' && isNaturalTimeExpired) ? 'SUBMITTED' : (p.newState || c.status);
               return {
                 ...c,
-                status: p.newState || c.status,
-                isNeedsAttention: isAttentionState ? true : c.isNeedsAttention,
-                submissionReason: p.reason ?? c.submissionReason,
+                status: effectiveStatus,
+                isNeedsAttention: isAttentionState ? true : (isNaturalTimeExpired ? false : c.isNeedsAttention),
+                submissionReason: subReason,
                 incidentReasons: isClearedState
                   ? []
                   : isAttentionState && p.reason
@@ -386,8 +396,8 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
           setSummary((s) => ({
             ...s,
             active: p.newState === 'ACTIVE' ? (s?.active || 0) + 1 : Math.max(0, (s?.active || 0) - 1),
-            autoSubmitted: p.newState === 'AUTO_SUBMITTED' ? (s?.autoSubmitted || 0) + 1 : (s?.autoSubmitted || 0),
-            submitted: p.newState === 'SUBMITTED' ? (s?.submitted || 0) + 1 : (s?.submitted || 0),
+            autoSubmitted: (p.newState === 'AUTO_SUBMITTED' && !isNaturalTimeExpired) ? (s?.autoSubmitted || 0) + 1 : (s?.autoSubmitted || 0),
+            submitted: (p.newState === 'SUBMITTED' || (p.newState === 'AUTO_SUBMITTED' && isNaturalTimeExpired)) ? (s?.submitted || 0) + 1 : (s?.submitted || 0),
           }));
         }
       } else if (data.type === 'CANDIDATE_DISCONNECTED') {
