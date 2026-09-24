@@ -117,11 +117,11 @@ import { StorageModule } from "./modules/storage/storage.module";
   providers: [
     {
       provide: APP_GUARD,
-      useClass: RateLimitGuard,
+      useClass: JwtAuthGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard,
+      useClass: RateLimitGuard,
     },
     {
       provide: APP_GUARD,

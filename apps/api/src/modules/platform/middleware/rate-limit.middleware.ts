@@ -44,13 +44,13 @@ export class RateLimitGuard extends ThrottlerGuard {
     let customTtl = ttl;
 
     if (role === "ADMIN") {
-      customLimit = 300; // Admin API: 300 requests/min
+      customLimit = Math.max(limit, 300); // Admin API: at least 300 requests/min
       customTtl = 60;
     } else if (path.includes("/api/v1/generation")) {
       customLimit = 20; // AI Generation: 20 requests/min
       customTtl = 60;
     } else if (role === "CANDIDATE") {
-      customLimit = 100; // Candidate API: 100 requests/min
+      customLimit = Math.max(limit, 300); // Candidate API: at least 300 requests/min
       customTtl = 60;
     }
 
@@ -71,15 +71,21 @@ export class RateLimitGuard extends ThrottlerGuard {
       return `attempt:${req.params.id}`;
     }
 
-    // 3. Fallback to client IP only for unauthenticated public endpoints
+    // 3. For auth endpoints (signup/login), track by IP + email to avoid campus Wi-Fi/NAT/runner collision
+    const email = req.body?.email || req.query?.email;
     const forwarded = req.headers?.["x-forwarded-for"];
+    let ip = req.ip || req.socket?.remoteAddress || "anonymous";
     if (forwarded) {
-      const ip = (typeof forwarded === "string" ? forwarded : forwarded[0])
+      const parsedIp = (typeof forwarded === "string" ? forwarded : forwarded[0])
         .split(",")[0]
         .trim();
-      if (ip) return `ip:${ip}`;
+      if (parsedIp) ip = parsedIp;
     }
 
-    return req.ip || req.socket?.remoteAddress || "anonymous";
+    if (email && typeof email === "string") {
+      return `auth:${ip}:${email.toLowerCase().trim()}`;
+    }
+
+    return `ip:${ip}`;
   }
 }
