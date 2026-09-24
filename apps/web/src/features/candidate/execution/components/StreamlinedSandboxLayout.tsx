@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, ChevronRight, ChevronLeft, Layout, LayoutGrid, Bookmark, RefreshCw, HelpCircle } from 'lucide-react';
+import { Clock, ChevronRight, ChevronLeft, Layout, LayoutGrid, Bookmark, RefreshCw, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { useExecutionStore } from '../stores/execution.store';
 import { useSubmission } from '../hooks/useSubmission';
 import { useAutosave } from '../hooks/useAutosave';
@@ -13,6 +13,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
 import { useSectionTimer } from '../hooks/useSectionTimer';
+import { useLiveTelemetry } from '../hooks/useLiveTelemetry';
 import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SubmissionModal } from './SubmissionModal';
@@ -53,6 +54,9 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
     saveAnswer,
     toggleReview,
     sectionTimingEnabled,
+    autosaveStatus,
+    hasUnsavedChanges,
+    lastSavedAt,
   } = useExecutionStore();
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -98,6 +102,7 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
   useAnswerPersistence(testInstance?.id || 'unknown');
   useCheckpoint(testInstance?.id || '');
   useSectionTimer(testInstance?.id);
+  useLiveTelemetry(testInstance?.id);
 
   const { submitAssessment } = useSubmission(testInstance?.id || '');
 
@@ -274,7 +279,36 @@ export function StreamlinedSandboxLayout(props: SandboxLayoutProps) {
         </div>
 
         <div className='flex items-center gap-3 sm:gap-4'>
-          <ConnectionStatusBadge />
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={() => setIsInstructionsOpen(true)}
+            className='h-9 px-3 gap-1.5 font-medium text-xs border-slate-300 text-slate-700 hover:bg-slate-100 cursor-pointer hidden sm:flex'
+          >
+            <HelpCircle className='w-4 h-4 text-indigo-600' />
+            <span>Instructions</span>
+          </Button>
+          <div className='flex items-center gap-2'>
+            <ConnectionStatusBadge />
+            <div className='hidden xl:flex items-center gap-1.5 text-xs text-slate-500 font-medium bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200'>
+              {autosaveStatus === 'SAVING' || hasUnsavedChanges ? (
+                <>
+                  <RefreshCw className='w-3 h-3 text-amber-600 animate-spin' />
+                  <span className='text-amber-700'>Syncing...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className='w-3 h-3 text-emerald-600' />
+                  <span>
+                    Synced
+                    {lastSavedAt
+                      ? ` ${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                      : ''}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
           <div className='w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden shrink-0'>
             <FaceTracker
               onSubmit={() => submitAssessment({ autoSubmit: true })}

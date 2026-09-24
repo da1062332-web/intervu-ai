@@ -32,6 +32,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useAnswerPersistence } from '../hooks/useAnswerPersistence';
 import { useCheckpoint } from '../hooks/useCheckpoint';
 import { useSectionTimer } from '../hooks/useSectionTimer';
+import { useLiveTelemetry } from '../hooks/useLiveTelemetry';
 import { FullscreenOverlay } from './FullscreenOverlay';
 import { TabWarningModal } from './TabWarningModal';
 import { SubmissionModal } from './SubmissionModal';
@@ -155,6 +156,7 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
   useAnswerPersistence(testInstance?.id || 'unknown');
   useCheckpoint(testInstance?.id || '');
   useSectionTimer(testInstance?.id);
+  useLiveTelemetry(testInstance?.id);
 
   const { submitAssessment } = useSubmission(testInstance?.id || '');
 
@@ -392,7 +394,12 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
               ) : (
                 <>
                   <CheckCircle2 className='w-3 h-3 text-emerald-400' />
-                  <span className='text-slate-400'>Synced</span>
+                  <span className='text-slate-400'>
+                    Synced
+                    {lastSavedAt
+                      ? ` ${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                      : ''}
+                  </span>
                 </>
               )}
             </div>

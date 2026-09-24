@@ -284,9 +284,40 @@ export class ExamConfigReadinessService {
     for (const section of config.sections) {
       const sectionTopics = section.sectionTopics;
       const topicCount = sectionTopics.length;
-      if (topicCount === 0) continue;
 
-      const questionsPerTopic = Math.ceil(section.questionCount / topicCount);
+      if (topicCount === 0) {
+        totalChecksCount++;
+        conflictingTopicsCount++;
+        checks.push({
+          name: `Section Topic Assignment (${section.name || section.code || (section as any).sectionKey || "Section"})`,
+          status: "FAIL",
+          message: `Section '${section.name || section.code || (section as any).sectionKey || "Section"}' specifies ${section.questionCount || 0} question(s) but has no topics assigned. Assign topics to this section to enable question assembly.`,
+          details: {
+            sectionId: section.id,
+            sectionName: section.name,
+            questionCount: section.questionCount,
+          },
+        });
+        continue;
+      }
+
+      if (section.questionCount <= 0) {
+        totalChecksCount++;
+        checks.push({
+          name: `Section Question Count (${section.name || section.code || (section as any).sectionKey || "Section"})`,
+          status: "FAIL",
+          message: `Section '${section.name || section.code || (section as any).sectionKey || "Section"}' has 0 questions configured. Must specify at least 1 question.`,
+          details: {
+            sectionId: section.id,
+            sectionName: section.name,
+          },
+        });
+      }
+
+      const questionsPerTopic = Math.max(
+        1,
+        Math.ceil((section.questionCount || 0) / Math.max(1, topicCount)),
+      );
       const diffBreakdown = this.calculateDifficultyBreakdown(
         questionsPerTopic,
         easy,
@@ -295,7 +326,16 @@ export class ExamConfigReadinessService {
       );
 
       for (const st of sectionTopics) {
-        if (!st.topic) continue;
+        if (!st.topic) {
+          totalChecksCount++;
+          conflictingTopicsCount++;
+          checks.push({
+            name: `Invalid Topic Reference (${section.name || "Section"})`,
+            status: "FAIL",
+            message: `Section '${section.name || "Section"}' references an invalid or deleted topic.`,
+          });
+          continue;
+        }
 
         if (isManualDifficultyMode) {
           const tiers: Array<{
@@ -343,7 +383,7 @@ export class ExamConfigReadinessService {
             }
           }
 
-          if (allTiersPass) {
+          if (allTiersPass && tiers.length > 0) {
             checks.push({
               name: `Question Pool (${st.topic.name})`,
               status: "PASS",
@@ -362,7 +402,7 @@ export class ExamConfigReadinessService {
             checks.push({
               name: `Question Pool (${st.topic.name})`,
               status: "FAIL",
-              message: `Topic '${st.topic.name}' is under-stocked in Question Bank: ${missingTierMsgs.join("; ")}.`,
+              message: `Topic '${st.topic.name}' is under-stocked in Question Bank: ${missingTierMsgs.length > 0 ? missingTierMsgs.join("; ") : "No active questions available in pool"}.`,
               details: {
                 topicId: st.topic.id,
                 topicName: st.topic.name,
@@ -382,7 +422,7 @@ export class ExamConfigReadinessService {
 
           availableUnusedCapacity += totalTopicCount;
 
-          if (totalTopicCount >= questionsPerTopic) {
+          if (totalTopicCount >= questionsPerTopic && totalTopicCount > 0) {
             passedCount++;
             checks.push({
               name: `Question Pool (${st.topic.name})`,
@@ -396,7 +436,10 @@ export class ExamConfigReadinessService {
             checks.push({
               name: `Question Pool (${st.topic.name})`,
               status: "FAIL",
-              message: `Topic '${st.topic.name}' has only ${totalTopicCount} question(s) in pool. Required: ${questionsPerTopic} question(s).`,
+              message:
+                totalTopicCount === 0
+                  ? `Topic '${st.topic.name}' has ZERO active questions in Question Bank. Required: ${questionsPerTopic} question(s).`
+                  : `Topic '${st.topic.name}' has only ${totalTopicCount} question(s) in pool. Required: ${questionsPerTopic} question(s).`,
               details: {
                 topicId: st.topic.id,
                 topicName: st.topic.name,
@@ -431,11 +474,15 @@ export class ExamConfigReadinessService {
       passedCount++;
     }
 
-    const score = Math.round(
+    let score = Math.round(
       (passedCount / Math.max(1, totalChecksCount)) * 100,
     );
     const hasFails = checks.some((c) => c.status === "FAIL");
     const hasWarns = checks.some((c) => c.status === "WARN");
+
+    if (hasFails && score === 100) {
+      score = Math.min(99, score);
+    }
 
     const status: "READY" | "WARNING" | "NOT_READY" = hasFails
       ? "NOT_READY"
