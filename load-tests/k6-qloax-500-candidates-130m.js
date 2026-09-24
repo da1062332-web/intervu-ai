@@ -357,12 +357,19 @@ export default function (data) {
   const codingQuestions = [];
 
   sections.forEach((sec, sIdx) => {
+    const isCodingSection =
+      (sec.sectionName || "").toLowerCase().includes("coding") ||
+      (sec.sectionKey || "").toLowerCase().includes("coding");
+
     (sec.questions || []).forEach((q, qIdx) => {
+      const snap = q.snapshot || {};
       const isCoding =
+        isCodingSection ||
         q.type === "CODING" ||
         q.questionType === "CODING" ||
+        snap.questionType === "CODING" ||
         Boolean(q.codingData) ||
-        Boolean(q.snapshot?.codingData);
+        Boolean(snap.codingData);
 
       const qItem = {
         sectionIndex: sIdx,
@@ -370,6 +377,7 @@ export default function (data) {
         questionIndex: qIdx,
         questionId: q.questionId,
         isCoding,
+        starterCode: snap.codingData?.starterCode || snap.starterCode || "def solution(*args):\n    return args[0] if args else None\n",
       };
 
       if (isCoding) {
@@ -380,8 +388,13 @@ export default function (data) {
     });
   });
 
-  // Fallback coding questions if snapshot questions are synthetic
-  const codingTargetId = codingQuestions.length > 0 ? codingQuestions[0].questionId : "coding_q1_fibonacci";
+  // Identify active coding target: from snapshot or CODING_QUESTION_ID override
+  const codingTarget =
+    codingQuestions.length > 0
+      ? codingQuestions[0]
+      : (__ENV.CODING_QUESTION_ID
+          ? { questionId: __ENV.CODING_QUESTION_ID, starterCode: "def solution(*args):\n    return args[0] if args else None\n" }
+          : null);
 
   // ---------------------------------------------------------------------------
   // Step 4: The 130-Minute Active Examination Loop
@@ -438,18 +451,19 @@ export default function (data) {
     }
 
     // B. Interactive Coding Section (Draft -> Run -> Modify -> Autosave -> Submit)
-    // Executes periodically when candidate is in/exploring the coding section
-    if (codingInteractionsCount < 3 && (now - examLoopStart) > (codingInteractionsCount + 1) * (TEST_DURATION_SEC * 250)) {
+    // Executes when a coding target is present in the assessment
+    if (codingTarget && codingInteractionsCount < 3 && (now - examLoopStart) > (codingInteractionsCount + 1) * (TEST_DURATION_SEC * 250)) {
       codingInteractionsCount++;
+      const codingQuestionId = codingTarget.questionId;
 
       // Phase 1: Draft initial code implementation
-      const initialPythonCode = `def solution(arr, k):\n    # Candidate iteration ${codingInteractionsCount}\n    if not arr: return 0\n    return sum(arr[:k])\n`;
+      const initialPythonCode = codingTarget.starterCode || `def solution(arr, k):\n    # Candidate iteration ${codingInteractionsCount}\n    if not arr: return 0\n    return sum(arr[:k])\n`;
 
       const tRun0 = Date.now();
       const runRes1 = httpPostWithRetry(
         `${BASE_URL}/coding/run`,
         JSON.stringify({
-          questionId: codingTargetId,
+          questionId: codingQuestionId,
           testInstanceId,
           code: initialPythonCode,
           language: "python",
@@ -475,7 +489,7 @@ export default function (data) {
 
       // Autosave modified code answer
       const codeAnswerPayload = JSON.stringify({
-        questionId: codingTargetId,
+        questionId: codingQuestionId,
         answer: JSON.stringify({ code: modifiedPythonCode, language: "python" }),
         timeSpentSeconds: 45,
         isMarkedForReview: false,
@@ -491,13 +505,13 @@ export default function (data) {
       );
       metrics.answerLatency.add(Date.now() - tAnsCode0);
       metrics.answersAutosaved.add(1);
-      candidateSavedAnswers.set(codingTargetId, JSON.stringify({ code: modifiedPythonCode, language: "python" }));
+      candidateSavedAnswers.set(codingQuestionId, JSON.stringify({ code: modifiedPythonCode, language: "python" }));
 
       // Phase 3: Re-run public test cases
       const runRes2 = httpPostWithRetry(
         `${BASE_URL}/coding/run`,
         JSON.stringify({
-          questionId: codingTargetId,
+          questionId: codingQuestionId,
           testInstanceId,
           code: modifiedPythonCode,
           language: "python",
@@ -514,7 +528,7 @@ export default function (data) {
       const submitCodeRes = httpPostWithRetry(
         `${BASE_URL}/coding/submit`,
         JSON.stringify({
-          questionId: codingTargetId,
+          questionId: codingQuestionId,
           testInstanceId,
           code: modifiedPythonCode,
           language: "python",

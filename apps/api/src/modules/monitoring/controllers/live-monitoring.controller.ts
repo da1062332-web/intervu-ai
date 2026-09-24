@@ -183,6 +183,22 @@ export class LiveMonitoringController {
     return this.alertService.getActiveAlerts(assessmentId);
   }
 
+  @Post("alerts/resolve-all")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Acknowledge and resolve all active alerts in bulk" })
+  async resolveAllAlerts(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ResolveAlertDto,
+    @Query("assessmentId") assessmentId?: string,
+  ) {
+    const result = await this.alertService.resolveAllAlerts(
+      assessmentId,
+      user.email || user.id,
+      dto?.notes,
+    );
+    return { success: true, ...result };
+  }
+
   @Post("alerts/:alertId/resolve")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Acknowledge and resolve an active alert" })

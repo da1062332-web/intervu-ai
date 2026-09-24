@@ -424,7 +424,11 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
       />
 
       {/* Centralized Alert Center */}
-      <AlertCenter alerts={alerts} onAlertResolved={() => refetch()} />
+      <AlertCenter
+        alerts={alerts}
+        onAlertResolved={() => refetch()}
+        onAllAlertsResolved={() => refetch()}
+      />
 
       {/* Candidate Live Monitoring Table */}
       <CandidateLiveTable

@@ -116,12 +116,35 @@ k6 run load-tests/k6-data-integrity-test.js
 k6 run -e VUS=10 -e ITERATIONS=3 load-tests/k6-data-integrity-test.js
 ```
 
+#### 4. Qloax Full 130-Minute Assessment (500 Real Candidates)
+Simulates **500 real candidates** concurrently sitting the entire **130-minute exam** with complete lifecycle:
+- Staggered arrival (5-minute ramp window)
+- Multi-section navigation & progression
+- Continuous autosave with human think times (15s–30s)
+- Answer modifications (changing previous answers)
+- Interactive coding section (drafting, `/coding/run`, debugging, autosaving code, and `/coding/submit`)
+- Telemetry heartbeats every 28s
+- Final minute dual submission: 60% manual submit, 40% automatic timeout submit
+- Post-submission data integrity validation via `/resume` & duplicate submission blocking
+
+```bash
+# Full 130-Minute Assessment (500 Candidates)
+k6 run load-tests/k6-qloax-500-candidates-130m.js
+
+# Accelerated Smoke Verification (2 Minutes, 5 Candidates)
+k6 run -e QUICK_RUN=true load-tests/k6-qloax-500-candidates-130m.js
+
+# Custom Parameters (e.g. 250 VUs, 60 Minutes)
+k6 run -e MAX_VUS=250 -e TEST_DURATION_SEC=3600 -e RAMP_WINDOW_SEC=180 load-tests/k6-qloax-500-candidates-130m.js
+```
+
 ---
 
 ## Performance Reports
 
 Each test run automatically generates an executive Markdown report saved to `load-tests/reports/`:
 
+- `load-tests/reports/qloax-500-candidates-130m-report.md`
 - `load-tests/reports/stress-test-report.md`
 - `load-tests/reports/spike-test-report.md`
 - `load-tests/reports/breakpoint-report.md`
