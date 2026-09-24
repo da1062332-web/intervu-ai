@@ -69,15 +69,16 @@ export const TEST_RUN_ID = __ENV.TEST_RUN_ID || `run-qloax-500cand-${Date.now().
 
 // Quick Run flag for fast CI/Smoke verification
 const isQuickRun = __ENV.QUICK_RUN === "true" || __ENV.ACCELERATED === "true";
+export const isSignupOnly = __ENV.SIGNUP_ONLY === "true" || __ENV.AUTH_ONLY === "true";
 
 // Concurrency: Default 500 real candidates (or 5 for quick run)
 export const MAX_VUS = Number(__ENV.MAX_VUS) || (isQuickRun ? 5 : 500);
 
-// Assessment Duration: Default 130 minutes (7800s) (or 120s for quick run)
-export const TEST_DURATION_SEC = Number(__ENV.TEST_DURATION_SEC) || (isQuickRun ? 120 : 7800);
+// Assessment Duration: Default 130 minutes (7800s) (or 120s for quick run, 60s for signup only)
+export const TEST_DURATION_SEC = Number(__ENV.TEST_DURATION_SEC) || (isSignupOnly ? 60 : (isQuickRun ? 120 : 7800));
 
-// Candidate Arrival Ramp Window: 300s (5 mins) for 500 candidates, 5s for quick run
-export const RAMP_WINDOW_SEC = Number(__ENV.RAMP_WINDOW_SEC) || (isQuickRun ? 5 : 300);
+// Candidate Arrival Ramp Window: 60s for signup-only burst, 300s (5 mins) for 500 candidates, 5s for quick run
+export const RAMP_WINDOW_SEC = Number(__ENV.RAMP_WINDOW_SEC) || (isSignupOnly ? 60 : (isQuickRun ? 5 : 300));
 
 // Proportion of candidates who manually submit vs auto-submit on timer expiry
 const MANUAL_SUBMIT_RATIO = Number(__ENV.MANUAL_SUBMIT_RATIO) || 0.6; // 60% manual, 40% auto
@@ -87,6 +88,10 @@ const MANUAL_SUBMIT_RATIO = Number(__ENV.MANUAL_SUBMIT_RATIO) || 0.6; // 60% man
 // -----------------------------------------------------------------------------
 export const metrics = {
   // Candidate Lifecycle
+  signupAttempted: new Counter("candidates_signup_attempted"),
+  signupFailed: new Counter("candidates_signup_failed"),
+  signupLatency: new Trend("signup_latency_ms"),
+  authMeLatency: new Trend("auth_me_latency_ms"),
   candidatesRegistered: new Counter("candidates_registered"),
   assessmentsStarted: new Counter("assessments_started"),
   sectionsAdvanced: new Counter("sections_advanced"),
@@ -112,6 +117,9 @@ export const metrics = {
   errors4xx: new Counter("errors_4xx"),
   errors5xx: new Counter("errors_5xx"),
   errors429RateLimit: new Counter("errors_429_rate_limit"),
+  netErrorsReset: new Counter("net_errors_reset"),
+  netErrorsTimeout: new Counter("net_errors_timeout"),
+  netErrorsEof: new Counter("net_errors_eof"),
   errorRate: new Rate("app_error_rate"),
 
   // Latency Trends
@@ -137,25 +145,34 @@ export const options = {
       executor: "per-vu-iterations",
       vus: MAX_VUS,
       iterations: 1,
-      // Total execution budget: 130m + ramp window + 10m post-exam verification buffer
-      maxDuration: `${Math.ceil((TEST_DURATION_SEC + RAMP_WINDOW_SEC) / 60) + 10}m`,
+      // Total execution budget: 6m for signup only, or full exam duration
+      maxDuration: isSignupOnly
+        ? "6m"
+        : `${Math.ceil((TEST_DURATION_SEC + RAMP_WINDOW_SEC) / 60) + 10}m`,
     },
   },
-  thresholds: {
-    // Total error rate must remain below 5% across 500 candidates
-    app_error_rate: ["rate<0.05"],
-    // Autosave hot path SLA
-    answer_autosave_latency_ms: ["p(95)<3000"],
-    // Telemetry heartbeat SLA
-    telemetry_heartbeat_latency_ms: ["p(95)<2500"],
-    // Final submission SLA (both manual and auto-submit)
-    manual_submit_latency_ms: ["p(95)<6000"],
-    auto_submit_latency_ms: ["p(95)<6000"],
-    // Zero tolerance for corrupted answers or lost data
-    data_mismatches: ["count==0"],
-    // Total failed submissions must be bounded
-    submissions_failed: ["count<10"],
-  },
+  thresholds: isSignupOnly
+    ? {
+        app_error_rate: ["rate<0.01"],
+        errors_429_rate_limit: ["count==0"],
+        candidates_signup_failed: ["count==0"],
+        signup_latency_ms: ["p(95)<6000"],
+      }
+    : {
+        // Total error rate must remain below 5% across 500 candidates
+        app_error_rate: ["rate<0.05"],
+        // Autosave hot path SLA
+        answer_autosave_latency_ms: ["p(95)<3000"],
+        // Telemetry heartbeat SLA
+        telemetry_heartbeat_latency_ms: ["p(95)<2500"],
+        // Final submission SLA (both manual and auto-submit)
+        manual_submit_latency_ms: ["p(95)<6000"],
+        auto_submit_latency_ms: ["p(95)<6000"],
+        // Zero tolerance for corrupted answers or lost data
+        data_mismatches: ["count==0"],
+        // Total failed submissions must be bounded
+        submissions_failed: ["count<10"],
+      },
 };
 
 // -----------------------------------------------------------------------------
@@ -178,10 +195,22 @@ function getHeaders(token = null) {
 
 function trackStatus(res, endpointLabel = "request") {
   const status = res.status;
-  const isErr = status >= 400;
+  const isErr = status === 0 || status >= 400;
   metrics.errorRate.add(isErr ? 1 : 0);
 
-  if (status === 429) {
+  if (status === 0) {
+    // Network dropped, connection reset, or timeout before response received
+    metrics.errors5xx.add(1);
+    const errStr = String(res.error || "");
+    if (errStr.includes("forcibly closed") || errStr.includes("reset") || errStr.includes("connection reset")) {
+      metrics.netErrorsReset.add(1);
+    } else if (errStr.includes("timeout") || errStr.includes("deadline")) {
+      metrics.netErrorsTimeout.add(1);
+    } else if (errStr.includes("EOF")) {
+      metrics.netErrorsEof.add(1);
+    }
+    console.error(`[VU ${__VU}] [NET ERROR / TIMEOUT status 0] on ${endpointLabel}: ${errStr || "connection closed / timeout"}`);
+  } else if (status === 429) {
     metrics.errors429RateLimit.add(1);
     metrics.errors4xx.add(1);
     console.warn(`[VU ${__VU}] [429 RATE LIMIT] on ${endpointLabel}`);
@@ -192,7 +221,8 @@ function trackStatus(res, endpointLabel = "request") {
     }
   } else if (status >= 500) {
     metrics.errors5xx.add(1);
-    console.error(`[VU ${__VU}] [${status} SERVER ERROR] on ${endpointLabel}: ${res.body?.slice(0, 200)}`);
+    const bodySnippet = res.body ? res.body.slice(0, 200) : "empty/null";
+    console.error(`[VU ${__VU}] [${status} SERVER ERROR] on ${endpointLabel}: ${bodySnippet}`);
   }
 }
 
@@ -262,7 +292,8 @@ export default function (data) {
   // ---------------------------------------------------------------------------
   // Step 1: Candidate Registration & Authentication
   // ---------------------------------------------------------------------------
-  const candidateEmail = `qloax-cand-${vuId}-${TEST_RUN_ID}-${Math.floor(Math.random() * 100000)}@skillitrix-loadtest.invalid`;
+  metrics.signupAttempted.add(1);
+  const candidateEmail = `qloax-cand-${vuId}-${TEST_RUN_ID}-${Date.now().toString(36)}-${Math.floor(Math.random() * 100000)}@skillitrix-loadtest.invalid`;
   const signupPayload = JSON.stringify({
     email: candidateEmail,
     password: SIGNUP_PASSWORD,
@@ -270,35 +301,56 @@ export default function (data) {
     referralCode: REFERRAL_CODE,
   });
 
-  const signupRes = httpPostWithRetry(
+  const tSignup0 = Date.now();
+  const signupRes = http.post(
     `${BASE_URL}/auth/signup`,
     signupPayload,
-    { headers: getHeaders(), tags: { endpoint: "signup" }, timeout: "45s" },
-    "signup",
-    3
+    { headers: getHeaders(), tags: { endpoint: "signup" }, timeout: "60s" }
   );
+  metrics.signupLatency.add(Date.now() - tSignup0);
+  trackStatus(signupRes, "signup");
+
+  let accessToken = null;
+  try {
+    if (signupRes && signupRes.body) {
+      accessToken = signupRes.json("data.accessToken") || signupRes.json("accessToken");
+    }
+  } catch (_) {
+    accessToken = null;
+  }
 
   const signupOk = check(signupRes, {
     "Candidate signup status 200/201": (r) => r.status === 200 || r.status === 201,
-    "Access token received": (r) => Boolean(r.json("data.accessToken") || r.json("accessToken")),
+    "Access token received": () => Boolean(accessToken),
   });
 
-  if (!signupOk) {
-    console.error(`[VU ${vuId}] Signup failed: ${signupRes.status} ${signupRes.body?.slice(0, 150)}`);
+  if (!signupOk || !accessToken) {
+    metrics.signupFailed.add(1);
+    const errInfo = signupRes.error ? ` [error: ${signupRes.error}]` : "";
+    const bodyInfo = signupRes.body ? ` [body: ${signupRes.body.slice(0, 150)}]` : " [body: null/empty]";
+    console.error(`[VU ${vuId}] Signup failed: status=${signupRes.status}${errInfo}${bodyInfo}`);
     return;
   }
 
-  const accessToken = signupRes.json("data.accessToken") || signupRes.json("accessToken");
   const authHeaders = getHeaders(accessToken);
   metrics.candidatesRegistered.add(1);
 
   // Session verification probe
+  const tMe0 = Date.now();
   const meRes = http.get(`${BASE_URL}/auth/me`, {
     headers: authHeaders,
     tags: { endpoint: "auth_me" },
     timeout: "15s",
   });
+  metrics.authMeLatency.add(Date.now() - tMe0);
+  trackStatus(meRes, "auth_me");
+
   check(meRes, { "Session verified (200)": (r) => r.status === 200 });
+
+  if (isSignupOnly) {
+    // Verified signup and session authentication! Do not start assessments or submit tests.
+    return;
+  }
 
   // ---------------------------------------------------------------------------
   // Step 2: Assessment Commencement
@@ -777,6 +829,87 @@ export function handleSummary(data) {
       max: toMs(m.values.max),
     };
   };
+
+  if (isSignupOnly) {
+    const attempted = getVal("candidates_signup_attempted") || MAX_VUS;
+    const registered = getVal("candidates_registered");
+    const failed = getVal("candidates_signup_failed");
+    const count429 = getVal("errors_429_rate_limit");
+    const count4xx = getVal("errors_4xx");
+    const count5xx = getVal("errors_5xx");
+    const netReset = getVal("net_errors_reset");
+    const netTimeout = getVal("net_errors_timeout");
+    const netEof = getVal("net_errors_eof");
+    const server5xxOnly = Math.max(0, count5xx - (netReset + netTimeout + netEof));
+    const totalReqs = getVal("http_reqs");
+    const reqRate = (data.metrics.http_reqs?.values?.rate ?? 0).toFixed(2);
+    const errorRatePct = ((data.metrics.app_error_rate?.values?.rate ?? 0) * 100).toFixed(2);
+    const signupLat = getLatency("signup_latency_ms");
+    const meLat = getLatency("auth_me_latency_ms");
+
+    const report = `
+================================================================================
+# Qloax Assessment Load Test: 500 Candidates Registration & Signup Report
+================================================================================
+Generated:                  ${new Date().toISOString()}
+Target Environment:         ${BASE_URL}
+Test Run Identifier:        ${TEST_RUN_ID}
+Virtual Users (VUs):        ${MAX_VUS} Candidates
+Arrival Ramp Window:        ${RAMP_WINDOW_SEC}s
+Total HTTP Requests:        ${totalReqs} (${reqRate} req/s)
+
+--------------------------------------------------------------------------------
+## 1. Candidate Registration & Authentication Metrics
+- Candidates Attempted:     ${attempted}
+- Successful Signups:       ${registered} / ${attempted}
+- Failed Signups:           ${failed}
+- Overall Error Rate:       ${errorRatePct}%
+- HTTP 429 (Rate Limited):  ${count429}
+- HTTP 4xx (Client Errors): ${count4xx}
+- HTTP 5xx / Network Drops: ${count5xx}
+
+--------------------------------------------------------------------------------
+## 2. Failure Root Causes & Breakdown
+- Rate Limiting (429 Throttler):   ${count429}
+- Client-Side Errors (4xx status): ${count4xx}
+- Backend 5xx Status Code:         ${server5xxOnly}
+- Remote Connection Resets (Host): ${netReset}
+- HTTP Client/Server Timeouts:     ${netTimeout}
+- Stream EOF / Premature Closes:   ${netEof}
+
+--------------------------------------------------------------------------------
+## 3. Signup Latency Distribution
+| Metric                | Response Time |
+|-----------------------|---------------|
+| Median (p50)          | ${signupLat.med} |
+| 90th Percentile (p90) | ${signupLat.p90} |
+| 95th Percentile (p95) | ${signupLat.p95} |
+| 99th Percentile (p99) | ${signupLat.p99} |
+| Max Response Time     | ${signupLat.max} |
+| Average               | ${signupLat.avg} |
+
+--------------------------------------------------------------------------------
+## 4. Session Verification Probe (GET /auth/me) Latency
+| Metric                | Response Time |
+|-----------------------|---------------|
+| Median (p50)          | ${meLat.med} |
+| 95th Percentile (p95) | ${meLat.p95} |
+| Max Response Time     | ${meLat.max} |
+| Average               | ${meLat.avg} |
+
+--------------------------------------------------------------------------------
+## 5. Key Verification Checkpoints
+- [${count429 === 0 ? "PASS" : "FAIL"}] Signup 429 Issue: ${count429 === 0 ? "Zero 429 ThrottlerException errors encountered" : `${count429} rate limit rejections occurred`}
+- [${failed === 0 ? "PASS" : "FAIL"}] Unique Candidate Creation: ${registered} accounts created with unique email addresses
+- [${count5xx === 0 ? "PASS" : "FAIL"}] Server Stability: Zero 5xx database, timeout, or server crashes observed
+================================================================================
+`;
+
+    return {
+      stdout: report,
+      "load-tests/reports/qloax-500-candidates-signup-report.md": report,
+    };
+  }
 
   const registered = getVal("candidates_registered");
   const started = getVal("assessments_started");

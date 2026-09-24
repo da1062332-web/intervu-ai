@@ -106,6 +106,7 @@ interface CandidateLiveTableProps {
   onToggleSelect?: (attemptId: string) => void;
   onSelectAll?: () => void;
   onClearSelection?: () => void;
+  bulkActionsSlot?: React.ReactNode;
 }
 
 export function CandidateLiveTable({
@@ -123,6 +124,7 @@ export function CandidateLiveTable({
   onToggleSelect,
   onSelectAll,
   onClearSelection,
+  bulkActionsSlot,
 }: CandidateLiveTableProps) {
   const [extendingId, setExtendingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -254,6 +256,8 @@ export function CandidateLiveTable({
               className='pl-8 h-9 text-xs'
             />
           </div>
+
+          {bulkActionsSlot}
 
           {activeStatusFilter && activeStatusFilter !== 'ALL' && (
             <div className='flex items-center gap-1.5 text-xs text-muted-foreground shrink-0'>

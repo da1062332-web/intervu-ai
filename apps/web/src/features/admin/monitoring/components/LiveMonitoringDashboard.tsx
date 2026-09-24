@@ -60,7 +60,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
     startDate: dateFilter === 'custom' && startDate ? startDate : undefined,
     endDate: dateFilter === 'custom' && endDate ? endDate : undefined,
     page,
-    limit: 50,
+    limit: 10000,
   });
 
   const handleStatusFilter = (status: string) => {
@@ -245,7 +245,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
   }, [candidates, selectedCandidate]);
 
   return (
-    <div className='container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 pb-24'>
+    <div className='container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6'>
       {/* Header */}
       <SectionHeader
         title={isGlobalAll ? 'All Assessments — Live Monitoring' : assessmentName || 'Live Monitoring'}
@@ -450,6 +450,17 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
         onToggleSelect={handleToggleSelect}
         onSelectAll={handleSelectAllVisible}
         onClearSelection={handleClearSelection}
+        bulkActionsSlot={
+          <BulkActionBar
+            selectedCount={selectedAttemptIds.size}
+            onExtendTime={(minutes) => handleBulkExtendTime(minutes)}
+            onRecover={(graceMinutes) => handleBulkRecover(undefined, graceMinutes)}
+            onForceSubmit={() => handleBulkForceSubmit()}
+            onDelete={() => handleBulkDelete()}
+            onClearSelection={handleClearSelection}
+            isActing={isBulkActing}
+          />
+        }
       />
 
       {/* 9-Tab Candidate Detail Drawer */}
@@ -469,16 +480,6 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
         onRecoveryComplete={() => refetch()}
       />
 
-      {/* Floating Bulk Actions Bar */}
-      <BulkActionBar
-        selectedCount={selectedAttemptIds.size}
-        onExtendTime={(minutes) => handleBulkExtendTime(minutes)}
-        onRecover={(graceMinutes) => handleBulkRecover(undefined, graceMinutes)}
-        onForceSubmit={() => handleBulkForceSubmit()}
-        onDelete={() => handleBulkDelete()}
-        onClearSelection={handleClearSelection}
-        isActing={isBulkActing}
-      />
     </div>
   );
 }
