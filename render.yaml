@@ -18,7 +18,11 @@ services:
     name: intervu-api
     runtime: node
     region: singapore # Closest Render region to Supabase in AWS Mumbai (~30ms latency)
-    plan: starter
+    plan: standard
+    scaling:
+      minInstances: 3
+      maxInstances: 6
+      targetCPUPercent: 65
     buildCommand: npm install && npx turbo run build --filter=@intervu-ai/api
     startCommand: node scripts/start-api.js
     envVars:
@@ -36,7 +40,15 @@ services:
           name: intervu-redis
           property: connectionString
       - key: NODE_OPTIONS
-        value: --max-old-space-size=400 # Starter plan only has 512MB RAM total — 1536 told V8 it had 3x that, causing OOM kills under load; 400 leaves headroom for non-heap overhead (Node baseline, Prisma engine, network buffers)
+        value: --max-old-space-size=1536 # Standard plan provides 2GB RAM per instance; 1536MB allows ample headroom for 1,000 candidate concurrency
+      - key: AUTH_LIMIT
+        value: "2500" # Prevents campus NAT / shared IP lockout during 1,000 candidate exam logins
+      - key: DEFAULT_LIMIT
+        value: "2500"
+      - key: ASSESSMENT_LIMIT
+        value: "300"
+      - key: SUBMISSION_LIMIT
+        value: "30"
       - key: CODE_EXECUTION_CONCURRENCY
         value: 20 # Bounded concurrency to sustain up to 1,200 code evaluations/min for 2,000 candidates
       - key: CODE_EXECUTION_MAX_QUEUE_DEPTH
@@ -82,9 +94,11 @@ services:
           name: intervu-redis
           property: connectionString
       - key: NODE_OPTIONS
-        value: --max-old-space-size=400 # Starter plan only has 512MB RAM total — 1024 told V8 it had 2x that, same OOM risk as intervu-api
+        value: --max-old-space-size=1024
       - key: WORKER_CONCURRENCY
-        value: 4
+        value: 15
+      - key: EVALUATION_CONCURRENCY
+        value: "15" # Clears 1,000 candidate evaluations in ~1-2 minutes instead of 16 minutes
       - key: ENABLE_GENERATION_QUEUE
         value: "true"
       - key: ENABLE_EVALUATION_QUEUE

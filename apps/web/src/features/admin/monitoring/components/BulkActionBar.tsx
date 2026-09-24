@@ -47,8 +47,8 @@ export function BulkActionBar({
   }
 
   return (
-    <div className='fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200'>
-      <div className='flex items-center gap-2.5 p-2 px-3 sm:px-4 rounded-xl border border-primary/20 bg-background/95 backdrop-blur-md shadow-2xl shadow-primary/10 text-xs max-w-[calc(100vw-2rem)] overflow-x-auto'>
+    <div className='animate-in fade-in slide-in-from-top-2 duration-200 shrink-0'>
+      <div className='flex items-center gap-2.5 p-2 px-3 rounded-xl border border-primary/20 bg-background/95 backdrop-blur-md shadow-sm text-xs max-w-full overflow-x-auto'>
         {/* Count Badge */}
         <div className='flex items-center gap-1.5 pr-2 border-r border-border/60 shrink-0'>
           <Users className='size-4 text-primary' />

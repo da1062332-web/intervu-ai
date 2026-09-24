@@ -88,19 +88,19 @@ export class AppConfigService {
   get rateLimits() {
     return {
       auth: {
-        limit: this.configService?.get<number>("AUTH_LIMIT", 10) || 10,
+        limit: this.configService?.get<number>("AUTH_LIMIT", 2500) || 2500,
         ttl: this.configService?.get<number>("AUTH_TTL", 60000) || 60000,
       },
       assessment: {
-        limit: this.configService?.get<number>("ASSESSMENT_LIMIT", 120) || 120,
+        limit: this.configService?.get<number>("ASSESSMENT_LIMIT", 300) || 300,
         ttl: this.configService?.get<number>("ASSESSMENT_TTL", 60000) || 60000,
       },
       submission: {
-        limit: this.configService?.get<number>("SUBMISSION_LIMIT", 10) || 10,
+        limit: this.configService?.get<number>("SUBMISSION_LIMIT", 30) || 30,
         ttl: this.configService?.get<number>("SUBMISSION_TTL", 60000) || 60000,
       },
       default: {
-        limit: this.configService?.get<number>("DEFAULT_LIMIT", 100) || 100,
+        limit: this.configService?.get<number>("DEFAULT_LIMIT", 2500) || 2500,
         ttl: this.configService?.get<number>("DEFAULT_TTL", 60000) || 60000,
       },
     };

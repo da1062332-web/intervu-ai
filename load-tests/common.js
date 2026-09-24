@@ -21,6 +21,7 @@ export const metrics = {
   submissionsFailed: new Counter("submissions_failed"),
   answersSuccess: new Counter("answers_success"),
   answersFailed: new Counter("answers_failed"),
+  dataMismatches: new Counter("data_mismatches"),
   authSessionFailures: new Counter("auth_session_failures"),
   errorRate: new Rate("app_error_rate"),
   loginDuration: new Trend("login_duration_ms"),
@@ -120,7 +121,7 @@ export function generateSummaryReport(data, title, description = "") {
 
   const getLatency = (name) => {
     const m = data.metrics[name];
-    if (!m || !m.values) return { avg: "0ms", p90: "0ms", p95: "0ms", p99: "0ms", max: "0ms" };
+    if (!m || !m.values) return { avg: "0ms", med: "0ms", p90: "0ms", p95: "0ms", p99: "0ms", max: "0ms" };
     const v = m.values;
     const toMs = (n) => `${Math.round(n || 0)}ms`;
     return {
@@ -146,6 +147,7 @@ export function generateSummaryReport(data, title, description = "") {
   const subsFailed = getMetricVal("submissions_failed", "count");
   const ansSuccess = getMetricVal("answers_success", "count");
   const ansFailed = getMetricVal("answers_failed", "count");
+  const dataMismatches = getMetricVal("data_mismatches", "count");
 
   const ansLat = getLatency("answer_duration_ms");
   const startLat = getLatency("start_test_duration_ms");
@@ -174,6 +176,7 @@ ${description ? `Description: ${description}\n` : ""}
 - Failed Submissions:      ${subsFailed}
 - Successful Answers:      ${ansSuccess}
 - Failed Answers:          ${ansFailed}
+- Data Mismatches:         ${dataMismatches}
 
 --------------------------------------------------------------------------------
 ## 2. HTTP Status & Error Breakdown

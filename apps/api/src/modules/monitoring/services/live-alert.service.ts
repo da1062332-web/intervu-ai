@@ -239,6 +239,67 @@ export class LiveAlertService {
   }
 
   /**
+   * Bulk acknowledges and resolves all active alerts, optionally filtered by assessmentId.
+   */
+  async resolveAllAlerts(
+    assessmentId?: string,
+    resolvedBy?: string,
+    notes?: string,
+  ): Promise<{ count: number }> {
+    try {
+      const whereClause: any = { isResolved: false };
+      if (assessmentId && assessmentId !== "all") {
+        whereClause.assessmentId = assessmentId;
+      }
+
+      const activeAlerts = await this.prisma.liveAssessmentAlert.findMany({
+        where: whereClause,
+        select: { id: true, assessmentId: true },
+      });
+
+      if (activeAlerts.length === 0) {
+        return { count: 0 };
+      }
+
+      await this.prisma.liveAssessmentAlert.updateMany({
+        where: whereClause,
+        data: {
+          isResolved: true,
+          resolvedAt: new Date(),
+          resolvedBy: resolvedBy || "admin",
+          metadata: notes ? { resolutionNotes: notes } : undefined,
+        },
+      });
+
+      if (this.isRedisAvailable()) {
+        const redis = RedisConnectionManager.getInstance();
+        const assessmentIds = Array.from(new Set(activeAlerts.map((a) => a.assessmentId)));
+        for (const aId of assessmentIds) {
+          try {
+            const listKey = REDIS_KEYS.assessmentAlertsList(aId);
+            await redis.del(listKey);
+            await redis.publish(
+              REDIS_KEYS.assessmentEventsChannel(aId),
+              JSON.stringify({
+                type: "ALL_ALERTS_RESOLVED",
+                payload: { resolvedBy: resolvedBy || "admin", resolvedAt: new Date().toISOString() },
+                timestamp: new Date().toISOString(),
+              }),
+            );
+          } catch (redisErr) {
+            this.logger.warn("Failed clearing Redis alert list during resolve-all", { error: redisErr, assessmentId: aId });
+          }
+        }
+      }
+
+      return { count: activeAlerts.length };
+    } catch (err: any) {
+      this.logger.error("Failed to resolve all alerts", err);
+      return { count: 0 };
+    }
+  }
+
+  /**
    * Automatically resolves any open disconnect alerts for a candidate attempt
    * once the candidate has submitted their assessment or session has ended.
    */

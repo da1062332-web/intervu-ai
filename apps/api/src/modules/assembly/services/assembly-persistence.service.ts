@@ -26,6 +26,8 @@ export class AssemblyPersistenceService {
     private readonly finalShuffler?: FinalShufflerService,
   ) {}
 
+  private static readonly reusableCache = new Map<string, { data: any; expiry: number }>();
+
   /**
    * Instantly clones pre-attached sections & questions from a published AssembledTest
    * directly into a new candidate TestInstance in a single fast DB transaction (< 50ms),
@@ -38,8 +40,23 @@ export class AssemblyPersistenceService {
     durationSeconds: number = 3600,
   ): Promise<string> {
     const t0 = Date.now();
-    this.logger.log(`    [CLONE-SERVICE ⏱️] Step 1/3: Fetching reusable assembly record ${reusableAssemblyId}...`);
-    const reusable = await this.repository.findById(reusableAssemblyId);
+    const now = Date.now();
+    const cached = AssemblyPersistenceService.reusableCache.get(reusableAssemblyId);
+    let reusable = cached && cached.expiry > now ? cached.data : null;
+
+    if (!reusable) {
+      this.logger.log(`    [CLONE-SERVICE ⏱️] Step 1/3: Fetching reusable assembly record ${reusableAssemblyId}...`);
+      reusable = await this.repository.findById(reusableAssemblyId);
+      if (reusable) {
+        AssemblyPersistenceService.reusableCache.set(reusableAssemblyId, {
+          data: reusable,
+          expiry: now + 120_000, // 2-minute cache absorbs concurrent batch arrivals
+        });
+      }
+    } else {
+      this.logger.log(`    [CLONE-SERVICE ⚡] Step 1/3: High-concurrency cache hit for reusable assembly ${reusableAssemblyId}`);
+    }
+
     if (!reusable || !reusable.sections || reusable.sections.length === 0) {
       this.logger.error(`    [CLONE-SERVICE ❌] Reusable assembly ${reusableAssemblyId} not found or has no sections!`);
       throw new NotFoundException(
