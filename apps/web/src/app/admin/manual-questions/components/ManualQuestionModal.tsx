@@ -103,8 +103,9 @@ export function ManualQuestionModal({
   const { data: concepts = [], isLoading: isLoadingConcepts } = useConcepts(topicId, true);
 
   const [questionAttachment, setQuestionAttachment] = useState<{
-    mediaId: string;
-    mediaUrl: string;
+    mediaId?: string;
+    mediaUrl?: string;
+    svgCode?: string;
     altText?: string;
   } | null>(null);
 

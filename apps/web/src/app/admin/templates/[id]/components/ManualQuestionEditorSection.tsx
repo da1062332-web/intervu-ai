@@ -46,7 +46,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
   const [questionText, setQuestionText] = useState<string>(
     config.questionText || structure.stem || (template?.name !== 'New Template' ? template?.name : '') || ''
   );
-  const [questionMedia, setQuestionMedia] = useState<{ mediaId: string; mediaUrl: string; altText?: string } | null>(
+  const [questionMedia, setQuestionMedia] = useState<{ mediaId?: string; mediaUrl?: string; svgCode?: string; altText?: string } | null>(
     config.questionMedia || structure.media || null
   );
 

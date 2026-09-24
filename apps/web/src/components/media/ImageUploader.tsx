@@ -88,7 +88,7 @@ export function ImageUploader({
         type="file"
         ref={fileInputRef}
         className="hidden"
-        accept="image/png,image/jpeg,image/webp"
+        accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
             handleFile(e.target.files[0]);
@@ -106,7 +106,7 @@ export function ImageUploader({
         <div className="flex flex-col items-center space-y-2 text-muted-foreground">
           <Upload className="w-8 h-8" />
           <p className="text-sm font-medium">Click to upload or drag and drop</p>
-          <p className="text-xs">PNG, JPG or WebP (max 5MB)</p>
+          <p className="text-xs">PNG, JPG, WebP or SVG (max 5MB)</p>
         </div>
       )}
     </div>

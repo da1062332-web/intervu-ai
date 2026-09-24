@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { EmbeddedCompiler } from './EmbeddedCompiler';
 import { MarkdownRenderer, formatNormalInput, formatNormalOutput } from '@/components/ui/markdown-renderer';
 import { ImageRenderer } from '@/components/media/ImageRenderer';
+import { SvgRenderer } from '@/components/media/SvgRenderer';
 import { executionService } from '../services/execution.service';
 
 export function StreamlinedQuestionRenderer() {
@@ -262,9 +263,15 @@ export function StreamlinedQuestionRenderer() {
               ? option.mediaUrl || option.url || option.media?.url || option.image || null
               : null;
 
+          const optSvgCode =
+            typeof option === 'object' && option !== null
+              ? option.svgCode || option.svg || null
+              : null;
+
           const isDiagramOnly =
             option?.mode === 'diagram-only' ||
-            (optMediaUrl &&
+            option?.mode === 'svg-code' ||
+            ((optMediaUrl || optSvgCode) &&
               (optText.trim() === letter || optText.trim() === letter.toLowerCase() || !optText.trim()));
 
           const palette = palettes[index % palettes.length];
@@ -304,7 +311,12 @@ export function StreamlinedQuestionRenderer() {
                     {optText}
                   </span>
                 )}
-                {optMediaUrl && (
+                {optSvgCode && (
+                  <div className='my-1 p-2 bg-white rounded-md border border-slate-200 overflow-hidden shadow-2xs'>
+                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='max-h-48' />
+                  </div>
+                )}
+                {!optSvgCode && optMediaUrl && (
                   <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
                 )}
               </div>
@@ -362,6 +374,17 @@ export function StreamlinedQuestionRenderer() {
               ? option.mediaUrl || option.url || option.media?.url || option.image || null
               : null;
 
+          const optSvgCode =
+            typeof option === 'object' && option !== null
+              ? option.svgCode || option.svg || null
+              : null;
+
+          const isDiagramOnly =
+            option?.mode === 'diagram-only' ||
+            option?.mode === 'svg-code' ||
+            ((optMediaUrl || optSvgCode) &&
+              (optText.trim() === letter || optText.trim() === letter.toLowerCase() || !optText.trim()));
+
           return (
             <label
               key={`opt-${currentQuestion.id}-${index}`}
@@ -407,12 +430,17 @@ export function StreamlinedQuestionRenderer() {
                 )}
               </div>
               <div className='flex flex-col space-y-2 flex-1'>
-                {optText && (
+                {optText && !isDiagramOnly && (
                   <span className='text-sm sm:text-[15px] font-medium leading-relaxed break-words text-slate-700'>
                     {optText}
                   </span>
                 )}
-                {optMediaUrl && (
+                {optSvgCode && (
+                  <div className='my-1 p-2 bg-white rounded-md border border-slate-200 overflow-hidden shadow-2xs'>
+                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='max-h-48' />
+                  </div>
+                )}
+                {!optSvgCode && optMediaUrl && (
                   <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
                 )}
               </div>
@@ -810,6 +838,17 @@ export function StreamlinedQuestionRenderer() {
 
               {(() => {
                 const qAny = currentQuestion as any;
+                const questionSvgCode =
+                  qAny.svgCode ||
+                  qAny.questionSvgCode ||
+                  qAny.questionMedia?.svgCode ||
+                  qAny.mcqData?.svgCode ||
+                  qAny.metadata?.svgCode ||
+                  qAny.questionSnapshot?.svgCode ||
+                  qAny.questionSnapshot?.mcqData?.svgCode ||
+                  qAny.questionSnapshot?.metadata?.svgCode ||
+                  null;
+
                 const questionMediaUrl =
                   qAny.questionImage ||
                   qAny.questionMedia?.mediaUrl ||
@@ -826,11 +865,15 @@ export function StreamlinedQuestionRenderer() {
                   qAny.questionSnapshot?.mcqData?.questionMedia?.mediaUrl ||
                   null;
 
-                if (!questionMediaUrl) return null;
+                if (!questionSvgCode && !questionMediaUrl) return null;
 
                 return (
-                  <div className='mt-3 p-2 bg-slate-50 border border-slate-200 rounded-lg flex justify-center shadow-2xs'>
-                    <ImageRenderer url={questionMediaUrl} altText='Question diagram' maxHeight='max-h-72' />
+                  <div className='mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg flex justify-center shadow-2xs overflow-hidden'>
+                    {questionSvgCode ? (
+                      <SvgRenderer svgCode={questionSvgCode} altText='Question SVG diagram' maxHeight='max-h-80' />
+                    ) : (
+                      <ImageRenderer url={questionMediaUrl} altText='Question diagram' maxHeight='max-h-72' />
+                    )}
                   </div>
                 );
               })()}
