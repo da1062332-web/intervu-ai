@@ -59,13 +59,21 @@ export class PrismaService
     const dbUrl = process.env.DATABASE_URL || "";
     if (dbUrl.includes("supabase.co:5432")) {
       this.logger.warn(
-        `[PrismaService] ⚠️ PERFORMANCE WARNING: DATABASE_URL is connecting directly to Supabase on port 5432. For optimal latency and throughput on Render, switch to the Supabase Transaction Pooler (port 6543 with ?pgbouncer=true).`
+        `[PrismaService] ⚠️  PERFORMANCE WARNING: DATABASE_URL is connecting directly to Supabase on port 5432 (direct connection). ` +
+        `For 500+ concurrent candidates, switch to the Supabase Transaction Pooler (port 6543, ?pgbouncer=true) ` +
+        `and add ?connection_limit=25 to the URL.`
       );
     } else if (dbUrl.includes(":6543")) {
+      const poolParam = dbUrl.match(/connection_limit=(\d+)/)?.[1];
       this.logger.log(
-        `[PrismaService] ⚡ Supabase Transaction Pooler (port 6543) active. High-concurrency connection pooling enabled.`
+        `[PrismaService] ⚡ Supabase Transaction Pooler (port 6543) active. ` +
+        `connection_limit=${poolParam ?? "not set — recommend ?connection_limit=25 for 500-candidate load"}`
       );
     }
+
+    // Log libuv threadpool size — critical for argon2 throughput under concurrent signup load
+    const uvThreadpool = process.env.UV_THREADPOOL_SIZE ?? "4 (default — set UV_THREADPOOL_SIZE=16 for concurrent signup load)";
+    this.logger.log(`[PrismaService] UV_THREADPOOL_SIZE=${uvThreadpool}`);
 
     await this.$connect();
 

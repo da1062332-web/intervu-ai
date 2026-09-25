@@ -41,6 +41,8 @@ services:
           property: connectionString
       - key: NODE_OPTIONS
         value: --max-old-space-size=1536 # Standard plan provides 2GB RAM per instance; 1536MB allows ample headroom for 1,000 candidate concurrency
+      - key: UV_THREADPOOL_SIZE
+        value: "16" # argon2.hash() runs on libuv threads; default=4 causes 500 concurrent hashes to queue serially (24s+). 16 threads = 4× throughput for registration bursts.
       - key: AUTH_LIMIT
         value: "2500" # Prevents campus NAT / shared IP lockout during 1,000 candidate exam logins
       - key: DEFAULT_LIMIT
