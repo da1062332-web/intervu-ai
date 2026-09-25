@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
+import * as bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
 import { OAuth2Client } from "google-auth-library";
 
@@ -123,10 +124,33 @@ export class AuthService {
 
     const user = await this.userRepository.findByEmail(email);
 
-    const isValid =
-      user != null &&
-      user.passwordHash != null &&
-      (await argon2.verify(user.passwordHash, dto.password, ARGON2_OPTIONS));
+    let isValid = false;
+    if (user != null && user.passwordHash != null) {
+      if (
+        user.passwordHash.startsWith("$2a$") ||
+        user.passwordHash.startsWith("$2b$")
+      ) {
+        isValid = await bcrypt.compare(dto.password, user.passwordHash);
+        if (isValid) {
+          // Progressively upgrade legacy bcrypt password to argon2 on login
+          const upgradedHash = await argon2.hash(dto.password, ARGON2_OPTIONS);
+          void this.userRepository
+            .update(user.id, { passwordHash: upgradedHash })
+            .catch((err: any) =>
+              this.logger.warn(
+                `Failed to upgrade password hash for user ${user.id}: ${err.message}`,
+              ),
+            );
+        }
+      } else {
+        try {
+          isValid = await argon2.verify(user.passwordHash, dto.password);
+        } catch {
+          isValid = false;
+        }
+      }
+    }
+
     if (!isValid || !user) {
       throw new UnauthorizedException("Invalid email or password");
     }
