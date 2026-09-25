@@ -302,13 +302,9 @@ export class AuthService {
     user: { id: string; email: string; role: AuthUserRole },
     meta?: AuthMeta,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    // 1. Create a session first to generate its ID
-    const session = await this.sessionRepository.createSession({
-      userId: user.id,
-      userAgent: meta?.userAgent ?? null,
-      ipAddress: meta?.ipAddress ?? null,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24 hours
-    });
+    const sessionId = randomUUID();
+    const sessionExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
+    const refreshExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30); // 30 days
 
     const accessToken = this.jwtService.sign(
       {
@@ -316,7 +312,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         type: "access",
-        sessionId: session.id,
+        sessionId,
       },
       {
         jwtid: randomUUID(),
@@ -330,7 +326,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         type: "refresh",
-        sessionId: session.id,
+        sessionId,
       },
       {
         secret: this.configService.jwtRefreshSecret,
@@ -339,13 +335,31 @@ export class AuthService {
       },
     );
 
-    // 2. Persist the refresh token, linked to the session
-    await this.sessionRepository.createRefreshToken({
-      userId: user.id,
-      token: refreshToken,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days
-      sessionId: session.id,
-    });
+    // Persist session and refresh token in a SINGLE round-trip
+    if (this.sessionRepository.createSessionWithRefreshToken) {
+      await this.sessionRepository.createSessionWithRefreshToken({
+        id: sessionId,
+        userId: user.id,
+        userAgent: meta?.userAgent ?? null,
+        ipAddress: meta?.ipAddress ?? null,
+        expiresAt: sessionExpiresAt,
+        token: refreshToken,
+        refreshExpiresAt,
+      });
+    } else {
+      const session = await this.sessionRepository.createSession({
+        userId: user.id,
+        userAgent: meta?.userAgent ?? null,
+        ipAddress: meta?.ipAddress ?? null,
+        expiresAt: sessionExpiresAt,
+      });
+      await this.sessionRepository.createRefreshToken({
+        userId: user.id,
+        token: refreshToken,
+        expiresAt: refreshExpiresAt,
+        sessionId: session.id,
+      });
+    }
 
     return { accessToken, refreshToken };
   }

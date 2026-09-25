@@ -43,6 +43,33 @@ export class SessionRepository extends BaseRepository<
     });
   }
 
+  async createSessionWithRefreshToken(params: {
+    id: string;
+    userId: string;
+    userAgent: string | null;
+    ipAddress: string | null;
+    expiresAt: Date;
+    token: string;
+    refreshExpiresAt: Date;
+  }): Promise<Session> {
+    return this.db.session.create({
+      data: {
+        id: params.id,
+        userId: params.userId,
+        userAgent: params.userAgent,
+        ipAddress: params.ipAddress,
+        expiresAt: params.expiresAt,
+        refreshTokens: {
+          create: {
+            userId: params.userId,
+            token: params.token,
+            expiresAt: params.refreshExpiresAt,
+          },
+        },
+      },
+    });
+  }
+
   async deleteSession(id: string, userId: string): Promise<Session> {
     return this.db.session.delete({
       where: { id, userId },

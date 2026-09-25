@@ -10,7 +10,20 @@ export class PrismaService
   private keepAliveInterval: NodeJS.Timeout | null = null;
 
   constructor() {
+    let dbUrl = process.env.DATABASE_URL || "";
+    if (dbUrl && !dbUrl.includes("connection_limit=")) {
+      const separator = dbUrl.includes("?") ? "&" : "?";
+      dbUrl = `${dbUrl}${separator}connection_limit=25&pool_timeout=30`;
+    }
+
     super({
+      datasources: dbUrl
+        ? {
+            db: {
+              url: dbUrl,
+            },
+          }
+        : undefined,
       transactionOptions: {
         maxWait: 60000, // Wait up to 60s to acquire transaction from database pool
         timeout: 180000, // Allow up to 3 mins for transaction execution
