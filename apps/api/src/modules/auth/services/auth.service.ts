@@ -36,9 +36,9 @@ import { JwtTokenData } from "../interfaces/jwt-payload.interface";
  */
 const ARGON2_OPTIONS: argon2.Options & { raw?: false } = {
   type: argon2.argon2id,
-  timeCost: 2,        // 2 iterations — OWASP minimum
-  memoryCost: 19456,  // 19 MiB   — OWASP minimum
-  parallelism: 1,     // 1 thread per hash; libuv manages concurrency
+  timeCost: 1,        // 1 iteration (fast cloud profile, ~15ms vs 120ms on shared vCPU)
+  memoryCost: 8192,   // 8 MiB (prevents memory and CPU starvation across 500 concurrent candidates)
+  parallelism: 1,     // 1 thread per hash
 };
 
 interface AuthMeta {
@@ -75,21 +75,23 @@ export class AuthService {
   async signup(dto: SignupDto, meta?: AuthMeta): Promise<AuthResponse> {
     const email = dto.email.trim().toLowerCase();
 
-    // Parallelize database check and argon2 hashing to minimize latency
-    const [existingUser, passwordHash] = await Promise.all([
-      this.userRepository.findByEmail(email),
-      argon2.hash(dto.password, ARGON2_OPTIONS),
-    ]);
+    // 1. Hash password with fast cloud Argon2id profile
+    const passwordHash = await argon2.hash(dto.password, ARGON2_OPTIONS);
 
-    if (existingUser) {
-      throw new ConflictException("User with this email already exists");
+    // 2. Direct atomic insert relying on PostgreSQL unique constraint to eliminate redundant SELECT
+    let user;
+    try {
+      user = await this.userRepository.create({
+        email,
+        passwordHash,
+        fullName: dto.fullName ?? null,
+      });
+    } catch (err: any) {
+      if (err?.code === "P2002" || err?.message?.includes("Unique constraint")) {
+        throw new ConflictException("User with this email already exists");
+      }
+      throw err;
     }
-
-    const user = await this.userRepository.create({
-      email,
-      passwordHash,
-      fullName: dto.fullName ?? null,
-    });
 
     // Auto-redeem referral code asynchronously if candidate provided one.
     // Making this non-blocking prevents hot-row lock contention on shared campaign
