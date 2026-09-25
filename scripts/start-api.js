@@ -1,3 +1,6 @@
+// Set Node.js threadpool size early before any native addons or async I/O initialize
+process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || "16";
+
 const { execSync, spawn } = require("child_process");
 const path = require("path");
 

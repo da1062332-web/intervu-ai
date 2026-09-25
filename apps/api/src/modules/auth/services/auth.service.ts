@@ -75,7 +75,11 @@ export class AuthService {
   async signup(dto: SignupDto, meta?: AuthMeta): Promise<AuthResponse> {
     const email = dto.email.trim().toLowerCase();
 
-    const existingUser = await this.userRepository.findByEmail(email);
+    // Parallelize database check and argon2 hashing to minimize latency
+    const [existingUser, passwordHash] = await Promise.all([
+      this.userRepository.findByEmail(email),
+      argon2.hash(dto.password, ARGON2_OPTIONS),
+    ]);
 
     if (existingUser) {
       throw new ConflictException("User with this email already exists");
@@ -83,19 +87,22 @@ export class AuthService {
 
     const user = await this.userRepository.create({
       email,
-      passwordHash: await argon2.hash(dto.password, ARGON2_OPTIONS),
+      passwordHash,
       fullName: dto.fullName ?? null,
     });
 
-    // Auto-redeem referral code if candidate provided one during signup
+    // Auto-redeem referral code asynchronously if candidate provided one.
+    // Making this non-blocking prevents hot-row lock contention on shared campaign
+    // counters (e.g. 500 candidates all redeeming "QLO" simultaneously) from
+    // serializing and causing client request timeouts during burst registration.
     if (dto.referralCode?.trim() && this.referralEngine) {
-      try {
-        await this.referralEngine.redeemCode(user.id, dto.referralCode.trim().toUpperCase());
-      } catch (err: any) {
-        this.logger.warn(
-          `Failed to auto-redeem referral code "${dto.referralCode}" for new user ${user.id}: ${err.message}`,
-        );
-      }
+      void this.referralEngine
+        .redeemCode(user.id, dto.referralCode.trim().toUpperCase())
+        .catch((err: any) => {
+          this.logger.warn(
+            `Failed to auto-redeem referral code "${dto.referralCode}" for new user ${user.id}: ${err.message}`,
+          );
+        });
     }
 
     return this.buildAuthResponse(user, meta);
