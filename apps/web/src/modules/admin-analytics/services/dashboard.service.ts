@@ -18,6 +18,7 @@ export interface RecentTestAttempt {
   id?: string;
   attemptId?: string;
   email?: string;
+  role?: string;
   candidateName: string;
   assessment: string;
   score: number;

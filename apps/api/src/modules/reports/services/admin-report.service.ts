@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { UserRole } from "@prisma/client";
 import { AppLogger } from "@intervu-ai/shared-logger";
 
 @Injectable()
@@ -75,9 +76,10 @@ export class AdminReportService {
 
     const attempts = await this.prisma.evaluationResult.findMany({
       where: {
-        testInstance: isExam
-          ? { examConfigId: configId }
-          : { testConfigId: configId },
+        testInstance: {
+          ...(isExam ? { examConfigId: configId } : { testConfigId: configId }),
+          user: { role: UserRole.CANDIDATE },
+        },
       },
       include: {
         testInstance: {
@@ -144,7 +146,10 @@ export class AdminReportService {
 
     // Find total enrollments or started instances to calculate completion rate properly
     const allInstances = await this.prisma.testInstance.count({
-      where: isExam ? { examConfigId: configId } : { testConfigId: configId },
+      where: {
+        ...(isExam ? { examConfigId: configId } : { testConfigId: configId }),
+        user: { role: UserRole.CANDIDATE },
+      },
     });
 
     const completionRate =
@@ -170,7 +175,10 @@ export class AdminReportService {
   async getCandidateReports(filters: any) {
     this.logger.debug("Fetching candidate reports with filters", { filters });
 
-    const andConditions: any[] = [{ evaluationResult: { isNot: null } }];
+    const andConditions: any[] = [
+      { evaluationResult: { isNot: null } },
+      { user: { role: UserRole.CANDIDATE } },
+    ];
 
     if (filters.assessmentId) {
       const resolvedId = await this.resolveConfigIdIfAssembled(
@@ -225,7 +233,7 @@ export class AdminReportService {
     const attempts = await this.prisma.testInstance.findMany({
       where: whereClause,
       include: {
-        user: { select: { id: true, fullName: true, email: true } },
+        user: { select: { id: true, fullName: true, email: true, role: true } },
         testConfig: { select: { id: true, displayName: true } },
         examConfig: { select: { id: true, name: true } },
         evaluationResult: true,
@@ -249,6 +257,7 @@ export class AdminReportService {
       return {
         id: attempt.id,
         candidate: attempt.user,
+        role: attempt.user?.role,
         assessment: { id: assessmentId, displayName: assessmentName },
         score,
         evaluationStrategy: cr?.evaluationStrategy || "TCS",
@@ -288,7 +297,9 @@ export class AdminReportService {
   }
 
   async getQualificationStats(assessmentId?: string) {
-    const where: any = {};
+    const where: any = {
+      user: { role: UserRole.CANDIDATE },
+    };
     if (assessmentId) {
       const resolvedId = await this.resolveConfigIdIfAssembled(assessmentId);
       where.attempt = {

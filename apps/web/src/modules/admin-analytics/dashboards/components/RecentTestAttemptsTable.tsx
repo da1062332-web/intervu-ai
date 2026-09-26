@@ -1,3 +1,4 @@
+import React, { useMemo } from 'react';
 import { useRecentTestAttempts } from '../../hooks/useRecentTestAttempts';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -122,6 +123,15 @@ export function RecentTestAttemptsTable() {
     );
   }
 
+  const filteredData = useMemo(() => {
+    return (data ?? EMPTY_RECENT_ATTEMPTS).filter((row) => {
+      const role = row.role;
+      if (role && role.toUpperCase() !== 'CANDIDATE') return false;
+      if (row.email && row.email.toLowerCase().includes('admin@intervu.ai')) return false;
+      return true;
+    });
+  }, [data]);
+
   return (
     <Card className='rounded-xl shadow-sm overflow-hidden flex flex-col h-[400px]'>
       <CardHeader className='py-3 px-5 border-b bg-card z-20 flex flex-row items-center justify-between'>
@@ -140,7 +150,7 @@ export function RecentTestAttemptsTable() {
       <CardContent className='p-0 flex-1 overflow-hidden'>
         <DataTable
           columns={columns}
-          data={data ?? EMPTY_RECENT_ATTEMPTS}
+          data={filteredData}
           isLoading={isLoading}
           disablePagination
           rowKey={(row) => (row.id || row.attemptId) as string}

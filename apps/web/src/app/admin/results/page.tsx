@@ -29,6 +29,7 @@ export interface AdminTestAttemptItem {
   id: string;
   candidateName: string;
   email?: string;
+  role?: string;
   assessment: string;
   score: number;
   hasEvaluation?: boolean;
@@ -52,14 +53,31 @@ function useAllAdminTestAttempts() {
 
       const map = new Map<string, AdminTestAttemptItem>();
 
+      const isCandidateOnly = (role?: string, email?: string) => {
+        if (role) {
+          const r = role.toUpperCase();
+          if (r !== 'CANDIDATE') return false;
+        }
+        if (email && email.toLowerCase().includes('admin@intervu.ai')) {
+          return false;
+        }
+        return true;
+      };
+
       // Populate from recent test attempts endpoint
       if (recentRes.status === 'fulfilled' && recentRes.value?.data) {
         recentRes.value.data.forEach((item, idx) => {
+          const role = item.role || item.user?.role;
+          const email = item.email || item.user?.email;
+          if (!isCandidateOnly(role, email)) {
+            return;
+          }
           const key = item.id || `recent-${idx}-${item.candidateName}`;
           map.set(key, {
             id: item.id || key,
             candidateName: item.candidateName || 'Unknown Candidate',
-            email: item.email || undefined,
+            email: email || undefined,
+            role: role || 'CANDIDATE',
             assessment: item.assessment || 'General Assessment',
             score: typeof item.score === 'number' ? Math.round(item.score * 100) / 100 : 0,
             hasEvaluation: Boolean(item.hasEvaluation),
@@ -73,15 +91,23 @@ function useAllAdminTestAttempts() {
       if (reportsRes.status === 'fulfilled' && Array.isArray(reportsRes.value)) {
         reportsRes.value.forEach((rep) => {
           if (!rep || !rep.id) return;
+          const candidateRole = rep.candidate?.role || rep.role;
+          const candidateEmail = rep.candidate?.email || rep.email;
+          if (!isCandidateOnly(candidateRole, candidateEmail)) {
+            map.delete(rep.id);
+            return;
+          }
           const existing = map.get(rep.id);
           if (existing) {
-            existing.email = existing.email || rep.candidate?.email;
+            existing.email = existing.email || candidateEmail;
+            existing.role = existing.role || candidateRole;
             existing.hasEvaluation = true;
           } else {
             map.set(rep.id, {
               id: rep.id,
               candidateName: rep.candidate?.fullName || 'Unknown Candidate',
-              email: rep.candidate?.email,
+              email: candidateEmail,
+              role: candidateRole || 'CANDIDATE',
               assessment: rep.assessment?.displayName || 'Assessment Evaluation',
               score: typeof rep.score === 'number' ? Math.round(rep.score * 100) / 100 : 0,
               hasEvaluation: true,
@@ -92,9 +118,11 @@ function useAllAdminTestAttempts() {
         });
       }
 
-      return Array.from(map.values()).sort(
-        (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
-      );
+      return Array.from(map.values())
+        .filter((item) => isCandidateOnly(item.role, item.email))
+        .sort(
+          (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
+        );
     },
     staleTime: 30_000,
   });
