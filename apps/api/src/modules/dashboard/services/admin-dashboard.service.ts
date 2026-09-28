@@ -50,6 +50,9 @@ export class AdminDashboardService {
         status: {
           in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED],
         },
+        user: {
+          role: UserRole.CANDIDATE,
+        },
       },
     });
   }
@@ -60,6 +63,9 @@ export class AdminDashboardService {
         testInstance: {
           status: {
             in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED],
+          },
+          user: {
+            role: UserRole.CANDIDATE,
           },
         },
       },
@@ -108,7 +114,10 @@ export class AdminDashboardService {
     const items = await Promise.all(
       data.map(async (config) => {
         const candidateCount = await this.prisma.testInstance.count({
-          where: { examConfigId: config.id },
+          where: {
+            examConfigId: config.id,
+            user: { role: UserRole.CANDIDATE },
+          },
         });
 
         return {
@@ -133,6 +142,9 @@ export class AdminDashboardService {
       status: {
         in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED],
       },
+      user: {
+        role: UserRole.CANDIDATE,
+      },
     };
 
     const [total, data] = await this.prisma.$transaction([
@@ -144,7 +156,7 @@ export class AdminDashboardService {
         orderBy: { createdAt: "desc" },
         include: {
           user: {
-            select: { fullName: true, email: true },
+            select: { fullName: true, email: true, role: true },
           },
           examConfig: {
             select: { name: true },
@@ -171,6 +183,7 @@ export class AdminDashboardService {
         id: attempt.id,
         candidateName,
         email: attempt.user?.email || undefined,
+        role: attempt.user?.role || undefined,
         assessment: assessmentName,
         score: attempt.evaluationResult?.overallScore || 0,
         hasEvaluation: attempt.evaluationResult !== null,
@@ -332,9 +345,14 @@ export class AdminDashboardService {
           status: {
             in: [TestInstanceStatus.COMPLETED, TestInstanceStatus.SUBMITTED],
           },
+          user: { role: UserRole.CANDIDATE },
         },
       }),
-      this.prisma.testInstance.count(),
+      this.prisma.testInstance.count({
+        where: {
+          user: { role: UserRole.CANDIDATE },
+        },
+      }),
     ]);
 
     const pending = total - completed;

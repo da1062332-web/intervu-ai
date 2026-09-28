@@ -132,6 +132,10 @@ export class RecentTestAttemptItemDto {
   @ApiProperty({ example: "candidate@example.com", required: false })
   email?: string;
 
+  @ApiProperty({ example: "CANDIDATE", required: false })
+  @IsOptional()
+  role?: string;
+
   @ApiProperty({ example: "TCS NQT Assessment" })
   assessment!: string;
 
