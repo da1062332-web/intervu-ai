@@ -118,11 +118,11 @@ export function TemplateListPageClient() {
 
     createMutation.mutate(
       {
-        name: formData.name,
+        name: formData.name.trim(),
         description: 'A new template for generation',
-        templateKey: formData.templateKey || undefined,
-        conceptKey: formData.conceptKey || undefined,
-        questionType: formData.questionType || undefined,
+        templateKey: formData.templateKey.trim() || undefined,
+        conceptKey: formData.conceptKey.trim() || undefined,
+        questionType: formData.questionType.trim() || undefined,
         difficulty: formData.difficulty as any,
         generationStrategy: formData.generationStrategy as any,
         config: { topics: selectedTopicId ? [selectedTopicId] : [], timeLimit: 3600 },

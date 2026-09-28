@@ -80,6 +80,14 @@ export const executionService = {
               let rawOptions = [];
               if (Array.isArray(snap.options) && snap.options.length > 0) {
                 rawOptions = snap.options;
+              } else if (Array.isArray(snap.richOptions) && snap.richOptions.length > 0) {
+                rawOptions = snap.richOptions;
+              } else if (Array.isArray(snap.config?.richOptions) && snap.config.richOptions.length > 0) {
+                rawOptions = snap.config.richOptions;
+              } else if (Array.isArray(snap.config?.options) && snap.config.options.length > 0) {
+                rawOptions = snap.config.options;
+              } else if (Array.isArray(snap.structure?.options) && snap.structure.options.length > 0) {
+                rawOptions = snap.structure.options;
               } else if (Array.isArray(snap.mcqData?.options) && snap.mcqData.options.length > 0) {
                 rawOptions = snap.mcqData.options;
               } else if (Array.isArray(snap.metadata?.options) && snap.metadata.options.length > 0) {
@@ -103,16 +111,28 @@ export const executionService = {
                             : String(opt.text || opt.value || opt.label || '');
                   const mediaUrl =
                     opt.mediaUrl || opt.url || opt.image || opt.media?.url || null;
+                  const svgCode =
+                    opt.svgCode || opt.svg || opt.svgContent || opt.media?.svgCode || null;
                   return {
                     ...opt,
                     id: typeof opt.id === 'string' ? opt.id : `opt-${idx}`,
                     text: extracted,
                     mediaUrl,
-                    mode: opt.mode || (mediaUrl ? 'diagram-only' : 'text-only'),
+                    svgCode,
+                    mode: opt.mode || (svgCode ? 'svg-code' : mediaUrl ? 'diagram-only' : 'text-only'),
                   };
                 }
                 return { id: `opt-${idx}`, text: String(opt) };
               });
+
+              const questionSvgCode =
+                snap.svgCode ||
+                snap.questionMedia?.svgCode ||
+                snap.config?.questionMedia?.svgCode ||
+                snap.structure?.media?.svgCode ||
+                snap.mcqData?.questionMedia?.svgCode ||
+                snap.metadata?.questionMedia?.svgCode ||
+                null;
 
               const questionImage =
                 snap.questionImage ||
@@ -122,6 +142,18 @@ export const executionService = {
                 snap.metadata?.questionMedia?.mediaUrl ||
                 null;
 
+              const questionMedia =
+                snap.questionMedia ||
+                snap.mcqData?.questionMedia ||
+                snap.metadata?.questionMedia ||
+                (questionImage || questionSvgCode
+                  ? {
+                      mediaUrl: questionImage,
+                      svgCode: questionSvgCode,
+                      mediaType: questionSvgCode ? 'SVG' : 'IMAGE',
+                    }
+                  : null);
+
               return {
                 id: q.questionId,
                 orderIndex: q.questionOrder,
@@ -129,12 +161,9 @@ export const executionService = {
                 type: questionType,
                 text: snap.questionText || snap.text || '',
                 stem: snap.questionStatement || snap.stem || '',
+                svgCode: questionSvgCode,
                 questionImage,
-                questionMedia:
-                  snap.questionMedia ||
-                  snap.mcqData?.questionMedia ||
-                  snap.metadata?.questionMedia ||
-                  (questionImage ? { mediaUrl: questionImage } : null),
+                questionMedia,
                 candidateInstructions: snap.instructions || '',
                 codingData: snap.codingData,
                 questionSnapshot: snap,

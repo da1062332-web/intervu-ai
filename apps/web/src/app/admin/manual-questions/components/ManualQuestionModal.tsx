@@ -8,7 +8,7 @@ import {
   useManualQuestion,
 } from '@/services/manual-questions/hooks';
 import { ManualQuestion } from '@/services/manual-questions/types';
-import { Loader2, Plus } from 'lucide-react';
+import { Code2, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import { QuestionImageAttachment } from '@/components/media/QuestionImageAttachm
 import { ImagePreview } from '@/components/media/ImagePreview';
 import { ImagePicker } from '@/components/media/ImagePicker';
 import { ImageUploader } from '@/components/media/ImageUploader';
+import { SvgRenderer } from '@/components/media/SvgRenderer';
 import { MediaAsset, OptionMode } from '@/services/media/types';
 import toast from 'react-hot-toast';
 
@@ -44,6 +45,7 @@ export interface RichOptionState {
   text: string;
   mediaId: string | null;
   mediaUrl: string | null;
+  svgCode?: string | null;
 }
 
 interface ManualQuestionModalProps {
@@ -153,11 +155,16 @@ export function ManualQuestionModal({
           const parsedRich: RichOptionState[] = rawOpts.map((opt: any, idx: number) => {
             const letter = String.fromCharCode(65 + idx);
             if (typeof opt === 'object' && opt !== null) {
+              const hasSvg = !!opt.svgCode;
               const hasText = !!opt.text;
-              const hasMedia = !!opt.mediaId;
-              let mode: OptionMode = 'text-only';
-              if (hasText && hasMedia) mode = 'diagram-text';
-              else if (hasMedia && !hasText) mode = 'diagram-only';
+              const hasMedia = !!opt.mediaId || !!opt.mediaUrl;
+              let mode: OptionMode = opt.mode || 'text-only';
+              if (!opt.mode) {
+                if (hasSvg && hasText) mode = 'svg-text';
+                else if (hasSvg) mode = 'svg-code';
+                else if (hasText && hasMedia) mode = 'diagram-text';
+                else if (hasMedia && !hasText) mode = 'diagram-only';
+              }
 
               return {
                 key: opt.key || letter,
@@ -165,6 +172,7 @@ export function ManualQuestionModal({
                 text: opt.text || '',
                 mediaId: opt.mediaId || null,
                 mediaUrl: opt.mediaUrl || null,
+                svgCode: opt.svgCode || null,
               };
             } else {
               return {
@@ -173,13 +181,14 @@ export function ManualQuestionModal({
                 text: String(opt || ''),
                 mediaId: null,
                 mediaUrl: null,
+                svgCode: null,
               };
             }
           });
 
           while (parsedRich.length < 4) {
             const letter = String.fromCharCode(65 + parsedRich.length);
-            parsedRich.push({ key: letter, mode: 'text-only', text: '', mediaId: null, mediaUrl: null });
+            parsedRich.push({ key: letter, mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null });
           }
 
           setRichOptions(parsedRich);
@@ -192,10 +201,10 @@ export function ManualQuestionModal({
           setSelectedCorrectIndex(correctIdx >= 0 ? correctIdx : 0);
         } else {
           setRichOptions([
-            { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
-            { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
-            { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
-            { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+            { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null },
+            { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null },
+            { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null },
+            { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null },
           ]);
           setSelectedCorrectIndex(0);
         }
@@ -219,10 +228,10 @@ export function ManualQuestionModal({
       } else {
         setQuestionAttachment(null);
         setRichOptions([
-          { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
-          { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
-          { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
-          { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null },
+          { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null },
+          { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null },
+          { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null },
+          { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null },
         ]);
         setSelectedCorrectIndex(0);
         reset({
@@ -259,6 +268,14 @@ export function ManualQuestionModal({
     }
   };
 
+  const handleOptionSvgCodeChange = (index: number, svgCode: string) => {
+    setRichOptions((prev: RichOptionState[]) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], svgCode };
+      return updated;
+    });
+  };
+
   const handleOptionImageSelect = (index: number, asset: MediaAsset) => {
     setRichOptions((prev: RichOptionState[]) => {
       const updated = [...prev];
@@ -266,6 +283,7 @@ export function ManualQuestionModal({
         ...updated[index],
         mediaId: asset.id,
         mediaUrl: asset.url,
+        svgCode: asset.type === 'SVG' && asset.svgContent ? asset.svgContent : updated[index].svgCode,
       };
       return updated;
     });
@@ -288,7 +306,7 @@ export function ManualQuestionModal({
   const handleSelectCorrect = (index: number) => {
     setSelectedCorrectIndex(index);
     const opt = richOptions[index];
-    const answerVal = opt.mode === 'diagram-only' ? opt.key : opt.text || opt.key;
+    const answerVal = opt.mode === 'diagram-only' || opt.mode === 'svg-code' ? opt.key : opt.text || opt.key;
     setValue('answer', answerVal);
   };
 
@@ -298,10 +316,15 @@ export function ManualQuestionModal({
 
       if (isMcq) {
         const missingOptions = richOptions.filter(
-          (opt) => opt.mode !== 'diagram-only' && (!opt.text || !opt.text.trim()) && !opt.mediaId
+          (opt) =>
+            opt.mode !== 'diagram-only' &&
+            opt.mode !== 'svg-code' &&
+            (!opt.text || !opt.text.trim()) &&
+            !opt.mediaId &&
+            !opt.svgCode
         );
         if (missingOptions.length > 0) {
-          toast.error(`Please provide text or diagram for Option ${missingOptions.map((o) => o.key).join(', ')}.`);
+          toast.error(`Please provide text, diagram, or SVG code for Option ${missingOptions.map((o) => o.key).join(', ')}.`);
           return;
         }
       }
@@ -309,14 +332,17 @@ export function ManualQuestionModal({
       const payloadRichOptions = isMcq
         ? richOptions.map((opt: RichOptionState) => ({
             key: opt.key,
-            text: opt.mode === 'diagram-only' ? null : opt.text,
-            mediaId: opt.mode === 'text-only' ? null : opt.mediaId,
+            mode: opt.mode,
+            text: opt.mode === 'diagram-only' || opt.mode === 'svg-code' ? null : opt.text,
+            mediaId: opt.mode === 'text-only' || opt.mode === 'svg-code' || opt.mode === 'svg-text' ? null : opt.mediaId,
+            mediaUrl: opt.mediaUrl,
+            svgCode: opt.svgCode || null,
           }))
         : undefined;
 
       const correctOpt = isMcq ? richOptions[selectedCorrectIndex] : null;
       const answerVal = isMcq
-        ? correctOpt?.mode === 'diagram-only'
+        ? correctOpt?.mode === 'diagram-only' || correctOpt?.mode === 'svg-code'
           ? correctOpt.key
           : correctOpt?.text || correctOpt?.key || data.answer
         : data.answer;
@@ -503,19 +529,19 @@ export function ManualQuestionModal({
                       <div className='flex items-center space-x-2 text-xs'>
                         <span className='text-muted-foreground'>Mode:</span>
                         <select
-                          className='flex h-7 rounded border border-input bg-background px-2 py-0 text-xs'
+                          className='flex h-7 rounded border border-input bg-background px-2 py-0 text-xs font-medium'
                           value={opt.mode}
                           onChange={(e) => handleOptionModeChange(idx, e.target.value as OptionMode)}
                           disabled={isSubmitting}
                         >
                           <option value='text-only'>Text Only</option>
-                          <option value='diagram-only'>Diagram Only</option>
-                          <option value='diagram-text'>Diagram + Text</option>
+                          <option value='diagram-only'>Diagram Image Only</option>
+                          <option value='diagram-text'>Diagram Image + Text</option>
                         </select>
                       </div>
 
                       {/* Text Input */}
-                      {opt.mode !== 'diagram-only' && (
+                      {(opt.mode === 'text-only' || opt.mode === 'diagram-text') && (
                         <Input
                           value={opt.text}
                           onChange={(e) => handleOptionTextChange(idx, e.target.value)}
@@ -526,7 +552,7 @@ export function ManualQuestionModal({
                       )}
 
                       {/* Diagram Input */}
-                      {opt.mode !== 'text-only' && (
+                      {(opt.mode === 'diagram-only' || opt.mode === 'diagram-text') && (
                         <div className='pt-1'>
                           {opt.mediaUrl ? (
                             <div className='flex items-center justify-between p-1.5 border rounded bg-muted/30'>
@@ -542,7 +568,7 @@ export function ManualQuestionModal({
                                 onClick={() => setUploaderOptionIndex(idx)}
                                 disabled={isSubmitting}
                               >
-                                <Plus className='w-3 h-3 mr-1' /> Upload Diagram
+                                <Plus className='w-3 h-3 mr-1' /> Upload Diagram / SVG
                               </Button>
                               <Button
                                 type='button'

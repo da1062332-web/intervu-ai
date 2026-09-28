@@ -88,7 +88,7 @@ export function sanitizeAndFormatSvg(rawSvg: string): { cleanSvg: string; error?
       }
 
       svgEl.setAttribute('width', '100%');
-      svgEl.setAttribute('height', 'auto');
+      svgEl.setAttribute('height', '100%');
       svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       svgEl.classList.add('w-full', 'h-auto', 'max-w-full', 'inline-block', 'vector-svg');
 
@@ -128,7 +128,7 @@ export function SvgRenderer({ svgCode, className, maxHeight = 'max-h-72', altTex
   return (
     <div
       className={cn(
-        'my-2 flex items-center justify-center overflow-hidden rounded-md border bg-background/50 p-2 text-slate-900 dark:text-slate-100 shadow-sm [&_svg]:max-h-full [&_svg]:w-auto [&_svg]:h-auto',
+        'my-2 flex items-center justify-center overflow-hidden rounded-md border bg-background/50 p-2 text-slate-900 dark:text-slate-100 shadow-sm w-full [&_svg]:w-full [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:max-h-full',
         maxHeight,
         className
       )}

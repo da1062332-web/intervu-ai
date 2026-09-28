@@ -99,6 +99,10 @@ async function bootstrap() {
       "Origin",
       "X-Correlation-Id",
       "X-Request-Id",
+      "Cache-Control",
+      "cache-control",
+      "Pragma",
+      "Expires",
     ],
     exposedHeaders: ["Content-Range", "X-Content-Range"],
     maxAge: 86400, // 24 hours preflight caching

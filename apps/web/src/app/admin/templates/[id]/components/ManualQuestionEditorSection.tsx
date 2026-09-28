@@ -9,6 +9,7 @@ import { ImagePicker } from '@/components/media/ImagePicker';
 import { ImageRenderer } from '@/components/media/ImageRenderer';
 import { Modal } from '@/components/ui/modal';
 import { ImageUploader } from '@/components/media/ImageUploader';
+import { SvgRenderer } from '@/components/media/SvgRenderer';
 import { useUpdateTemplate } from '@/services/templates/hooks';
 import { OptionMode, MediaAsset } from '@/services/media/types';
 import {
@@ -21,6 +22,7 @@ import {
   Sparkles,
   HelpCircle,
   Lightbulb,
+  Code2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -30,6 +32,7 @@ interface RichOption {
   text: string;
   mediaId: string | null;
   mediaUrl: string | null;
+  svgCode?: string | null;
   isCorrect: boolean;
 }
 
@@ -74,16 +77,17 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
           text: opt.text || (typeof opt === 'string' ? opt : ''),
           mediaId: opt.mediaId || null,
           mediaUrl: opt.mediaUrl || null,
+          svgCode: opt.svgCode || null,
           isCorrect: key === correctKey,
         };
       });
     }
 
     return [
-      { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: correctKey === 'A' },
-      { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: correctKey === 'B' },
-      { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: correctKey === 'C' },
-      { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, isCorrect: correctKey === 'D' },
+      { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null, isCorrect: correctKey === 'A' },
+      { key: 'B', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null, isCorrect: correctKey === 'B' },
+      { key: 'C', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null, isCorrect: correctKey === 'C' },
+      { key: 'D', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null, isCorrect: correctKey === 'D' },
     ];
   });
 
@@ -124,6 +128,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
             text: opt.text || (typeof opt === 'string' ? opt : ''),
             mediaId: opt.mediaId || null,
             mediaUrl: opt.mediaUrl || null,
+            svgCode: opt.svgCode || null,
             isCorrect: key === correctKey,
           };
         }),
@@ -150,12 +155,19 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
     setRichOptions(updated);
   };
 
+  const handleSvgCodeChange = (optIdx: number, svgCode: string) => {
+    const updated = [...richOptions];
+    updated[optIdx] = { ...updated[optIdx], svgCode };
+    setRichOptions(updated);
+  };
+
   const handleImageSelect = (optIdx: number, asset: MediaAsset) => {
     const updated = [...richOptions];
     updated[optIdx] = {
       ...updated[optIdx],
       mediaId: asset.id,
       mediaUrl: asset.url,
+      svgCode: asset.type === 'SVG' && asset.svgContent ? asset.svgContent : updated[optIdx].svgCode,
     };
     setRichOptions(updated);
     setPickerOptIdx(null);
@@ -180,38 +192,71 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
     setRichOptions(updated);
   };
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+
   const handleSave = () => {
-    if (!questionText || !questionText.trim()) {
-      toast.error('Please enter the question prompt.');
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    const targetTemplateId = template?.id || template?._id;
+    if (!targetTemplateId) {
+      const msg = 'Template ID is missing. Unable to update template.';
+      setSaveError(msg);
+      toast.error(msg);
       return;
     }
 
-    const missingOptions = richOptions.filter(
-      (opt) => opt.mode !== 'diagram-only' && (!opt.text || !opt.text.trim()) && !opt.mediaUrl
-    );
+    if (!questionText || !questionText.trim()) {
+      const msg = 'Please enter the Question Stem / Prompt before saving.';
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    const missingOptions = richOptions.filter((opt) => {
+      if (opt.mode === 'svg-code') return !opt.svgCode || !opt.svgCode.trim();
+      if (opt.mode === 'diagram-only') return !opt.mediaUrl && !opt.svgCode;
+      if (opt.mode === 'text-only') return !opt.text || !opt.text.trim();
+      if (opt.mode === 'svg-text') return (!opt.text || !opt.text.trim()) && (!opt.svgCode || !opt.svgCode.trim());
+      if (opt.mode === 'diagram-text') return (!opt.text || !opt.text.trim()) && !opt.mediaUrl && !opt.svgCode;
+      return (!opt.text || !opt.text.trim()) && !opt.mediaUrl && (!opt.svgCode || !opt.svgCode.trim());
+    });
+
     if (missingOptions.length > 0) {
-      toast.error(`Please provide text or an image for Option ${missingOptions.map((o) => o.key).join(', ')}.`);
+      const msg = `Please provide text, image, or SVG code for Option ${missingOptions.map((o) => o.key).join(', ')}.`;
+      setSaveError(msg);
+      toast.error(msg);
       return;
     }
 
     const correctOptionObj = richOptions.find((opt) => opt.isCorrect);
     if (!correctOptionObj) {
-      toast.error('Please select a correct answer option.');
+      const msg = 'Please select a correct answer option.';
+      setSaveError(msg);
+      toast.error(msg);
       return;
     }
 
     const payload = {
-      name: template.name,
-      description: template.description,
+      name: template.name || 'Manual Question Template',
+      description: template.description || '',
       difficulty: template.difficulty || 'MEDIUM',
       difficultyLevel: template.difficultyLevel || 'MEDIUM',
       conceptKey: template.conceptKey,
       questionType: template.questionType || 'MULTIPLE_CHOICE',
       generationStrategy: 'MANUAL',
-      isActive: template.isActive,
+      isActive: template.isActive ?? true,
       structure: {
         stem: questionText.trim(),
-        options: richOptions.map((opt) => opt.text || opt.key),
+        options: richOptions.map((opt) => ({
+          key: opt.key,
+          mode: opt.mode,
+          text: opt.text || opt.key,
+          mediaId: opt.mediaId,
+          mediaUrl: opt.mediaUrl,
+          svgCode: opt.svgCode,
+        })),
         correctAnswer: correctOptionObj.key,
         media: questionMedia,
         solution: solutionExplanation,
@@ -234,13 +279,17 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
     };
 
     updateTemplate(
-      { templateId: template.id, payload },
+      { templateId: targetTemplateId, payload },
       {
         onSuccess: () => {
+          setSaveSuccess(true);
           toast.success('Manual question saved successfully!');
+          setTimeout(() => setSaveSuccess(false), 5000);
         },
         onError: (err: any) => {
-          toast.error(err?.message || 'Failed to save manual question.');
+          const msg = err?.message || 'Failed to save manual question.';
+          setSaveError(msg);
+          toast.error(msg);
         },
       }
     );
@@ -264,6 +313,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
           </div>
         </div>
         <Button
+          type="button"
           onClick={handleSave}
           disabled={isSaving}
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium shrink-0 ml-4 gap-2"
@@ -281,6 +331,20 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
           )}
         </Button>
       </div>
+
+      {saveError && (
+        <div className="p-3.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-xs font-semibold text-red-700 dark:text-red-300 flex items-center justify-between shadow-sm">
+          <span>⚠️ {saveError}</span>
+          <button type="button" onClick={() => setSaveError(null)} className="text-red-500 hover:text-red-700">✕</button>
+        </div>
+      )}
+
+      {saveSuccess && (
+        <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-sm">
+          <span>✅ Manual Question saved successfully to template!</span>
+          <button type="button" onClick={() => setSaveSuccess(false)} className="text-emerald-600 hover:text-emerald-800">✕</button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Authoring Controls */}
@@ -367,12 +431,12 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                       onChange={(e) => handleModeChange(optIdx, e.target.value as OptionMode)}
                     >
                       <option value="text-only">Text Only</option>
-                      <option value="diagram-only">Diagram Only</option>
-                      <option value="diagram-text">Diagram + Text</option>
+                      <option value="diagram-only">Diagram Image Only</option>
+                      <option value="diagram-text">Diagram Image + Text</option>
                     </select>
                   </div>
 
-                  {opt.mode !== 'diagram-only' && (
+                  {(opt.mode === 'text-only' || opt.mode === 'diagram-text') && (
                     <textarea
                       className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       placeholder={`Enter text for Option ${opt.key}...`}
@@ -381,7 +445,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                     />
                   )}
 
-                  {opt.mode !== 'text-only' && (
+                  {(opt.mode === 'diagram-only' || opt.mode === 'diagram-text') && (
                     <div className="pt-1">
                       {opt.mediaUrl ? (
                         <div className="p-2 border rounded-lg bg-muted/20 flex items-center justify-between">
@@ -396,7 +460,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                             className="text-xs h-8"
                             onClick={() => setUploaderOptIdx(optIdx)}
                           >
-                            <Plus className="w-3.5 h-3.5 mr-1" /> Upload Image
+                            <Plus className="w-3.5 h-3.5 mr-1" /> Upload Image / SVG
                           </Button>
                           <Button
                             type="button"
@@ -516,14 +580,20 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                           )}
                         </div>
 
-                        {opt.mode !== 'diagram-only' && opt.text && (
+                        {opt.mode !== 'diagram-only' && opt.mode !== 'svg-code' && opt.text && (
                           <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{opt.text}</p>
                         )}
 
-                        {opt.mode !== 'text-only' && opt.mediaUrl && (
+                        {opt.svgCode ? (
                           <div className="pt-1">
-                            <ImageRenderer url={opt.mediaUrl} altText={`Option ${opt.key}`} maxHeight="max-h-36" />
+                            <SvgRenderer svgCode={opt.svgCode} maxHeight="max-h-36" />
                           </div>
+                        ) : (
+                          opt.mode !== 'text-only' && opt.mediaUrl && (
+                            <div className="pt-1">
+                              <ImageRenderer url={opt.mediaUrl} altText={`Option ${opt.key}`} maxHeight="max-h-36" />
+                            </div>
+                          )
                         )}
                       </div>
                     </div>
