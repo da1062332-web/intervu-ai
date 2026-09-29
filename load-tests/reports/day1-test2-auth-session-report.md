@@ -2,36 +2,36 @@
 ================================================================================
 # Qloax Day 1 - Test 2: Authentication & Session Report
 ================================================================================
-Generated:                  2026-09-28T06:38:55.899Z
+Generated:                  2026-09-29T04:43:10.174Z
 Target Environment:         https://skillitrix.onrender.com/api/v1
 Candidates Attempted:       500
-Successful Candidates:      63
-Failed Candidates:          437
-Error Rate:                 24.10%
+Successful Candidates:      500
+Failed Candidates:          0
+Error Rate:                 0.00%
 
 --------------------------------------------------------------------------------
 ## 1. HTTP Status & Error Breakdown
-- HTTP 429 (Rate Limited):  331
-- HTTP 4xx (Client Errors): 331
-- HTTP 5xx (Server Drops):  106
-- Timeouts:                 104
+- HTTP 429 (Rate Limited):  0
+- HTTP 4xx (Client Errors): 0
+- HTTP 5xx (Server Drops):  0
+- Timeouts:                 0
 - Connection Resets:        0
-- Stream EOF:               2
+- Stream EOF:               0
 
 --------------------------------------------------------------------------------
 ## 2. Authentication & Session Checks
-- Login Success:            411 / 500
-- /auth/me Validation:      411 / 500
-- Refresh Token Rotation:   63 / 500
-- 401 Expiration Guard:     411 / 500
-- 403/404 Ownership Guard:  308 / 500
+- Login Success:            500 / 500
+- /auth/me Validation:      500 / 500
+- Refresh Token Rotation:   500 / 500
+- 401 Expiration Guard:     500 / 500
+- 403/404 Ownership Guard:  500 / 500
 
 --------------------------------------------------------------------------------
 ## 3. Latency Distribution
 | Flow / Endpoint        | p50      | p95      | p99      | Max      | Avg      |
 |------------------------|----------|----------|----------|----------|----------|
-| Login (POST /auth/login)| 38178ms  | 60001ms  | 0ms      | 60002ms  | 38201ms  |
-| Profile (GET /auth/me) | 1278ms   | 4950ms   | 0ms      | 7031ms   | 1803ms   |
-| Refresh (/auth/refresh)| 860ms    | 20911ms  | 0ms      | 30001ms  | 4073ms   |
-| Combined Auth Flow     | 3770ms   | 60000ms  | 0ms      | 60002ms  | 16125ms  |
+| Login (POST /auth/login)| 7237ms   | 9756ms   | 0ms      | 11380ms  | 7223ms   |
+| Profile (GET /auth/me) | 148ms    | 367ms    | 0ms      | 6645ms   | 247ms    |
+| Refresh (/auth/refresh)| 7181ms   | 9788ms   | 0ms      | 12663ms  | 6963ms   |
+| Combined Auth Flow     | 6038ms   | 9557ms   | 0ms      | 12663ms  | 4811ms   |
 ================================================================================

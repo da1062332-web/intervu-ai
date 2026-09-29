@@ -26,7 +26,41 @@ export class AssemblyPersistenceService {
     private readonly finalShuffler?: FinalShufflerService,
   ) {}
 
+  private static readonly reusablePromiseMap = new Map<string, Promise<any>>();
   private static readonly reusableCache = new Map<string, { data: any; expiry: number }>();
+
+  private async getReusableAssembly(reusableAssemblyId: string): Promise<any> {
+    const now = Date.now();
+    const cached = AssemblyPersistenceService.reusableCache.get(reusableAssemblyId);
+    if (cached && cached.expiry > now) {
+      this.logger.log(`    [CLONE-SERVICE ⚡] Step 1/3: High-concurrency cache hit for reusable assembly ${reusableAssemblyId}`);
+      return cached.data;
+    }
+
+    if (AssemblyPersistenceService.reusablePromiseMap.has(reusableAssemblyId)) {
+      this.logger.log(`    [CLONE-SERVICE 🛡️] Step 1/3: In-flight deduplication join for reusable assembly ${reusableAssemblyId}`);
+      return AssemblyPersistenceService.reusablePromiseMap.get(reusableAssemblyId);
+    }
+
+    const fetchPromise = (async () => {
+      try {
+        this.logger.log(`    [CLONE-SERVICE ⏱️] Step 1/3: Fetching reusable assembly record ${reusableAssemblyId}...`);
+        const reusable = await this.repository.findById(reusableAssemblyId);
+        if (reusable) {
+          AssemblyPersistenceService.reusableCache.set(reusableAssemblyId, {
+            data: reusable,
+            expiry: Date.now() + 900_000, // 15-minute cache absorbs entire load test run
+          });
+        }
+        return reusable;
+      } finally {
+        AssemblyPersistenceService.reusablePromiseMap.delete(reusableAssemblyId);
+      }
+    })();
+
+    AssemblyPersistenceService.reusablePromiseMap.set(reusableAssemblyId, fetchPromise);
+    return fetchPromise;
+  }
 
   /**
    * Instantly clones pre-attached sections & questions from a published AssembledTest
@@ -40,22 +74,7 @@ export class AssemblyPersistenceService {
     durationSeconds: number = 3600,
   ): Promise<string> {
     const t0 = Date.now();
-    const now = Date.now();
-    const cached = AssemblyPersistenceService.reusableCache.get(reusableAssemblyId);
-    let reusable = cached && cached.expiry > now ? cached.data : null;
-
-    if (!reusable) {
-      this.logger.log(`    [CLONE-SERVICE ⏱️] Step 1/3: Fetching reusable assembly record ${reusableAssemblyId}...`);
-      reusable = await this.repository.findById(reusableAssemblyId);
-      if (reusable) {
-        AssemblyPersistenceService.reusableCache.set(reusableAssemblyId, {
-          data: reusable,
-          expiry: now + 120_000, // 2-minute cache absorbs concurrent batch arrivals
-        });
-      }
-    } else {
-      this.logger.log(`    [CLONE-SERVICE ⚡] Step 1/3: High-concurrency cache hit for reusable assembly ${reusableAssemblyId}`);
-    }
+    const reusable = await this.getReusableAssembly(reusableAssemblyId);
 
     if (!reusable || !reusable.sections || reusable.sections.length === 0) {
       this.logger.error(`    [CLONE-SERVICE ❌] Reusable assembly ${reusableAssemblyId} not found or has no sections!`);
@@ -81,14 +100,7 @@ export class AssemblyPersistenceService {
       this.logger.log(`    [CLONE-SERVICE 🔀] Applied candidate shuffle (Questions: ${shuffleQuestions}, Options: ${shuffleOptions})`);
     }
 
-    // 1. Resolve whether configId is an ExamConfig or TestConfig
-    const examConfig = await this.prisma.examConfig.findFirst({
-      where: { OR: [{ id: configId }, { code: configId }] },
-      select: { id: true },
-    });
-    const examConfigId = examConfig?.id ?? null;
-    const testConfigId = !examConfig ? configId : null;
-
+    const targetExamConfigId = reusable.configId || configId;
     const queries: Prisma.PrismaPromise<unknown>[] = [];
 
     // 1. Create candidate TestInstance
@@ -97,49 +109,61 @@ export class AssemblyPersistenceService {
         data: {
           id: testInstanceId,
           userId,
-          examConfigId,
-          testConfigId,
+          examConfigId: targetExamConfigId,
+          testConfigId: null,
           status: "CREATED",
           expiresAt,
         },
       }),
     );
 
+    const sectionRows: any[] = [];
+    const questionRows: any[] = [];
     let totalClonedQuestions = 0;
-    // 2. Clone sections & questions
+
+    // 2. Clone sections & questions in bulk batches (2 queries instead of 2N queries)
     for (let i = 0; i < sectionsToClone.length; i++) {
       const sec = sectionsToClone[i];
       const instanceSectionId = createId();
 
-      queries.push(
-        this.prisma.testInstanceSection.create({
-          data: {
-            id: instanceSectionId,
-            testInstanceId,
-            sectionKey: sec.sectionKey || `section_${i + 1}`,
-            sectionName: sec.sectionName || `Section ${i + 1}`,
-            durationSeconds: sec.durationSeconds,
-            questionCount: sec.questionCount || sec.questions?.length || 0,
-            orderIndex: i,
-            status: i === 0 ? "ACTIVE" : "UPCOMING",
-          },
-        }),
-      );
+      sectionRows.push({
+        id: instanceSectionId,
+        testInstanceId,
+        sectionKey: sec.sectionKey || `section_${i + 1}`,
+        sectionName: sec.sectionName || `Section ${i + 1}`,
+        durationSeconds: sec.durationSeconds,
+        questionCount: sec.questionCount || sec.questions?.length || 0,
+        orderIndex: i,
+        status: i === 0 ? "ACTIVE" : "UPCOMING",
+      });
 
       if (sec.questions && sec.questions.length > 0) {
         totalClonedQuestions += sec.questions.length;
-        queries.push(
-          this.prisma.testInstanceQuestion.createMany({
-            data: sec.questions.map((q: any, qIdx: number) => ({
-              testInstanceId,
-              sectionId: instanceSectionId,
-              questionId: q.questionId,
-              questionOrder: qIdx,
-              questionSnapshot: (q.questionSnapshot as Prisma.InputJsonValue) || {},
-            })),
-          }),
-        );
+        for (let qIdx = 0; qIdx < sec.questions.length; qIdx++) {
+          const q = sec.questions[qIdx];
+          questionRows.push({
+            testInstanceId,
+            sectionId: instanceSectionId,
+            questionId: q.questionId,
+            questionOrder: qIdx,
+            questionSnapshot: (q.questionSnapshot as Prisma.InputJsonValue) || {},
+          });
+        }
       }
+    }
+
+    queries.push(
+      this.prisma.testInstanceSection.createMany({
+        data: sectionRows,
+      }),
+    );
+
+    if (questionRows.length > 0) {
+      queries.push(
+        this.prisma.testInstanceQuestion.createMany({
+          data: questionRows,
+        }),
+      );
     }
 
     // 3. Initialize ExecutionState for session
