@@ -215,12 +215,17 @@ export class AssemblyService {
     const tStart = Date.now();
     this.logger.log(`  [ASSEMBLY ⏱️] Step A: Querying published reusable assembly for configId: ${configId}...`);
     const reusableAssembly = await this.assembledTestRepository.findLatestReusableByConfigId(configId);
-    const isCandidateNoRepeat = (reusableAssembly as any)?.examConfig?.ruleFlags?.candidateNoRepeatEnabled ?? false;
-    this.logger.log(`  [ASSEMBLY ✅] Step A: Found reusable assembly in ${Date.now() - tStart}ms -> AssemblyId: ${reusableAssembly ? reusableAssembly.id : 'NONE'}, candidateNoRepeat: ${isCandidateNoRepeat}`);
+    const isRetest = options?.isRetest ?? false;
+    const isCandidateNoRepeatRetest =
+      isRetest &&
+      Boolean(
+        (reusableAssembly as any)?.examConfig?.ruleFlags?.candidateNoRepeatEnabled,
+      );
+    this.logger.log(`  [ASSEMBLY ✅] Step A: Found reusable assembly in ${Date.now() - tStart}ms -> AssemblyId: ${reusableAssembly ? reusableAssembly.id : 'NONE'}, candidateNoRepeatRetest: ${isCandidateNoRepeatRetest}`);
 
-    // Flow 1: Standard Exam — instantly clone the pre-assembled PUBLISHED questions (< 50ms).
-    // Only skipped when forceNew=true or admin has enabled candidateNoRepeat AI rule.
-    if (!forceNew && reusableAssembly && !isCandidateNoRepeat) {
+    // Flow 1: Standard Exam — instantly clone the pre-assembled questions (< 50ms).
+    // Only skipped when forceNew=true or when candidate is taking a RETEST with candidateNoRepeat AI rule.
+    if (!forceNew && reusableAssembly && !isCandidateNoRepeatRetest) {
       this.logger.log(`  [ASSEMBLY ⚡] FLOW 1 ACTIVE: Standard Exam with pre-assembled questions. Cloning assembly ${reusableAssembly.id}...`);
       try {
         const tClone = Date.now();

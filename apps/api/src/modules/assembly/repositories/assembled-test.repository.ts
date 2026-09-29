@@ -218,8 +218,8 @@ export class AssembledTestRepository {
       where: {
         configId,
         totalQuestions: { gt: 0 },
-        // Strictly only accept formally PUBLISHED master assemblies
-        status: AssemblyStatus.PUBLISHED,
+        // Accept PUBLISHED or complete master assemblies
+        status: { in: [AssemblyStatus.PUBLISHED, AssemblyStatus.DRAFT] },
         sections: {
           // At least one section must exist with questions
           some: {

@@ -301,7 +301,7 @@ export class StartTestService {
         targetConfigId,
         userId,
         false,
-        { progressive: true },
+        { progressive: true, isRetest },
       );
       this.logger.info(
         `[START-TEST ✅] Step 4/5: AssemblyService completed in ${Date.now() - t3}ms -> Instance ID: ${testInstanceId}`,

@@ -182,15 +182,14 @@ export class EligibilityService {
     }
 
     // Validate Active Test Limit (User shouldn't have an ongoing test for the same config)
-    // Only block if there is an actively IN_PROGRESS attempt (not COMPLETED/SUBMITTED)
+    // Only return if there is an actively in-progress/non-expired attempt
     const activeTest = isExamConfig
       ? await this.prisma.testInstance.findFirst({
           where: {
             userId,
             examConfigId: targetConfigId,
             // Includes the recovery-workflow statuses: an attempt awaiting admin
-            // review or resume is still "in flight" and must be reclaimed by the
-            // expiry below, not left running alongside a brand-new attempt.
+            // review or resume is still "in flight" and must be resumed, not duplicated.
             status: {
               in: [
                 "CREATED",
@@ -201,6 +200,7 @@ export class EligibilityService {
                 "AUTO_SUBMITTED",
               ],
             },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
         })
       : await this.testInstanceRepository.findActiveByUser(
@@ -209,10 +209,14 @@ export class EligibilityService {
         );
 
     if (activeTest) {
-      await this.prisma.testInstance.update({
-        where: { id: activeTest.id },
-        data: { expiresAt: new Date(Date.now() - 1000) },
-      });
+      return {
+        eligible: false,
+        errorCode: "ACTIVE_TEST_EXISTS",
+        activeTestId: activeTest.id,
+        reason: "User already has an active test attempt in progress",
+        isExamConfig,
+        resolvedConfigId: targetConfigId,
+      };
     }
 
     let effectiveMaxAttempts: number =
