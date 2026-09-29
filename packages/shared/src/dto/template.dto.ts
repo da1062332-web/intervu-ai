@@ -11,12 +11,19 @@ export enum TemplateDifficulty {
 
 // ─── Zod Schemas ───────────────────────────────────────────────────────────────
 
+const optionalString = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((val) => {
+    if (!val || typeof val !== "string" || !val.trim()) return undefined;
+    return val.trim();
+  });
+
 export const CreateTemplateSchema = z.object({
   name: z.string().min(1).max(120),
-  description: z.string().max(500).optional(),
-  templateKey: z.string().min(1).optional(),
-  conceptKey: z.string().min(1).optional(),
-  questionType: z.string().min(1).optional(),
+  description: optionalString,
+  templateKey: optionalString,
+  conceptKey: optionalString,
+  questionType: optionalString,
   structure: z.record(z.unknown()).optional(),
   difficulty: z
     .nativeEnum(TemplateDifficulty)
@@ -34,10 +41,10 @@ export const CreateTemplateSchema = z.object({
 
 export const UpdateTemplateSchema = z.object({
   name: z.string().min(1).max(120).optional(),
-  description: z.string().max(500).optional(),
-  templateKey: z.string().min(1).optional(),
-  conceptKey: z.string().min(1).optional(),
-  questionType: z.string().min(1).optional(),
+  description: optionalString,
+  templateKey: optionalString,
+  conceptKey: optionalString,
+  questionType: optionalString,
   structure: z.record(z.unknown()).optional(),
   difficulty: z.nativeEnum(TemplateDifficulty).optional(),
   config: z.record(z.unknown()).optional(),

@@ -185,12 +185,17 @@ export function StreamlinedQuestionRenderer() {
     if (!q) return [];
     const candidates = [
       q.options,
+      q.richOptions,
       q.mcqData?.options,
       q.mcqData?.choices,
       q.metadata?.options,
       q.metadata?.choices,
       q.choices,
       q.questionSnapshot?.options,
+      q.questionSnapshot?.richOptions,
+      q.questionSnapshot?.config?.richOptions,
+      q.questionSnapshot?.config?.options,
+      q.questionSnapshot?.structure?.options,
       q.questionSnapshot?.mcqData?.options,
       q.questionSnapshot?.mcqData?.choices,
       q.questionSnapshot?.metadata?.options,
@@ -246,7 +251,8 @@ export function StreamlinedQuestionRenderer() {
         {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index); // A, B, C, D...
           const optKey = `opt-${currentQuestion.id}-${index}`;
-          const optText = formatOptionDisplay(option);
+          const rawOptText = formatOptionDisplay(option);
+          const optText = rawOptText.includes('<svg') ? '' : rawOptText;
           const rawOptValue =
             typeof option === 'string'
               ? option
@@ -265,14 +271,25 @@ export function StreamlinedQuestionRenderer() {
 
           const optSvgCode =
             typeof option === 'object' && option !== null
-              ? option.svgCode || option.svg || null
-              : null;
+              ? option.svgCode ||
+                option.svg ||
+                option.svgContent ||
+                option.media?.svgCode ||
+                option.media?.svg ||
+                option.media?.content ||
+                (typeof option.text === 'string' && option.text.includes('<svg') ? option.text : null) ||
+                (typeof option.value === 'string' && option.value.includes('<svg') ? option.value : null) ||
+                (typeof option.content === 'string' && option.content.includes('<svg') ? option.content : null)
+              : typeof option === 'string' && option.includes('<svg')
+                ? option
+                : null;
 
           const isDiagramOnly =
             option?.mode === 'diagram-only' ||
             option?.mode === 'svg-code' ||
-            ((optMediaUrl || optSvgCode) &&
-              (optText.trim() === letter || optText.trim() === letter.toLowerCase() || !optText.trim()));
+            Boolean(optSvgCode) ||
+            (Boolean(optMediaUrl) &&
+              (!optText.trim() || optText.trim() === letter || optText.trim() === letter.toLowerCase()));
 
           const palette = palettes[index % palettes.length];
 
@@ -355,7 +372,8 @@ export function StreamlinedQuestionRenderer() {
       <div className='space-y-4 mt-2' role='group' aria-label='Select multiple options'>
         {optionsList.map((option: any, index: number) => {
           const letter = String.fromCharCode(65 + index);
-          const optText = formatOptionDisplay(option);
+          const rawOptText = formatOptionDisplay(option);
+          const optText = rawOptText.includes('<svg') ? '' : rawOptText;
           const rawOptValue =
             typeof option === 'string'
               ? option
@@ -376,14 +394,25 @@ export function StreamlinedQuestionRenderer() {
 
           const optSvgCode =
             typeof option === 'object' && option !== null
-              ? option.svgCode || option.svg || null
-              : null;
+              ? option.svgCode ||
+                option.svg ||
+                option.svgContent ||
+                option.media?.svgCode ||
+                option.media?.svg ||
+                option.media?.content ||
+                (typeof option.text === 'string' && option.text.includes('<svg') ? option.text : null) ||
+                (typeof option.value === 'string' && option.value.includes('<svg') ? option.value : null) ||
+                (typeof option.content === 'string' && option.content.includes('<svg') ? option.content : null)
+              : typeof option === 'string' && option.includes('<svg')
+                ? option
+                : null;
 
           const isDiagramOnly =
             option?.mode === 'diagram-only' ||
             option?.mode === 'svg-code' ||
-            ((optMediaUrl || optSvgCode) &&
-              (optText.trim() === letter || optText.trim() === letter.toLowerCase() || !optText.trim()));
+            Boolean(optSvgCode) ||
+            (Boolean(optMediaUrl) &&
+              (!optText.trim() || optText.trim() === letter || optText.trim() === letter.toLowerCase()));
 
           return (
             <label
@@ -845,6 +874,9 @@ export function StreamlinedQuestionRenderer() {
                   qAny.mcqData?.svgCode ||
                   qAny.metadata?.svgCode ||
                   qAny.questionSnapshot?.svgCode ||
+                  qAny.questionSnapshot?.questionMedia?.svgCode ||
+                  qAny.questionSnapshot?.config?.questionMedia?.svgCode ||
+                  qAny.questionSnapshot?.structure?.media?.svgCode ||
                   qAny.questionSnapshot?.mcqData?.svgCode ||
                   qAny.questionSnapshot?.metadata?.svgCode ||
                   null;

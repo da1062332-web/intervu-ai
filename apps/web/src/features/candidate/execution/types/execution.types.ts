@@ -9,6 +9,10 @@ export type SectionStatus = 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'EXPIRED' | 'L
 export interface QuestionOption {
   id: string;
   text: string;
+  svgCode?: string | null;
+  mediaUrl?: string | null;
+  mode?: string;
+  [key: string]: any;
 }
 
 export interface Question {
@@ -24,6 +28,9 @@ export interface Question {
   orderIndex: number;
   stem?: string;
   candidateInstructions?: string;
+  svgCode?: string | null;
+  questionImage?: string | null;
+  questionMedia?: any;
 }
 
 export interface Section {

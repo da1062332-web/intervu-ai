@@ -4,7 +4,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "start": "node dist/main",
+    "start": "node dist/apps/worker/src/main.js || node dist/main",
     "start:dev": "tsx watch --env-file=../api/.env src/main.ts",
     "dev": "npm run start:dev",
     "build": "tsc",

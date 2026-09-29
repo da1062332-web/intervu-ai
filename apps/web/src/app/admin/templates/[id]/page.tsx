@@ -16,7 +16,8 @@ import { BasicInfoSection } from './components/BasicInfoSection';
 import { QuestionDefinitionSection } from './components/QuestionDefinitionSection';
 import { VariableBuilderSection } from './components/VariableBuilderSection';
 import { ConstraintBuilderSection } from './components/ConstraintBuilderSection';
-import { GenerationStrategySection } from './components/GenerationStrategySection';
+import { StrategyConfigSection } from './components/StrategyConfigSection';
+import { useStrategyConfigStore } from '@/store/strategy-config.store';
 import { OptionStrategySection } from './components/OptionStrategySection';
 import { SolutionLogicSection } from './components/SolutionLogicSection';
 import { DatasetConfigurationSection } from './components/DatasetConfigurationSection';
@@ -64,8 +65,13 @@ function TemplateEditorContent() {
 
   const [activeSection, setActiveSection] = useState<SectionType>('basic');
 
+  const { setStrategy } = useStrategyConfigStore();
+
   useEffect(() => {
     if (template) {
+      if (strategy) {
+        setStrategy(strategy as any);
+      }
       if (strategy === 'MANUAL' && activeSection === 'basic') {
         setActiveSection('manual-editor');
       }
@@ -73,7 +79,7 @@ function TemplateEditorContent() {
         initializeDraft(template);
       }
     }
-  }, [template, isInitialized, initializeDraft, strategy]);
+  }, [template, isInitialized, initializeDraft, strategy, setStrategy]);
 
   if (isLoading) {
     return (
@@ -141,7 +147,7 @@ function TemplateEditorContent() {
       case 'dataset-config' as SectionType:
         return <DatasetConfigurationSection template={template} />;
       case 'generation-strategy':
-        return <GenerationStrategySection />;
+        return <StrategyConfigSection template={template} />;
       case 'variables':
         return showLegacyBuilderPages ? (
           <VariableBuilderSection />

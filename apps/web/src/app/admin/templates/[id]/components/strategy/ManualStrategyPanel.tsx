@@ -221,37 +221,16 @@ export function ManualStrategyPanel({ templateId, template }: StrategyPanelProps
                     <option value="text-only">Text Only</option>
                     <option value="diagram-only">Diagram Image Only</option>
                     <option value="diagram-text">Diagram Image + Text</option>
-                    <option value="svg-code">Inline SVG Vector Only</option>
-                    <option value="svg-text">Inline SVG Vector + Text</option>
                   </select>
                 </div>
 
-                {(opt.mode === 'text-only' || opt.mode === 'diagram-text' || opt.mode === 'svg-text') && (
+                {(opt.mode === 'text-only' || opt.mode === 'diagram-text') && (
                   <textarea
                     className="flex min-h-[50px] w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     placeholder={`Enter text for Option ${opt.key}...`}
                     value={opt.text}
                     onChange={(e) => handleTextChange(optIdx, e.target.value)}
                   />
-                )}
-
-                {(opt.mode === 'svg-code' || opt.mode === 'svg-text') && (
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center space-x-1 text-xs font-medium text-indigo-700 dark:text-indigo-400">
-                      <Code2 className="w-3.5 h-3.5" />
-                      <span>Inline SVG Vector Code (Option {opt.key})</span>
-                    </div>
-                    <textarea
-                      rows={3}
-                      className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono focus-visible:ring-1 focus-visible:ring-ring"
-                      placeholder="<svg viewBox='0 0 100 100'>...</svg>"
-                      value={opt.svgCode || ''}
-                      onChange={(e) => handleSvgCodeChange(optIdx, e.target.value)}
-                    />
-                    {opt.svgCode?.trim() && (
-                      <SvgRenderer svgCode={opt.svgCode} maxHeight="max-h-32" />
-                    )}
-                  </div>
                 )}
 
                 {(opt.mode === 'diagram-only' || opt.mode === 'diagram-text') && (

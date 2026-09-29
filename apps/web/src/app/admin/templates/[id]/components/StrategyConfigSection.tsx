@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, lazy, useEffect } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { useParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useStrategyConfigStore } from '@/store/strategy-config.store';
@@ -8,6 +8,7 @@ import {
   getStrategyPanelLoader,
   STRATEGY_LABELS,
   STRATEGY_DESCRIPTIONS,
+  type StrategyPanelProps,
 } from '../registry/strategy-panel.registry';
 import type { GenerationStrategy } from '@/services/question-generation/types';
 
@@ -20,16 +21,19 @@ function PanelFallback() {
   );
 }
 
-/**
- * StrategyConfigSection
- *
- * Reads currentStrategy from Zustand and calls getStrategyPanelLoader(strategy)
- * from the registry — ZERO switch/if logic here.
- *
- * Adding a new strategy requires only:
- *   1. Create the panel component
- *   2. Register it in strategy-panel.registry.ts
- */
+const panelCache = new Map<
+  GenerationStrategy,
+  React.LazyExoticComponent<React.ComponentType<StrategyPanelProps>>
+>();
+
+function getLazyPanel(strategy: GenerationStrategy) {
+  if (!panelCache.has(strategy)) {
+    const loader = getStrategyPanelLoader(strategy);
+    panelCache.set(strategy, lazy(loader));
+  }
+  return panelCache.get(strategy)!;
+}
+
 interface StrategyConfigSectionProps {
   template?: any;
 }
@@ -38,11 +42,8 @@ export function StrategyConfigSection({ template }: StrategyConfigSectionProps) 
   const { id: templateId } = useParams() as { id: string };
   const { currentStrategy } = useStrategyConfigStore();
 
-  // Obtain loader function from registry — no switch/if
-  const loader = getStrategyPanelLoader(currentStrategy as GenerationStrategy);
-
-  // Lazily import the panel using the loader from the registry
-  const Panel = lazy(loader);
+  const strategyKey = (currentStrategy || template?.generationStrategy || 'VARIABLE') as GenerationStrategy;
+  const Panel = getLazyPanel(strategyKey);
 
   return (
     <div className='space-y-2'>
@@ -50,10 +51,10 @@ export function StrategyConfigSection({ template }: StrategyConfigSectionProps) 
       <div className='flex items-center gap-3 px-1 mb-4'>
         <div className='flex flex-col'>
           <span className='text-xs font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400'>
-            {STRATEGY_LABELS[currentStrategy as GenerationStrategy]} Strategy
+            {STRATEGY_LABELS[strategyKey] || strategyKey} Strategy
           </span>
           <p className='text-sm text-gray-500 mt-0.5'>
-            {STRATEGY_DESCRIPTIONS[currentStrategy as GenerationStrategy]}
+            {STRATEGY_DESCRIPTIONS[strategyKey] || ''}
           </p>
         </div>
       </div>
