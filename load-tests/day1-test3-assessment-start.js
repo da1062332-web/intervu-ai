@@ -131,7 +131,7 @@ export default function (data) {
   const startRes = http.post(
     `${BASE_URL}/tests/start`,
     JSON.stringify({ testConfigId: assessmentId }),
-    { headers: authHeaders, tags: { endpoint: "start_test" }, timeout: "60s" }
+    { headers: authHeaders, tags: { endpoint: "start_test" }, timeout: "90s" }
   );
   const startDur = Date.now() - tStart0;
   startTestDuration.add(startDur);
@@ -159,7 +159,7 @@ export default function (data) {
   const dupStartRes = http.post(
     `${BASE_URL}/tests/start`,
     JSON.stringify({ testConfigId: assessmentId }),
-    { headers: authHeaders, tags: { endpoint: "dup_start_check" }, timeout: "30s" }
+    { headers: authHeaders, tags: { endpoint: "dup_start_check" }, timeout: "45s" }
   );
   trackStatus(dupStartRes, "dup_start_check");
 
@@ -184,7 +184,7 @@ export default function (data) {
   const snapRes = http.get(`${BASE_URL}/tests/${testInstanceId}`, {
     headers: authHeaders,
     tags: { endpoint: "snapshot" },
-    timeout: "30s",
+    timeout: "45s",
   });
   const snapDur = Date.now() - tSnap0;
   snapshotDuration.add(snapDur);

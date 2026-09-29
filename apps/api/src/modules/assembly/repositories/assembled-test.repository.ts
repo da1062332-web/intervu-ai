@@ -10,6 +10,16 @@ import { createId } from "@paralleldrive/cuid2";
 
 @Injectable()
 export class AssembledTestRepository {
+  private static reusableCache = new Map<string, { assembly: any; expiry: number }>();
+
+  public static clearReusableCache(configId?: string) {
+    if (configId) {
+      AssembledTestRepository.reusableCache.delete(configId);
+    } else {
+      AssembledTestRepository.reusableCache.clear();
+    }
+  }
+
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async createAssemblyWithTransaction(
@@ -214,6 +224,11 @@ export class AssembledTestRepository {
   }
 
   async findLatestReusableByConfigId(configId: string) {
+    const cached = AssembledTestRepository.reusableCache.get(configId);
+    if (cached && cached.expiry > Date.now()) {
+      return cached.assembly;
+    }
+
     const assembly = await this.prisma.assembledTest.findFirst({
       where: {
         configId,
@@ -258,11 +273,16 @@ export class AssembledTestRepository {
       return null;
     }
 
+    AssembledTestRepository.reusableCache.set(configId, {
+      assembly,
+      expiry: Date.now() + 600_000, // 10 minutes cache
+    });
+
     return assembly;
   }
 
-
   async updateStatus(id: string, status: AssemblyStatus) {
+    AssembledTestRepository.clearReusableCache();
     return this.prisma.assembledTest.update({
       where: { id },
       data: { status },
@@ -270,6 +290,7 @@ export class AssembledTestRepository {
   }
 
   async delete(id: string) {
+    AssembledTestRepository.clearReusableCache();
     return this.prisma.assembledTest.delete({
       where: { id },
     });

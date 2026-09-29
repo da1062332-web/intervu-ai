@@ -24,6 +24,15 @@ import { UsageQuotaService } from "../../billing/services/usage-quota.service";
 @Injectable()
 export class StartTestService {
   private readonly logger = new AppLogger({ name: "StartTestService" });
+  private static examConfigCache = new Map<string, { config: any; expiry: number }>();
+
+  public static clearConfigCache(configId?: string) {
+    if (configId) {
+      StartTestService.examConfigCache.delete(configId);
+    } else {
+      StartTestService.examConfigCache.clear();
+    }
+  }
 
   constructor(
     private readonly eligibilityService: EligibilityService,
@@ -75,14 +84,17 @@ export class StartTestService {
       ) {
         // Return existing active instance for idempotency without consuming new quota
         let durationSeconds = 3600;
-        if (eligibility.isExamConfig) {
+        const cachedConfig = StartTestService.examConfigCache.get(targetConfigId);
+        if (cachedConfig && cachedConfig.expiry > Date.now()) {
+          durationSeconds = cachedConfig.config.totalDurationSeconds || 3600;
+        } else if (eligibility.isExamConfig) {
           const config = await this.prisma.examConfig.findUnique({ where: { id: targetConfigId } });
-          if (config) durationSeconds = config.durationMinutes * 60;
+          if (config) durationSeconds = (config.durationMinutes || 60) * 60;
         } else {
           const config = await this.testConfigRepository.findById(
             targetConfigId,
           );
-          if (config) durationSeconds = config.totalDurationSeconds;
+          if (config) durationSeconds = config.totalDurationSeconds || 3600;
         }
 
         this.logger.info(
@@ -138,7 +150,10 @@ export class StartTestService {
       targetConfigId,
     });
     let config: any;
-    if (eligibility.isExamConfig) {
+    const cachedConfig = StartTestService.examConfigCache.get(targetConfigId);
+    if (cachedConfig && cachedConfig.expiry > Date.now()) {
+      config = cachedConfig.config;
+    } else if (eligibility.isExamConfig) {
       config = await this.prisma.examConfig.findUnique({
         where: { id: targetConfigId },
         include: {
@@ -181,6 +196,10 @@ export class StartTestService {
             orderIndex: s.sectionOrder ?? index,
           };
         });
+        StartTestService.examConfigCache.set(targetConfigId, {
+          config,
+          expiry: Date.now() + 900_000,
+        });
       }
     } else {
       config = await this.testConfigRepository.findByIdWithSections(
@@ -188,6 +207,12 @@ export class StartTestService {
       );
       if (config && (!config.totalDurationSeconds || config.totalDurationSeconds <= 0)) {
         config.totalDurationSeconds = 3600; // Default to 1 hour if not set or 0
+      }
+      if (config) {
+        StartTestService.examConfigCache.set(targetConfigId, {
+          config,
+          expiry: Date.now() + 900_000,
+        });
       }
     }
 
@@ -220,24 +245,29 @@ export class StartTestService {
       userId,
       targetConfigId,
     });
-    const previousAttempts = this.prisma?.testInstance?.findMany
-      ? await this.prisma.testInstance.findMany({
-          where: {
-            userId,
-            OR: [{ examConfigId: targetConfigId }, { testConfigId: targetConfigId }],
-            status: { in: [TestInstanceStatus.SUBMITTED, TestInstanceStatus.COMPLETED] },
-          },
-        })
-      : [];
+    const previousAttemptsCount =
+      eligibility.attemptCount !== undefined
+        ? eligibility.attemptCount
+        : this.prisma?.testInstance?.findMany
+          ? (
+              await this.prisma.testInstance.findMany({
+                where: {
+                  userId,
+                  OR: [{ examConfigId: targetConfigId }, { testConfigId: targetConfigId }],
+                  status: { in: [TestInstanceStatus.SUBMITTED, TestInstanceStatus.COMPLETED] },
+                },
+              })
+            ).length
+          : 0;
 
-    const isRetest = previousAttempts.length > 0;
+    const isRetest = previousAttemptsCount > 0;
     const isCandidateNoRepeat = config.ruleFlags?.candidateNoRepeatEnabled ?? false;
     this.logger.info(
-      `[START-TEST ℹ️] Step 3/5: Checked history in ${Date.now() - t2}ms (PreviousAttempts: ${previousAttempts.length}, isRetest: ${isRetest}, candidateNoRepeat: ${isCandidateNoRepeat})`,
+      `[START-TEST ℹ️] Step 3/5: Checked history in ${Date.now() - t2}ms (PreviousAttempts: ${previousAttemptsCount}, isRetest: ${isRetest}, candidateNoRepeat: ${isCandidateNoRepeat})`,
       {
         userId,
         targetConfigId,
-        previousAttemptsCount: previousAttempts.length,
+        previousAttemptsCount,
         isRetest,
         isCandidateNoRepeat,
         durationMs: Date.now() - t2,
@@ -328,50 +358,23 @@ export class StartTestService {
       });
     }
 
-    const t4 = Date.now();
-    this.logger.info(`[START-TEST ⏱️] Step 5/5: Verifying created TestInstance in DB...`, {
-      userId,
-      testInstanceId,
-    });
-    const testInstance = await this.testInstanceService.getTestInstance(testInstanceId, false);
-    if (!testInstance) {
-      this.logger.error(
-        `[START-TEST ❌] Test instance record ${testInstanceId} not found in DB!`,
-        undefined,
-        { userId, testInstanceId },
-      );
-      throw new InternalServerErrorException({
-        code: "TEST_INSTANCE_CREATION_FAILED",
-        message: "Failed to fetch created test instance after assembly",
-      });
-    }
-    this.logger.info(
-      `[START-TEST ✅] Step 5/5: Instance verified in ${Date.now() - t4}ms (Status: ${testInstance.status})`,
-      {
-        userId,
-        testInstanceId,
-        status: testInstance.status,
-        durationMs: Date.now() - t4,
-      },
-    );
-
     const totalMs = Date.now() - startOverall;
     this.logger.info(
-      `[START-TEST 🚀⚡] TEST START COMPLETE IN ${totalMs}ms (< ${(totalMs / 1000).toFixed(2)}s) | Instance: ${testInstance.id}`,
+      `[START-TEST 🚀⚡] TEST START COMPLETE IN ${totalMs}ms (< ${(totalMs / 1000).toFixed(2)}s) | Instance: ${testInstanceId}`,
       {
         userId,
         testConfigId: targetConfigId,
-        testInstanceId: testInstance.id,
-        status: testInstance.status,
+        testInstanceId,
+        status: TestInstanceStatus.CREATED,
         totalDurationMs: totalMs,
       },
     );
 
     // 4. formatResponse(result)
     return {
-      testInstanceId: testInstance.id,
-      status: testInstance.status,
-      instructionsUrl: `/test/${testInstance.id}/instructions`,
+      testInstanceId,
+      status: TestInstanceStatus.CREATED,
+      instructionsUrl: `/test/${testInstanceId}/instructions`,
       durationSeconds: config.totalDurationSeconds,
     };
   }
