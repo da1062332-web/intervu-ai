@@ -51,6 +51,10 @@ export interface AssessmentSnapshotResponse {
 @Injectable()
 export class ExecutionService {
   private readonly logger = new AppLogger({ name: "ExecutionService" });
+  private static readonly examFlagsCache = new Map<
+    string,
+    { sectionTimingEnabled: boolean; allowSectionNavigation: boolean; sandboxUi: string; expiry: number }
+  >();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -143,15 +147,28 @@ export class ExecutionService {
       (snapshot as any).testConfigId;
 
     if (configId) {
-      const examConfig = await this.prisma.examConfig.findUnique({
-        where: { id: configId },
-        include: { ruleFlags: true },
-      });
-      sectionTimingEnabled =
-        examConfig?.ruleFlags?.sectionTimingEnabled ?? false;
-      allowSectionNavigation =
-        examConfig?.ruleFlags?.allowSectionNavigation ?? false;
-      sandboxUi = (examConfig as any)?.sandboxUi ?? "DEFAULT";
+      const cachedFlags = ExecutionService.examFlagsCache.get(configId);
+      if (cachedFlags && cachedFlags.expiry > Date.now()) {
+        sectionTimingEnabled = cachedFlags.sectionTimingEnabled;
+        allowSectionNavigation = cachedFlags.allowSectionNavigation;
+        sandboxUi = cachedFlags.sandboxUi;
+      } else {
+        const examConfig = await this.prisma.examConfig.findUnique({
+          where: { id: configId },
+          include: { ruleFlags: true },
+        });
+        sectionTimingEnabled =
+          examConfig?.ruleFlags?.sectionTimingEnabled ?? false;
+        allowSectionNavigation =
+          examConfig?.ruleFlags?.allowSectionNavigation ?? false;
+        sandboxUi = (examConfig as any)?.sandboxUi ?? "DEFAULT";
+        ExecutionService.examFlagsCache.set(configId, {
+          sectionTimingEnabled,
+          allowSectionNavigation,
+          sandboxUi,
+          expiry: Date.now() + 900_000,
+        });
+      }
     } else if (snapshot.examConfig?.sandboxUi) {
       sandboxUi = snapshot.examConfig.sandboxUi;
     }
@@ -164,29 +181,30 @@ export class ExecutionService {
       (executionState as any)?.currentSectionIndex ?? 0;
     const currentQuestionIndex = executionState?.currentQuestionIndex ?? 0;
 
-    // 5a. Fetch templates to dynamically inject stem and instructions if toggled on
+    // 5a. Identify templates and questions needing fallback
     const templateIds = new Set<string>();
-    const questionIds = new Set<string>();
+    const missingQuestionIds = new Set<string>();
     for (const section of snapshot.sections) {
       for (const q of section.questions) {
         const rawSnapshot = (q.questionSnapshot || {}) as any;
         if (rawSnapshot.templateId) {
           templateIds.add(rawSnapshot.templateId);
         }
-        if (q.questionId) {
-          questionIds.add(q.questionId);
+        const rawChoices = rawSnapshot.options || rawSnapshot.choices;
+        if ((!rawChoices || (Array.isArray(rawChoices) && rawChoices.length < 2)) && !rawSnapshot.codingData && q.questionId) {
+          missingQuestionIds.add(q.questionId);
         }
       }
     }
 
-    // Fallback to fetch templateId, mcqData, and codingData from Question model if missing in snapshot
+    // Fallback ONLY for questions where options or coding data are genuinely missing in the pre-assembled snapshot
     const questionTemplateMap = new Map<string, string>();
     const questionMcqDataMap = new Map<string, any>();
     const questionCodingDataMap = new Map<string, any>();
     const questionMetaMap = new Map<string, any>();
-    if (questionIds.size > 0) {
+    if (missingQuestionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
-        where: { id: { in: Array.from(questionIds) } },
+        where: { id: { in: Array.from(missingQuestionIds) } },
         select: {
           id: true,
           templateId: true,
@@ -217,14 +235,15 @@ export class ExecutionService {
       }
     }
 
-    const templates = await this.prisma.template.findMany({
-      where: { id: { in: Array.from(templateIds) } },
-      select: { id: true, structure: true, config: true },
-    });
-
     const templateMap = new Map<string, any>();
-    for (const t of templates) {
-      templateMap.set(t.id, t);
+    if (templateIds.size > 0) {
+      const templates = await this.prisma.template.findMany({
+        where: { id: { in: Array.from(templateIds) } },
+        select: { id: true, structure: true, config: true },
+      });
+      for (const t of templates) {
+        templateMap.set(t.id, t);
+      }
     }
 
     // 6. Build sections with status derived from TestInstanceSection.status

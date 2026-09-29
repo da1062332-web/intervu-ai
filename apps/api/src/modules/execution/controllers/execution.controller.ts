@@ -85,7 +85,6 @@ export class ExecutionController {
     @Param("id") id: string,
     @CurrentUser() user: AuthUser,
   ): Promise<any> {
-    await this.assertExecutionOwnership(id, user);
     return this.executionService.loadAssessment(id, user.id);
   }
 

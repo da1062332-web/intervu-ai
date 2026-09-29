@@ -46,45 +46,49 @@ export class FinalShufflerService {
       `Applying Final Shuffle. Questions: ${shuffleQuestionsEnabled}, Options: ${shuffleOptionsEnabled}`,
     );
 
-    // Deep clone first to prevent mutating shared in-memory template data
-    const clonedSections = this.deepCloneSections(sections);
+    return sections.map((section) => {
+      let questions = Array.isArray(section.questions) ? [...section.questions] : [];
 
-    return clonedSections.map((section) => {
-      let questions = section.questions;
-
-      if (shuffleQuestionsEnabled && Array.isArray(questions)) {
-        // Shuffle questions within the section
+      if (shuffleQuestionsEnabled && questions.length > 0) {
         questions = shuffleArray(questions);
-        // Re-assign questionOrder to match the new sorted order
-        questions.forEach((q, index) => {
-          q.questionOrder = index;
-        });
       }
 
-      if (shuffleOptionsEnabled && Array.isArray(questions)) {
-        questions.forEach((q) => {
-          const snapshot = q.questionSnapshot || {};
+      const mappedQuestions = questions.map((q, index) => {
+        let snapshot = q.questionSnapshot;
 
-          // Only shuffle if options exist and questionType is objective (MCQ/MSQ/MULTIPLE_CHOICE)
+        if (shuffleOptionsEnabled && snapshot) {
           const qType = (snapshot.questionType || "MCQ").toUpperCase();
           const isObjective = ["MCQ", "MULTIPLE_CHOICE", "MSQ"].includes(qType);
 
           if (isObjective && Array.isArray(snapshot.options) && snapshot.options.length >= 2) {
             const rawAnswer = String(snapshot.correctAnswer ?? snapshot.answer ?? "").trim();
             const resolvedAnswer = this.resolveAnswerToCanonicalTarget(rawAnswer, snapshot.options, qType);
+            const shuffledOptions = shuffleArray([...snapshot.options]);
 
-            // Shuffle options using Fisher-Yates
-            snapshot.options = shuffleArray(snapshot.options);
-
-            // Re-bind resolved answer to ensure scoring matches the correct option post-shuffle
-            snapshot.correctAnswer = resolvedAnswer;
-            snapshot.answer = resolvedAnswer;
+            snapshot = {
+              ...snapshot,
+              options: shuffledOptions,
+              correctAnswer: resolvedAnswer,
+              answer: resolvedAnswer,
+            };
+          } else if (snapshot) {
+            snapshot = { ...snapshot };
           }
-        });
-      }
+        } else if (snapshot) {
+          snapshot = { ...snapshot };
+        }
 
-      section.questions = questions;
-      return section;
+        return {
+          ...q,
+          questionOrder: index,
+          questionSnapshot: snapshot || {},
+        };
+      });
+
+      return {
+        ...section,
+        questions: mappedQuestions,
+      };
     });
   }
 
@@ -161,6 +165,14 @@ export class FinalShufflerService {
   private deepCloneSections(
     sections: ShufflerSectionData[],
   ): ShufflerSectionData[] {
-    return structuredClone(sections);
+    return sections.map((s) => ({
+      ...s,
+      questions: Array.isArray(s.questions)
+        ? s.questions.map((q) => ({
+            ...q,
+            questionSnapshot: q.questionSnapshot ? { ...q.questionSnapshot } : {},
+          }))
+        : [],
+    }));
   }
 }
