@@ -1,0 +1,321 @@
+[
+  {
+    "id": "vr-top-001",
+    "domain": "Visual Reasoning",
+    "topic": "Figure Series",
+    "topicCode": "FIGURE_SERIES",
+    "subtopic": "Sequence Transformation",
+    "concepts": [
+      "Single-shape rotation",
+      "Alternating shape/color",
+      "Progressive addition/removal",
+      "Multiple simultaneous transformations",
+      "Rotation + count progression",
+      "Interleaved multi-rule sequence"
+    ],
+    "detailedConcepts": [
+      { "name": "Single-shape rotation", "code": "SINGLE_SHAPE_ROTATION" },
+      { "name": "Alternating shape/color", "code": "ALTERNATING_SHAPE_COLOR" },
+      { "name": "Progressive addition/removal", "code": "PROGRESSIVE_ADDITION_REMOVAL" },
+      { "name": "Multiple simultaneous transformations", "code": "MULTIPLE_SIMULTANEOUS_TRANSFORMATIONS" },
+      { "name": "Rotation + count progression", "code": "ROTATION_COUNT_PROGRESSION" },
+      { "name": "Interleaved multi-rule sequence", "code": "INTERLEAVED_MULTI_RULE_SEQUENCE" }
+    ],
+    "tags": ["visual-reasoning", "figure-series", "pattern", "rotation"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-002",
+    "domain": "Visual Reasoning",
+    "topic": "Figure Analogy",
+    "topicCode": "FIGURE_ANALOGY",
+    "subtopic": "Visual Proportions & Relations",
+    "concepts": [
+      "Rotation analogy",
+      "Shape replacement",
+      "Addition/removal of element",
+      "Rotation + reflection combination",
+      "Multiple element transformations",
+      "Position + size + orientation transformation"
+    ],
+    "detailedConcepts": [
+      { "name": "Rotation analogy", "code": "ROTATION_ANALOGY" },
+      { "name": "Shape replacement", "code": "SHAPE_REPLACEMENT" },
+      { "name": "Addition/removal of element", "code": "ADDITION_REMOVAL_OF_ELEMENT" },
+      { "name": "Rotation + reflection combination", "code": "ROTATION_REFLECTION_COMBINATION" },
+      { "name": "Multiple element transformations", "code": "MULTIPLE_ELEMENT_TRANSFORMATIONS" },
+      { "name": "Position + size + orientation transformation", "code": "POSITION_SIZE_ORIENTATION_TRANSFORMATION" }
+    ],
+    "tags": ["visual-reasoning", "analogy", "relations", "transformation"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-003",
+    "domain": "Visual Reasoning",
+    "topic": "Figure Classification",
+    "topicCode": "FIGURE_CLASSIFICATION",
+    "subtopic": "Visual Grouping & Properties",
+    "concepts": [
+      "Same shape property",
+      "Same number of elements",
+      "Same orientation",
+      "Hidden structural relationship",
+      "Multiple-property classification",
+      "Transformation-based classification"
+    ],
+    "detailedConcepts": [
+      { "name": "Same shape property", "code": "SAME_SHAPE_PROPERTY" },
+      { "name": "Same number of elements", "code": "SAME_NUMBER_OF_ELEMENTS" },
+      { "name": "Same orientation", "code": "SAME_ORIENTATION" },
+      { "name": "Hidden structural relationship", "code": "HIDDEN_STRUCTURAL_RELATIONSHIP" },
+      { "name": "Multiple-property classification", "code": "MULTIPLE_PROPERTY_CLASSIFICATION" },
+      { "name": "Transformation-based classification", "code": "TRANSFORMATION_BASED_CLASSIFICATION" }
+    ],
+    "tags": ["visual-reasoning", "classification", "grouping", "properties"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-004",
+    "domain": "Visual Reasoning",
+    "topic": "Odd One Out – Figures",
+    "topicCode": "ODD_ONE_OUT_FIGURES",
+    "subtopic": "Anomaly & Outlier Detection",
+    "concepts": [
+      "Different rotation",
+      "Different shape count",
+      "Different shading",
+      "Subtle symmetry difference",
+      "Different transformation rule",
+      "Composite structural anomaly"
+    ],
+    "detailedConcepts": [
+      { "name": "Different rotation", "code": "DIFFERENT_ROTATION" },
+      { "name": "Different shape count", "code": "DIFFERENT_SHAPE_COUNT" },
+      { "name": "Different shading", "code": "DIFFERENT_SHADING" },
+      { "name": "Subtle symmetry difference", "code": "SUBTLE_SYMMETRY_DIFFERENCE" },
+      { "name": "Different transformation rule", "code": "DIFFERENT_TRANSFORMATION_RULE" },
+      { "name": "Composite structural anomaly", "code": "COMPOSITE_STRUCTURAL_ANOMALY" }
+    ],
+    "tags": ["visual-reasoning", "odd-one-out", "anomaly", "symmetry"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-005",
+    "domain": "Visual Reasoning",
+    "topic": "Pattern Completion",
+    "topicCode": "PATTERN_COMPLETION",
+    "subtopic": "Pattern Synthesis & Infill",
+    "concepts": [
+      "Missing shape",
+      "Missing color/shading",
+      "Repeating pattern",
+      "Nested patterns",
+      "Multi-directional progression",
+      "Overlapping transformation rules"
+    ],
+    "detailedConcepts": [
+      { "name": "Missing shape", "code": "MISSING_SHAPE" },
+      { "name": "Missing color/shading", "code": "MISSING_COLOR_SHADING" },
+      { "name": "Repeating pattern", "code": "REPEATING_PATTERN" },
+      { "name": "Nested patterns", "code": "NESTED_PATTERNS" },
+      { "name": "Multi-directional progression", "code": "MULTI_DIRECTIONAL_PROGRESSION" },
+      { "name": "Overlapping transformation rules", "code": "OVERLAPPING_TRANSFORMATION_RULES" }
+    ],
+    "tags": ["visual-reasoning", "pattern-completion", "grid", "nested"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-006",
+    "domain": "Visual Reasoning",
+    "topic": "Missing Figure",
+    "topicCode": "MISSING_FIGURE",
+    "subtopic": "Inductive Completion",
+    "concepts": [
+      "Missing element in sequence",
+      "Shape progression",
+      "Rotation progression",
+      "Two-rule matrix progression",
+      "Position + shape transformation",
+      "Composite visual rule"
+    ],
+    "detailedConcepts": [
+      { "name": "Missing element in sequence", "code": "MISSING_ELEMENT_IN_SEQUENCE" },
+      { "name": "Shape progression", "code": "SHAPE_PROGRESSION" },
+      { "name": "Rotation progression", "code": "ROTATION_PROGRESSION" },
+      { "name": "Two-rule matrix progression", "code": "TWO_RULE_MATRIX_PROGRESSION" },
+      { "name": "Position + shape transformation", "code": "POSITION_SHAPE_TRANSFORMATION" },
+      { "name": "Composite visual rule", "code": "COMPOSITE_VISUAL_RULE" }
+    ],
+    "tags": ["visual-reasoning", "missing-figure", "sequence", "progression"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-007",
+    "domain": "Visual Reasoning",
+    "topic": "Matrix Reasoning",
+    "topicCode": "MATRIX_REASONING",
+    "subtopic": "Grid Transformations",
+    "concepts": [
+      "Row-wise shape progression",
+      "Column-wise rotation",
+      "Element count progression",
+      "Row + column interaction",
+      "XOR/combination of figures",
+      "Three-rule matrix transformation"
+    ],
+    "detailedConcepts": [
+      { "name": "Row-wise shape progression", "code": "ROW_WISE_SHAPE_PROGRESSION" },
+      { "name": "Column-wise rotation", "code": "COLUMN_WISE_ROTATION" },
+      { "name": "Element count progression", "code": "ELEMENT_COUNT_PROGRESSION" },
+      { "name": "Row + column interaction", "code": "ROW_COLUMN_INTERACTION" },
+      { "name": "XOR/combination of figures", "code": "XOR_COMBINATION_OF_FIGURES" },
+      { "name": "Three-rule matrix transformation", "code": "THREE_RULE_MATRIX_TRANSFORMATION" }
+    ],
+    "tags": ["visual-reasoning", "matrix", "grid", "row-column"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-008",
+    "domain": "Visual Reasoning",
+    "topic": "Mirror Image",
+    "topicCode": "MIRROR_IMAGE",
+    "subtopic": "Lateral Inversion & Symmetry",
+    "concepts": [
+      "Horizontal reflection",
+      "Letter/symbol reflection",
+      "Shape orientation",
+      "Multiple asymmetric objects",
+      "Reflection with internal patterns",
+      "Complex nested figure reflection"
+    ],
+    "detailedConcepts": [
+      { "name": "Horizontal reflection", "code": "HORIZONTAL_REFLECTION" },
+      { "name": "Letter/symbol reflection", "code": "LETTER_SYMBOL_REFLECTION" },
+      { "name": "Shape orientation", "code": "SHAPE_ORIENTATION" },
+      { "name": "Multiple asymmetric objects", "code": "MULTIPLE_ASYMMETRIC_OBJECTS" },
+      { "name": "Reflection with internal patterns", "code": "REFLECTION_WITH_INTERNAL_PATTERNS" },
+      { "name": "Complex nested figure reflection", "code": "COMPLEX_NESTED_FIGURE_REFLECTION" }
+    ],
+    "tags": ["visual-reasoning", "mirror-image", "reflection", "symmetry"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-009",
+    "domain": "Visual Reasoning",
+    "topic": "Water Image",
+    "topicCode": "WATER_IMAGE",
+    "subtopic": "Vertical Inversion",
+    "concepts": [
+      "Vertical reflection",
+      "Symbol inversion",
+      "Object position reversal",
+      "Multiple objects at different heights",
+      "Asymmetric nested shapes",
+      "Reflection + internal orientation changes"
+    ],
+    "detailedConcepts": [
+      { "name": "Vertical reflection", "code": "VERTICAL_REFLECTION" },
+      { "name": "Symbol inversion", "code": "SYMBOL_INVERSION" },
+      { "name": "Object position reversal", "code": "OBJECT_POSITION_REVERSAL" },
+      { "name": "Multiple objects at different heights", "code": "MULTIPLE_OBJECTS_AT_DIFFERENT_HEIGHTS" },
+      { "name": "Asymmetric nested shapes", "code": "ASYMMETRIC_NESTED_SHAPES" },
+      { "name": "Reflection + internal orientation changes", "code": "REFLECTION_INTERNAL_ORIENTATION_CHANGES" }
+    ],
+    "tags": ["visual-reasoning", "water-image", "vertical-reflection", "inversion"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-010",
+    "domain": "Visual Reasoning",
+    "topic": "Rotation of Figures",
+    "topicCode": "ROTATION_OF_FIGURES",
+    "subtopic": "Angular & Spatial Rotation",
+    "concepts": [
+      "90° rotation",
+      "180° rotation",
+      "270° rotation",
+      "Rotation of composite figures",
+      "Rotation + element movement",
+      "Rotation with changing orientation of internal elements"
+    ],
+    "detailedConcepts": [
+      { "name": "90° rotation", "code": "ROTATION_90_DEG" },
+      { "name": "180° rotation", "code": "ROTATION_180_DEG" },
+      { "name": "270° rotation", "code": "ROTATION_270_DEG" },
+      { "name": "Rotation of composite figures", "code": "ROTATION_OF_COMPOSITE_FIGURES" },
+      { "name": "Rotation + element movement", "code": "ROTATION_ELEMENT_MOVEMENT" },
+      { "name": "Rotation with changing orientation of internal elements", "code": "ROTATION_CHANGING_ORIENTATION_INTERNAL_ELEMENTS" }
+    ],
+    "tags": ["visual-reasoning", "rotation", "angular", "spatial"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "id": "vr-top-011",
+    "domain": "Visual Reasoning",
+    "topic": "Paper Folding",
+    "topicCode": "PAPER_FOLDING",
+    "subtopic": "Folding & Cutting Transformations",
+    "concepts": [
+      "Single fold",
+      "Two perpendicular folds",
+      "Folded corner identification",
+      "Multiple sequential folds",
+      "Asymmetric folding",
+      "Fold + rotation + hole placement"
+    ],
+    "detailedConcepts": [
+      { "name": "Single fold", "code": "SINGLE_FOLD" },
+      { "name": "Two perpendicular folds", "code": "TWO_PERPENDICULAR_FOLDS" },
+      { "name": "Folded corner identification", "code": "FOLDED_CORNER_IDENTIFICATION" },
+      { "name": "Multiple sequential folds", "code": "MULTIPLE_SEQUENTIAL_FOLDS" },
+      { "name": "Asymmetric folding", "code": "ASYMMETRIC_FOLDING" },
+      { "name": "Fold + rotation + hole placement", "code": "FOLD_ROTATION_HOLE_PLACEMENT" }
+    ],
+    "tags": ["visual-reasoning", "paper-folding", "unfolding", "crease"],
+    "difficultySupport": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  }
+]

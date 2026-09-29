@@ -40,6 +40,46 @@ interface ManualQuestionEditorSectionProps {
   template: any;
 }
 
+function normalizeMedia(rawMedia: any) {
+  if (!rawMedia) return null;
+  const url = rawMedia.mediaUrl || rawMedia.url || (typeof rawMedia === 'string' ? rawMedia : null);
+  return {
+    mediaId: rawMedia.mediaId || rawMedia.id || null,
+    mediaUrl: url,
+    url: url,
+    svgCode: rawMedia.svgCode || null,
+    altText: rawMedia.altText || null,
+  };
+}
+
+function normalizeRichOption(opt: any, idx: number, correctKey: string): RichOption {
+  const key = opt.key || String.fromCharCode(65 + idx);
+  const mediaUrl = opt.mediaUrl || opt.url || null;
+
+  let mode: OptionMode = opt.mode || 'text-only';
+  if (opt.mode === 'image-only' || opt.mode === 'diagram-only') {
+    mode = 'diagram-only';
+  } else if (opt.mode === 'text-and-image' || opt.mode === 'diagram-text') {
+    mode = 'diagram-text';
+  } else if (opt.mode === 'svg-code') {
+    mode = 'svg-code';
+  } else if (opt.mode === 'svg-text') {
+    mode = 'svg-text';
+  } else if (mediaUrl) {
+    mode = opt.text && opt.text !== `Option ${key}` ? 'diagram-text' : 'diagram-only';
+  }
+
+  return {
+    key,
+    mode,
+    text: opt.text || (typeof opt === 'string' ? opt : ''),
+    mediaId: opt.mediaId || opt.id || null,
+    mediaUrl,
+    svgCode: opt.svgCode || null,
+    isCorrect: key === correctKey || opt.isCorrect === true,
+  };
+}
+
 export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSectionProps) {
   const { mutate: updateTemplate, isPending: isSaving } = useUpdateTemplate();
 
@@ -50,7 +90,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
     config.questionText || structure.stem || (template?.name !== 'New Template' ? template?.name : '') || ''
   );
   const [questionMedia, setQuestionMedia] = useState<{ mediaId?: string; mediaUrl?: string; svgCode?: string; altText?: string } | null>(
-    config.questionMedia || structure.media || null
+    normalizeMedia(config.questionMedia || structure.media)
   );
 
   const [richOptions, setRichOptions] = useState<RichOption[]>(() => {
@@ -59,7 +99,9 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
         ? config.richOptions
         : Array.isArray(config.options) && config.options.length > 0
           ? config.options
-          : null;
+          : Array.isArray(structure.options) && structure.options.length > 0
+            ? structure.options
+            : null;
 
     const correctKey =
       config.correctAnswer ||
@@ -69,18 +111,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
       'A';
 
     if (rawOpts && rawOpts.length > 0) {
-      return rawOpts.map((opt: any, idx: number) => {
-        const key = opt.key || String.fromCharCode(65 + idx);
-        return {
-          key,
-          mode: opt.mode || 'text-only',
-          text: opt.text || (typeof opt === 'string' ? opt : ''),
-          mediaId: opt.mediaId || null,
-          mediaUrl: opt.mediaUrl || null,
-          svgCode: opt.svgCode || null,
-          isCorrect: key === correctKey,
-        };
-      });
+      return rawOpts.map((opt: any, idx: number) => normalizeRichOption(opt, idx, correctKey));
     }
 
     return [
@@ -100,8 +131,9 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
     if (config.questionText || structure.stem) {
       setQuestionText(config.questionText || structure.stem || '');
     }
-    if (config.questionMedia || structure.media) {
-      setQuestionMedia(config.questionMedia || structure.media || null);
+    const media = normalizeMedia(config.questionMedia || structure.media);
+    if (media) {
+      setQuestionMedia(media);
     }
 
     const rawOpts =
@@ -109,7 +141,9 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
         ? config.richOptions
         : Array.isArray(config.options) && config.options.length > 0
           ? config.options
-          : null;
+          : Array.isArray(structure.options) && structure.options.length > 0
+            ? structure.options
+            : null;
 
     const correctKey =
       config.correctAnswer ||
@@ -119,20 +153,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
       'A';
 
     if (rawOpts && rawOpts.length > 0) {
-      setRichOptions(
-        rawOpts.map((opt: any, idx: number) => {
-          const key = opt.key || String.fromCharCode(65 + idx);
-          return {
-            key,
-            mode: opt.mode || 'text-only',
-            text: opt.text || (typeof opt === 'string' ? opt : ''),
-            mediaId: opt.mediaId || null,
-            mediaUrl: opt.mediaUrl || null,
-            svgCode: opt.svgCode || null,
-            isCorrect: key === correctKey,
-          };
-        }),
-      );
+      setRichOptions(rawOpts.map((opt: any, idx: number) => normalizeRichOption(opt, idx, correctKey)));
     }
     if (config.solutionExplanation || structure.solution) {
       setSolutionExplanation(config.solutionExplanation || structure.solution || '');
@@ -430,9 +451,10 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                       value={opt.mode}
                       onChange={(e) => handleModeChange(optIdx, e.target.value as OptionMode)}
                     >
-                      <option value="text-only">Text Only</option>
                       <option value="diagram-only">Diagram Image Only</option>
                       <option value="diagram-text">Diagram Image + Text</option>
+                      <option value="text-only">Text Only</option>
+                      <option value="svg-code">SVG Vector Code</option>
                     </select>
                   </div>
 
@@ -445,7 +467,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                     />
                   )}
 
-                  {(opt.mode === 'diagram-only' || opt.mode === 'diagram-text') && (
+                  {(opt.mode === 'diagram-only' || opt.mode === 'diagram-text' || opt.mediaUrl) && (
                     <div className="pt-1">
                       {opt.mediaUrl ? (
                         <div className="p-2 border rounded-lg bg-muted/20 flex items-center justify-between">
@@ -529,12 +551,18 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
               </div>
 
               {/* Question Diagram */}
-              {questionMedia?.mediaUrl && (
+              {(questionMedia?.mediaUrl || (questionMedia as any)?.url) && (
                 <div className="pt-2">
                   <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide block mb-1">
                     Question Diagram
                   </span>
-                  <ImageRenderer url={questionMedia.mediaUrl} altText="Question diagram" maxHeight="max-h-56" />
+                  <div className="border rounded-lg bg-muted/10 p-2 flex items-center justify-center">
+                    <ImageRenderer
+                      url={(questionMedia?.mediaUrl || (questionMedia as any)?.url)!}
+                      altText="Question diagram"
+                      maxHeight="max-h-64"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -544,60 +572,69 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                   Select Answer
                 </span>
                 <div className="space-y-2">
-                  {richOptions.map((opt) => (
-                    <div
-                      key={opt.key}
-                      onClick={() => setPreviewSelectedOpt(opt.key)}
-                      className={`p-3 rounded-lg border text-xs cursor-pointer transition-all flex items-start space-x-3 ${
-                        previewSelectedOpt === opt.key
-                          ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/50 ring-1 ring-indigo-500'
-                          : opt.isCorrect
-                          ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/20'
-                          : 'border-input hover:border-gray-300 bg-card'
-                      }`}
-                    >
+                  {richOptions.map((opt) => {
+                    const optUrl = opt.mediaUrl || (opt as any)?.url;
+                    const isImageOption = opt.mode === 'diagram-only' || opt.mode === 'diagram-text' || Boolean(optUrl);
+
+                    return (
                       <div
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                        key={opt.key}
+                        onClick={() => setPreviewSelectedOpt(opt.key)}
+                        className={`p-3 rounded-lg border text-xs cursor-pointer transition-all flex items-start space-x-3 ${
                           previewSelectedOpt === opt.key
-                            ? 'border-indigo-600 bg-indigo-600 text-white'
-                            : 'border-gray-400'
+                            ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/50 ring-1 ring-indigo-500'
+                            : opt.isCorrect
+                            ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/20'
+                            : 'border-input hover:border-gray-300 bg-card'
                         }`}
                       >
-                        {previewSelectedOpt === opt.key && (
-                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                        )}
-                      </div>
-
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-gray-900 dark:text-gray-100">
-                            Option {opt.key}
-                          </span>
-                          {opt.isCorrect && (
-                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-                              Correct Choice
-                            </span>
+                        <div
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                            previewSelectedOpt === opt.key
+                              ? 'border-indigo-600 bg-indigo-600 text-white'
+                              : 'border-gray-400'
+                          }`}
+                        >
+                          {previewSelectedOpt === opt.key && (
+                            <div className="w-1.5 h-1.5 bg-white rounded-full" />
                           )}
                         </div>
 
-                        {opt.mode !== 'diagram-only' && opt.mode !== 'svg-code' && opt.text && (
-                          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{opt.text}</p>
-                        )}
-
-                        {opt.svgCode ? (
-                          <div className="pt-1">
-                            <SvgRenderer svgCode={opt.svgCode} maxHeight="max-h-36" />
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">
+                              Option {opt.key}
+                            </span>
+                            {opt.isCorrect && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                                Correct Choice
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          opt.mode !== 'text-only' && opt.mediaUrl && (
+
+                          {/* Text for text-only or diagram-text modes */}
+                          {(opt.mode === 'text-only' || opt.mode === 'diagram-text' || (!isImageOption && opt.text)) &&
+                            opt.text &&
+                            opt.text !== `Option ${opt.key}` && (
+                              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{opt.text}</p>
+                            )}
+
+                          {/* SVG or Image rendering */}
+                          {opt.svgCode ? (
                             <div className="pt-1">
-                              <ImageRenderer url={opt.mediaUrl} altText={`Option ${opt.key}`} maxHeight="max-h-36" />
+                              <SvgRenderer svgCode={opt.svgCode} maxHeight="max-h-36" />
                             </div>
-                          )
-                        )}
+                          ) : (
+                            optUrl && (
+                              <div className="pt-1 flex items-center justify-center bg-muted/10 rounded-md p-1 border">
+                                <ImageRenderer url={optUrl} altText={`Option ${opt.key}`} maxHeight="max-h-36" />
+                              </div>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
