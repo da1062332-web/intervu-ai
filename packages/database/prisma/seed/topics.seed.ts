@@ -5,69 +5,101 @@ import * as path from "path";
 export async function seedTopics(prisma: PrismaClient) {
   console.log("Seeding Topic Registry...");
 
-  let filePath = path.join(
-    process.cwd(),
-    "generation/topic-registry/software-engineering.json",
-  );
-  try {
-    await fs.access(filePath);
-  } catch {
-    filePath = path.join(
-      process.cwd(),
-      "../../generation/topic-registry/software-engineering.json",
-    );
-  }
+  const registryFiles = [
+    "software-engineering.json",
+    "visual-reasoning.json",
+  ];
 
-  const content = await fs.readFile(filePath, "utf-8");
-  const topics = JSON.parse(content);
+  let totalSeeded = 0;
 
-  for (const t of topics) {
-    const topicCode = t.topic.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+  for (const fileName of registryFiles) {
+    let filePath = path.join(process.cwd(), "generation/topic-registry", fileName);
+    try {
+      await fs.access(filePath);
+    } catch {
+      filePath = path.join(process.cwd(), "../../generation/topic-registry", fileName);
+    }
 
-    // Seed Topic
-    const topic = await prisma.topic.upsert({
-      where: { code: topicCode },
-      update: {
-        name: t.topic,
-        description: `${t.domain} - ${t.subtopic}`,
-        status: TopicStatus.ACTIVE,
-      },
-      create: {
-        id: t.id,
-        name: t.topic,
-        code: topicCode,
-        description: `${t.domain} - ${t.subtopic}`,
-        status: TopicStatus.ACTIVE,
-      },
-    });
+    try {
+      const content = await fs.readFile(filePath, "utf-8");
+      const topics = JSON.parse(content);
 
-    // Seed child Concepts
-    if (t.concepts && Array.isArray(t.concepts)) {
-      for (const conceptName of t.concepts) {
-        const conceptCode = conceptName
-          .toUpperCase()
-          .replace(/[^A-Z0-9]/g, "_");
-        await prisma.concept.upsert({
-          where: {
-            topicId_code: {
-              topicId: topic.id,
-              code: conceptCode,
-            },
-          },
+      for (const t of topics) {
+        const topicCode = t.topicCode || t.topic.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+
+        // Seed Topic
+        const topic = await prisma.topic.upsert({
+          where: { code: topicCode },
           update: {
-            name: conceptName,
-            status: ConceptStatus.ACTIVE,
+            name: t.topic,
+            description: `${t.domain || "General"} - ${t.subtopic || t.topic}`,
+            status: TopicStatus.ACTIVE,
           },
           create: {
-            topicId: topic.id,
-            name: conceptName,
-            code: conceptCode,
-            status: ConceptStatus.ACTIVE,
+            id: t.id,
+            name: t.topic,
+            code: topicCode,
+            description: `${t.domain || "General"} - ${t.subtopic || t.topic}`,
+            status: TopicStatus.ACTIVE,
           },
         });
+
+        // Seed child Concepts (supports detailedConcepts with explicit codes or plain concept strings)
+        if (t.detailedConcepts && Array.isArray(t.detailedConcepts)) {
+          for (const conceptObj of t.detailedConcepts) {
+            const conceptCode = conceptObj.code || conceptObj.name.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+            await prisma.concept.upsert({
+              where: {
+                topicId_code: {
+                  topicId: topic.id,
+                  code: conceptCode,
+                },
+              },
+              update: {
+                name: conceptObj.name,
+                status: ConceptStatus.ACTIVE,
+              },
+              create: {
+                topicId: topic.id,
+                name: conceptObj.name,
+                code: conceptCode,
+                status: ConceptStatus.ACTIVE,
+              },
+            });
+          }
+        } else if (t.concepts && Array.isArray(t.concepts)) {
+          for (const conceptName of t.concepts) {
+            const conceptCode = conceptName
+              .toUpperCase()
+              .replace(/[^A-Z0-9]/g, "_");
+            await prisma.concept.upsert({
+              where: {
+                topicId_code: {
+                  topicId: topic.id,
+                  code: conceptCode,
+                },
+              },
+              update: {
+                name: conceptName,
+                status: ConceptStatus.ACTIVE,
+              },
+              create: {
+                topicId: topic.id,
+                name: conceptName,
+                code: conceptCode,
+                status: ConceptStatus.ACTIVE,
+              },
+            });
+          }
+        }
+
+        totalSeeded++;
       }
+    } catch (err: any) {
+      console.warn(`Could not read registry file ${fileName}:`, err?.message || err);
     }
   }
+
   const extraTopics = [
     { name: "Numerical Ability", code: "NUMERICAL_ABILITY" },
     { name: "Verbal Ability", code: "VERBAL_ABILITY" },
@@ -109,6 +141,6 @@ export async function seedTopics(prisma: PrismaClient) {
   }
 
   console.log(
-    `Seeded ${topics.length} base topics and 5 extra topics successfully.`,
+    `Seeded ${totalSeeded} topics and ${extraTopics.length} extra topics successfully.`,
   );
 }

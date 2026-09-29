@@ -35,27 +35,56 @@ export function ManualStrategyPanel({ templateId, template }: StrategyPanelProps
     (template?.name !== 'New Template' ? template?.name : '') ||
     '';
   const [questionText, setQuestionText] = useState<string>(rawQuestionText);
+  const rawMedia = manualConfig.questionMedia || template?.structure?.media || template?.config?.questionMedia || null;
+  const normalizedMedia = rawMedia ? {
+    mediaId: rawMedia.mediaId || rawMedia.id || null,
+    mediaUrl: rawMedia.mediaUrl || rawMedia.url || null,
+    svgCode: rawMedia.svgCode || null,
+    altText: rawMedia.altText || null,
+  } : null;
+
   const [questionMedia, setQuestionMedia] = useState<{
     mediaId?: string;
     mediaUrl?: string;
     svgCode?: string;
     altText?: string;
-  } | null>(manualConfig.questionMedia || null);
+  } | null>(normalizedMedia);
 
   const [richOptions, setRichOptions] = useState<RichOption[]>(() => {
-    if (Array.isArray(manualConfig.richOptions) && manualConfig.richOptions.length > 0) {
-      return manualConfig.richOptions;
-    }
-    if (Array.isArray(manualConfig.options) && manualConfig.options.length > 0) {
-      return manualConfig.options.map((opt: any, idx: number) => ({
-        key: opt.key || String.fromCharCode(65 + idx),
-        mode: opt.mode || 'text-only',
-        text: typeof opt === 'string' ? opt : opt.text || '',
-        mediaId: opt.mediaId || null,
-        mediaUrl: opt.mediaUrl || null,
-        svgCode: opt.svgCode || null,
-        isCorrect: typeof opt.isCorrect === 'boolean' ? opt.isCorrect : idx === 0,
-      }));
+    const rawOpts =
+      (Array.isArray(manualConfig.richOptions) && manualConfig.richOptions.length > 0 && manualConfig.richOptions) ||
+      (Array.isArray(manualConfig.options) && manualConfig.options.length > 0 && manualConfig.options) ||
+      (Array.isArray(template?.structure?.options) && template.structure.options.length > 0 && template.structure.options) ||
+      (Array.isArray(template?.config?.richOptions) && template.config.richOptions.length > 0 && template.config.richOptions) ||
+      (Array.isArray(template?.config?.options) && template.config.options.length > 0 && template.config.options) ||
+      null;
+
+    const correctKey =
+      manualConfig.correctAnswer ||
+      manualConfig.correctOptionKey ||
+      template?.structure?.correctAnswer ||
+      template?.config?.correctAnswer ||
+      'A';
+
+    if (rawOpts && rawOpts.length > 0) {
+      return rawOpts.map((opt: any, idx: number) => {
+        const key = opt.key || String.fromCharCode(65 + idx);
+        const mediaUrl = opt.mediaUrl || opt.url || null;
+        let mode: OptionMode = opt.mode || 'text-only';
+        if (opt.mode === 'image-only' || opt.mode === 'diagram-only') mode = 'diagram-only';
+        else if (opt.mode === 'text-and-image' || opt.mode === 'diagram-text') mode = 'diagram-text';
+        else if (mediaUrl) mode = opt.text && opt.text !== `Option ${key}` ? 'diagram-text' : 'diagram-only';
+
+        return {
+          key,
+          mode,
+          text: typeof opt === 'string' ? opt : opt.text || '',
+          mediaId: opt.mediaId || opt.id || null,
+          mediaUrl,
+          svgCode: opt.svgCode || null,
+          isCorrect: typeof opt.isCorrect === 'boolean' ? opt.isCorrect : key === correctKey,
+        };
+      });
     }
     return [
       { key: 'A', mode: 'text-only', text: '', mediaId: null, mediaUrl: null, svgCode: null, isCorrect: true },

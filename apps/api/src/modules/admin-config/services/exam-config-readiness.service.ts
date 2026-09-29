@@ -224,6 +224,8 @@ export class ExamConfigReadinessService {
 
     const allTopicIds = allTopics.map((t) => t.id);
 
+    await this.syncManualTemplatesForTopics(allTopicIds).catch(() => {});
+
     const manualQuestionsCountPromise = this.prisma.question.count({
       where: {
         questionSource: "MANUAL",
@@ -545,5 +547,130 @@ export class ExamConfigReadinessService {
     }
 
     return { reqEasy, reqMedium, reqHard };
+  }
+
+  private async syncManualTemplatesForTopics(topicIds: string[]): Promise<void> {
+    if (topicIds.length === 0) return;
+    try {
+      const templates = await this.prisma.template.findMany({
+        where: {
+          OR: [
+            { generationStrategy: "MANUAL" as any },
+            { generationStrategy: "SVG" as any },
+          ],
+        },
+      });
+      if (templates.length === 0) return;
+
+      const topics = await this.prisma.topic.findMany();
+      const concepts = await this.prisma.concept.findMany();
+
+      for (const t of templates) {
+        const config = (t.config as Record<string, any>) || {};
+        const structure = (t.structure as Record<string, any>) || {};
+        const metadata = ((t as any).metadata as Record<string, any>) || {};
+
+        let matchedTopicId =
+          config.topicId || (config.topics && config.topics[0]) || structure.topicId || metadata.topicId;
+        if (!matchedTopicId && t.conceptKey) {
+          const ckUpper = t.conceptKey.toUpperCase();
+          const c = concepts.find(
+            (x) => x.code.toUpperCase() === ckUpper || x.id === t.conceptKey || x.name.toUpperCase() === ckUpper,
+          );
+          if (c) matchedTopicId = c.topicId;
+          const top = topics.find(
+            (x) => x.code.toUpperCase() === ckUpper || x.id === t.conceptKey || x.name.toUpperCase() === ckUpper,
+          );
+          if (top) matchedTopicId = top.id;
+        }
+
+        if (!matchedTopicId) {
+          const searchStr = `${t.name} ${t.conceptKey || ""} ${t.description || ""}`.toUpperCase();
+          for (const top of topics) {
+            if (
+              searchStr.includes(top.name.toUpperCase()) ||
+              searchStr.includes(top.code.toUpperCase().replace(/_/g, " "))
+            ) {
+              matchedTopicId = top.id;
+              break;
+            }
+          }
+        }
+
+        if (!matchedTopicId) {
+          const searchStr = `${t.name} ${t.conceptKey || ""}`.toUpperCase();
+          if (
+            searchStr.includes("ROTATION") ||
+            searchStr.includes("ANALOGY") ||
+            searchStr.includes("SCALE SHIFT")
+          ) {
+            const fa = topics.find(
+              (top) => top.code === "FIGURE_ANALOGY" || top.name === "Figure Analogy" || top.code === "vr-top-002",
+            );
+            if (fa) matchedTopicId = fa.id;
+          } else if (
+            searchStr.includes("SERIES") ||
+            searchStr.includes("POLARITY") ||
+            searchStr.includes("PROGRESSION")
+          ) {
+            const fs = topics.find(
+              (top) => top.code === "FIGURE_SERIES" || top.name === "Figure Series" || top.code === "vr-top-001",
+            );
+            if (fs) matchedTopicId = fs.id;
+          }
+        }
+
+        if (!matchedTopicId) continue;
+
+        const existingQuestion = await this.prisma.question.findFirst({
+          where: { templateId: t.id },
+        });
+
+        const questionText = config.questionText || structure.stem || structure.mcq?.questionText || t.name;
+        const richOptions =
+          config.richOptions || config.options || structure.mcq?.options || structure.options || metadata.options || [];
+        const questionMedia =
+          config.questionMedia || structure.mcq?.questionMedia || structure.media || metadata.questionMedia || null;
+        const correctAnswerKey = structure.correctAnswer || richOptions.find((o: any) => o.isCorrect)?.key || "A";
+        const explanation = config.solutionExplanation || structure.solution || "";
+
+        const questionData = {
+          questionText,
+          answer: correctAnswerKey,
+          explanation,
+          topicId: matchedTopicId,
+          difficulty: String(t.difficultyLevel || t.difficulty || "MEDIUM").toUpperCase(),
+          source: "MANUAL",
+          questionSource: "MANUAL" as any,
+          questionType: t.questionType || "MCQ",
+          templateId: t.id,
+          status: "ACTIVE" as any,
+          mcqData: {
+            options: richOptions,
+            correctAnswer: correctAnswerKey,
+            questionMedia,
+          },
+          metadata: {
+            isManualTemplateQuestion: true,
+            templateId: t.id,
+            templateKey: t.templateKey,
+            conceptKey: t.conceptKey,
+          },
+        };
+
+        if (existingQuestion) {
+          await this.prisma.question.update({
+            where: { id: existingQuestion.id },
+            data: questionData,
+          });
+        } else {
+          await this.prisma.question.create({
+            data: questionData,
+          });
+        }
+      }
+    } catch (e) {
+      this.logger.error(`Error syncing manual templates in readiness check: ${e}`);
+    }
   }
 }

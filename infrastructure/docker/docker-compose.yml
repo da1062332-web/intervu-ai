@@ -109,7 +109,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "require('ioredis').createConnection(process.env.REDIS_URL).ping().catch(() => process.exit(1))",
+          "const Redis = require('ioredis'); const r = new Redis(process.env.REDIS_URL); r.ping().then(() => { r.disconnect(); process.exit(0); }).catch(() => process.exit(1));",
         ]
       interval: 15s
       timeout: 5s

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  OnModuleInit,
 } from "@nestjs/common";
 import {
   Template,
@@ -72,7 +73,7 @@ export interface PaginatedTemplates {
 }
 
 @Injectable()
-export class TemplateService {
+export class TemplateService implements OnModuleInit {
   private readonly logger = new AppLogger({ name: "TemplateService" });
 
   constructor(
@@ -83,6 +84,12 @@ export class TemplateService {
     private readonly cacheService: RedisCacheService,
     private readonly canonicalizationService: StrategyCanonicalizationService,
   ) {}
+
+  async onModuleInit() {
+    this.syncAllManualTemplatesToQuestionBank().catch((err) => {
+      this.logger.error(`Failed onModuleInit manual template sync: ${err?.message || err}`);
+    });
+  }
 
   /**
    * Pipeline: validate → fetchDependencies → coreLogic → formatResponse
@@ -2247,16 +2254,48 @@ export class TemplateService {
   }
 
   /**
-   * Automatically syncs a MANUAL strategy template into the Question Bank (`questions` table)
+   * Automatically syncs MANUAL and SVG strategy templates into the Question Bank (`questions` table)
    * so that manual template questions are registered directly in the Question Bank.
    */
-  private async syncManualTemplateToQuestionBank(template: Template): Promise<void> {
-    if ((template.generationStrategy as string) !== "MANUAL") return;
+  public async syncAllManualTemplatesToQuestionBank(): Promise<void> {
+    try {
+      const templates = await this.prisma.template.findMany();
+      const topics = await this.prisma.topic.findMany();
+      const concepts = await this.prisma.concept.findMany();
+
+      for (const t of templates) {
+        const strat = String(t.generationStrategy || "").toUpperCase();
+        if (strat === "MANUAL" || strat === "SVG") {
+          await this.syncManualTemplateToQuestionBank(t, topics, concepts);
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`Error in syncAllManualTemplatesToQuestionBank: ${err?.message || err}`);
+    }
+  }
+
+  public async syncManualTemplateToQuestionBank(
+    template: Template,
+    prefetchedTopics?: any[],
+    prefetchedConcepts?: any[],
+  ): Promise<void> {
+    const strat = String(template.generationStrategy || "").toUpperCase();
+    if (strat !== "MANUAL" && strat !== "SVG") return;
 
     try {
       const config = (template.config as Record<string, any>) || {};
       const structure = (template.structure as Record<string, any>) || {};
       const metadata = ((template as any).metadata as Record<string, any>) || {};
+
+      const topics = prefetchedTopics || (await this.prisma.topic.findMany());
+      const concepts = prefetchedConcepts || (await this.prisma.concept.findMany());
+
+      let matchedTopic = await this.resolveTopicForTemplate(template, topics, concepts);
+      if (!matchedTopic) {
+        const defaultTopic = topics[0];
+        if (defaultTopic) matchedTopic = defaultTopic;
+      }
+      if (!matchedTopic) return;
 
       const questionText =
         config.questionText || structure.stem || structure.mcq?.questionText || template.name;
@@ -2280,30 +2319,15 @@ export class TemplateService {
       const explanation =
         config.solutionExplanation || structure.solution || "";
 
-      let topicId = config.topicId || (config.topics && config.topics[0]) || null;
       let conceptId: string | null = null;
-
       if (template.conceptKey) {
-        const concept = await this.prisma.concept.findFirst({
-          where: {
-            OR: [
-              { code: { equals: template.conceptKey, mode: "insensitive" } },
-              { name: { equals: template.conceptKey, mode: "insensitive" } },
-            ],
-          },
-        });
-        if (concept) {
-          conceptId = concept.id;
-          topicId = topicId || concept.topicId;
-        }
+        const concept = concepts.find(
+          (c: any) =>
+            c.code.toLowerCase() === template.conceptKey.toLowerCase() ||
+            c.name.toLowerCase() === template.conceptKey.toLowerCase(),
+        );
+        if (concept) conceptId = concept.id;
       }
-
-      if (!topicId) {
-        const defaultTopic = await this.prisma.topic.findFirst();
-        if (defaultTopic) topicId = defaultTopic.id;
-      }
-
-      if (!topicId) return;
 
       const existingQuestion = await this.prisma.question.findFirst({
         where: { templateId: template.id },
@@ -2313,7 +2337,7 @@ export class TemplateService {
         questionText,
         answer: correctAnswerKey,
         explanation,
-        topicId,
+        topicId: matchedTopic.id,
         conceptId,
         difficulty: String(
           template.difficultyLevel || template.difficulty || "MEDIUM",
@@ -2351,5 +2375,90 @@ export class TemplateService {
         `Failed to sync manual template ${template.id} to Question Bank: ${err?.message || err}`,
       );
     }
+  }
+
+  private async resolveTopicForTemplate(
+    template: Template,
+    topics: any[],
+    concepts: any[],
+  ): Promise<any | null> {
+    const config = (template.config as Record<string, any>) || {};
+    const structure = (template.structure as Record<string, any>) || {};
+    const metadata = ((template as any).metadata as Record<string, any>) || {};
+
+    let topicId =
+      config.topicId ||
+      (config.topics && config.topics[0]) ||
+      structure.topicId ||
+      metadata.topicId;
+    if (topicId) {
+      const found = topics.find((t: any) => t.id === topicId || t.code === topicId);
+      if (found) return found;
+    }
+
+    if (template.conceptKey) {
+      const ckUpper = template.conceptKey.toUpperCase();
+      const conceptFound = concepts.find(
+        (c: any) =>
+          c.code.toUpperCase() === ckUpper ||
+          c.id === template.conceptKey ||
+          c.name.toUpperCase() === ckUpper,
+      );
+      if (conceptFound) {
+        const parentTopic = topics.find((t: any) => t.id === conceptFound.topicId);
+        if (parentTopic) return parentTopic;
+      }
+
+      const topicFound = topics.find(
+        (t: any) =>
+          t.code.toUpperCase() === ckUpper ||
+          t.id === template.conceptKey ||
+          t.name.toUpperCase() === ckUpper,
+      );
+      if (topicFound) return topicFound;
+    }
+
+    const searchStr = `${template.name} ${template.conceptKey || ""} ${template.description || ""} ${JSON.stringify(config)}`.toUpperCase();
+    for (const t of topics) {
+      const tNameUpper = t.name.toUpperCase();
+      const tCodeUpper = t.code.toUpperCase();
+
+      if (
+        searchStr.includes(tNameUpper) ||
+        searchStr.includes(tCodeUpper.replace(/_/g, " "))
+      ) {
+        return t;
+      }
+    }
+
+    if (
+      searchStr.includes("ROTATION") ||
+      searchStr.includes("ANALOGY") ||
+      searchStr.includes("SCALE SHIFT")
+    ) {
+      const fa = topics.find(
+        (t: any) =>
+          t.code === "FIGURE_ANALOGY" ||
+          t.name === "Figure Analogy" ||
+          t.code === "vr-top-002",
+      );
+      if (fa) return fa;
+    }
+
+    if (
+      searchStr.includes("SERIES") ||
+      searchStr.includes("POLARITY") ||
+      searchStr.includes("PROGRESSION")
+    ) {
+      const fs = topics.find(
+        (t: any) =>
+          t.code === "FIGURE_SERIES" ||
+          t.name === "Figure Series" ||
+          t.code === "vr-top-001",
+      );
+      if (fs) return fs;
+    }
+
+    return null;
   }
 }

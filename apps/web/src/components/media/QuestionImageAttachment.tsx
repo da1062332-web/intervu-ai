@@ -112,12 +112,12 @@ export function QuestionImageAttachment({ value, onChange, disabled }: QuestionI
             </div>
           )}
         </div>
-      ) : value?.mediaUrl ? (
+      ) : (value?.mediaUrl || (value as any)?.url) ? (
         <div className="flex items-center space-x-4 p-2 bg-background border rounded-md">
-          <ImagePreview url={value.mediaUrl} altText={value.altText} onRemove={() => onChange(null)} disabled={disabled} />
+          <ImagePreview url={(value?.mediaUrl || (value as any)?.url)!} altText={value?.altText} onRemove={() => onChange(null)} disabled={disabled} />
           <div className="text-xs space-y-1">
-            <p className="font-medium text-muted-foreground">Attached Image / File</p>
-            <p className="text-muted-foreground/70 truncate max-w-xs">ID: {value.mediaId}</p>
+            <p className="font-medium text-muted-foreground">Attached Image / Diagram</p>
+            {value?.mediaId && <p className="text-muted-foreground/70 truncate max-w-xs">ID: {value.mediaId}</p>}
             <Button
               type="button"
               variant="outline"
