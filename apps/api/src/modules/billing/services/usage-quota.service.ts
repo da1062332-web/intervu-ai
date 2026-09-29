@@ -95,32 +95,11 @@ export class UsageQuotaService {
 
     // 2. Atomic transaction with check-and-increment for limited plans
     return this.prisma.$transaction(async (tx) => {
-      // Find existing quota record either by subscription key or fallback
-      let current = await tx.usageQuota.findUnique({
+      // Find existing quota record
+      const current = await tx.usageQuota.findUnique({
         where: { userId_periodKey: { userId, periodKey } },
+        select: { id: true, roundsUsed: true },
       });
-
-      if (!current && subscriptionId) {
-        const legacy = await tx.usageQuota.findUnique({
-          where: { userId_periodKey: { userId, periodKey: this.getCurrentPeriodKey() } },
-        });
-        if (legacy) {
-          current = legacy;
-        }
-      }
-
-      if (!current) {
-        current = await tx.usageQuota.create({
-          data: {
-            userId,
-            subscriptionId,
-            periodKey,
-            roundsUsed: 0,
-            questionsAttempted: 0,
-            exportsUsed: 0,
-          },
-        });
-      }
 
       const currentUsed = current?.roundsUsed ?? 0;
 
@@ -135,14 +114,21 @@ export class UsageQuotaService {
         };
       }
 
-      // Increment atomically within the transaction
-      const updated = await tx.usageQuota.update({
-        where: { id: current.id },
-        data: {
-          roundsUsed: {
-            increment: 1,
-          },
+      // Single atomic upsert avoids multi-query create + update roundtrips
+      const updated = await tx.usageQuota.upsert({
+        where: { userId_periodKey: { userId, periodKey } },
+        create: {
+          userId,
+          subscriptionId,
+          periodKey,
+          roundsUsed: 1,
+          questionsAttempted: 0,
+          exportsUsed: 0,
         },
+        update: {
+          roundsUsed: { increment: 1 },
+        },
+        select: { roundsUsed: true },
       });
 
       this.logger.log(

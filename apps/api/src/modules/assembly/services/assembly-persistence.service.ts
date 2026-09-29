@@ -103,7 +103,8 @@ export class AssemblyPersistenceService {
     const targetExamConfigId = reusable.configId || configId;
     const queries: Prisma.PrismaPromise<unknown>[] = [];
 
-    // 1. Create candidate TestInstance
+    // 1. Create candidate TestInstance directly in IN_PROGRESS state
+    // Prevents redundant write lock update on initial snapshot fetch
     queries.push(
       this.prisma.testInstance.create({
         data: {
@@ -111,7 +112,8 @@ export class AssemblyPersistenceService {
           userId,
           examConfigId: targetExamConfigId,
           testConfigId: null,
-          status: "CREATED",
+          status: "IN_PROGRESS",
+          startedAt: new Date(),
           expiresAt,
         },
       }),
@@ -190,17 +192,13 @@ export class AssemblyPersistenceService {
     await this.prisma.$transaction(queries);
     this.logger.log(`    [CLONE-SERVICE ⚡] Step 3/3: Prisma transaction committed in ${Date.now() - tTx}ms!`);
 
-    try {
-      await this.auditService.log(testInstanceId, "CREATED", userId, {
-        configId,
-        reusableAssemblyId,
-        cloned: true,
-        totalQuestions: reusable.totalQuestions,
-        totalDuration: durationSeconds || reusable.totalDurationSeconds,
-      });
-    } catch {
-      // Audit logging is non-blocking
-    }
+    // Non-blocking background audit log with valid reusable assembly reference
+    void this.auditService.log(reusableAssemblyId, "CLONED_FOR_CANDIDATE", userId, {
+      testInstanceId,
+      configId,
+      totalQuestions: reusable.totalQuestions,
+      totalDuration: durationSeconds || reusable.totalDurationSeconds,
+    }).catch(() => {});
 
     this.logger.log(`    [CLONE-SERVICE 🚀] Clone completed in ${Date.now() - t0}ms! Created candidate instance: ${testInstanceId}`);
     return testInstanceId;

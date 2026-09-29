@@ -70,32 +70,7 @@ export class ExecutionService {
     const t0 = Date.now();
     this.logger.info(`[EXECUTION ⏱️] Loading assessment session for instance: ${testInstanceId}, user: ${userId}...`);
 
-    // 1. Validate assessment exists
-    const testInstance =
-      await this.validator.validateAssessment(testInstanceId);
-
-    // 2. Validate ownership
-    this.validator.validateOwnership(testInstance, userId);
-
-    // 2b. Transition CREATED -> IN_PROGRESS on initial load
-    if (testInstance.status === "CREATED") {
-      try {
-        if (typeof this.prisma.testInstance?.update === "function") {
-          await this.prisma.testInstance.update({
-            where: { id: testInstanceId },
-            data: {
-              status: "IN_PROGRESS",
-              startedAt: testInstance.startedAt || new Date(),
-            },
-          });
-        }
-        (testInstance as any).status = "IN_PROGRESS";
-      } catch (err) {
-        this.logger.warn(`[EXECUTION ⚠️] Failed updating status to IN_PROGRESS for ${testInstanceId}: ${err}`);
-      }
-    }
-
-    // 2a. Check Redis cache for cached full snapshot
+    // 1. Check Redis cache for cached full snapshot
     const cacheKey = `assessment-snapshot:${testInstanceId}`;
     if (this.cacheService) {
       try {
@@ -124,7 +99,7 @@ export class ExecutionService {
       }
     }
 
-    // 3. Load full snapshot (sections, questions)
+    // 2. Load deep snapshot in a single unified query (includes sections, questions, user, examConfig)
     const tDb = Date.now();
     const snapshot =
       await this.testInstanceRepo.loadDeepSnapshot(testInstanceId);
@@ -133,6 +108,28 @@ export class ExecutionService {
       this.logger.error(`[EXECUTION ❌] Assessment snapshot could not be loaded for instance: ${testInstanceId}`);
       throw new NotFoundException("Assessment snapshot could not be loaded");
     }
+
+    // 3. Validate ownership
+    this.validator.validateOwnership(snapshot, userId);
+
+    // 4. Transition CREATED -> IN_PROGRESS only if instance is still in CREATED state
+    if (snapshot.status === "CREATED") {
+      try {
+        if (typeof this.prisma.testInstance?.update === "function") {
+          await this.prisma.testInstance.update({
+            where: { id: testInstanceId },
+            data: {
+              status: "IN_PROGRESS",
+              startedAt: snapshot.startedAt || new Date(),
+            },
+          });
+        }
+        (snapshot as any).status = "IN_PROGRESS";
+      } catch (err) {
+        this.logger.warn(`[EXECUTION ⚠️] Failed updating status to IN_PROGRESS for ${testInstanceId}: ${err}`);
+      }
+    }
+    const testInstance = snapshot;
     this.logger.info(`[EXECUTION ✅] Deep snapshot loaded from DB in ${Date.now() - tDb}ms (Sections: ${snapshot.sections?.length})`);
 
     // 4. Determine sectionTimingEnabled, allowSectionNavigation and sandboxUi from ExamConfig -> RuleFlags
