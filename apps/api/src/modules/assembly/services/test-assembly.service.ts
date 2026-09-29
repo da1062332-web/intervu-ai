@@ -162,6 +162,42 @@ export class AssemblyService {
   ): Promise<string> {
     if (!configId) throw new BadRequestException("configId is required");
 
+    const tStart = Date.now();
+    this.logger.log(`  [ASSEMBLY ⏱️] Step A: Querying published reusable assembly for configId: ${configId}...`);
+    const reusableAssembly = await this.assembledTestRepository.findLatestReusableByConfigId(configId);
+    const isRetest = options?.isRetest ?? false;
+    const isCandidateNoRepeatRetest =
+      isRetest &&
+      Boolean(
+        (reusableAssembly as any)?.examConfig?.ruleFlags?.candidateNoRepeatEnabled,
+      );
+    this.logger.log(`  [ASSEMBLY ✅] Step A: Found reusable assembly in ${Date.now() - tStart}ms -> AssemblyId: ${reusableAssembly ? reusableAssembly.id : 'NONE'}, candidateNoRepeatRetest: ${isCandidateNoRepeatRetest}`);
+
+    // Flow 1: Standard Exam — instantly clone the pre-assembled questions (< 50ms).
+    // Only skipped when forceNew=true or when candidate is taking a RETEST with candidateNoRepeat AI rule.
+    if (!forceNew && reusableAssembly && !isCandidateNoRepeatRetest) {
+      this.logger.log(`  [ASSEMBLY ⚡] FLOW 1 ACTIVE: Standard Exam with pre-assembled questions. Cloning assembly ${reusableAssembly.id}...`);
+      try {
+        const tClone = Date.now();
+        const instanceId = await this.persistenceService.cloneReusableAssemblyForCandidate(
+          reusableAssembly.id,
+          configId,
+          userId,
+        );
+        this.logger.log(`  [ASSEMBLY ⚡✅] FLOW 1 CLONE COMPLETE in ${Date.now() - tClone}ms -> Candidate Instance: ${instanceId}`);
+        return instanceId;
+      } catch (cloneErr) {
+        // If clone unexpectedly fails (e.g. race condition), log a warning and
+        // fall through to pool or blueprint-based assembly below — never silently invoke AI.
+        this.logger.warn(
+          `  [ASSEMBLY ⚠️] Clone of reusable assembly ${reusableAssembly.id} failed — ` +
+          `falling back to alternate flows. Reason: ${
+            cloneErr instanceof Error ? cloneErr.message : String(cloneErr)
+          }`,
+        );
+      }
+    }
+
     // Flow 0: Atomic Pre-Generated Pool Claim (< 10ms claim, < 25ms materialize)
     // Only attempted when this exam config has explicitly enabled the pool feature —
     // otherwise every test start would pay for a claim query against a pool that
@@ -209,37 +245,6 @@ export class AssemblyService {
         }
       } catch (poolErr: any) {
         this.logger.warn(`  [ASSEMBLY ⚠️] Pre-generated pool claim failed (${poolErr?.message || poolErr}). Falling back to standard flows.`);
-      }
-    }
-
-    const tStart = Date.now();
-    this.logger.log(`  [ASSEMBLY ⏱️] Step A: Querying published reusable assembly for configId: ${configId}...`);
-    const reusableAssembly = await this.assembledTestRepository.findLatestReusableByConfigId(configId);
-    const isCandidateNoRepeat = (reusableAssembly as any)?.examConfig?.ruleFlags?.candidateNoRepeatEnabled ?? false;
-    this.logger.log(`  [ASSEMBLY ✅] Step A: Found reusable assembly in ${Date.now() - tStart}ms -> AssemblyId: ${reusableAssembly ? reusableAssembly.id : 'NONE'}, candidateNoRepeat: ${isCandidateNoRepeat}`);
-
-    // Flow 1: Standard Exam — instantly clone the pre-assembled PUBLISHED questions (< 50ms).
-    // Only skipped when forceNew=true or admin has enabled candidateNoRepeat AI rule.
-    if (!forceNew && reusableAssembly && !isCandidateNoRepeat) {
-      this.logger.log(`  [ASSEMBLY ⚡] FLOW 1 ACTIVE: Standard Exam with pre-assembled questions. Cloning assembly ${reusableAssembly.id}...`);
-      try {
-        const tClone = Date.now();
-        const instanceId = await this.persistenceService.cloneReusableAssemblyForCandidate(
-          reusableAssembly.id,
-          configId,
-          userId,
-        );
-        this.logger.log(`  [ASSEMBLY ⚡✅] FLOW 1 CLONE COMPLETE in ${Date.now() - tClone}ms -> Candidate Instance: ${instanceId}`);
-        return instanceId;
-      } catch (cloneErr) {
-        // If clone unexpectedly fails (e.g. race condition), log a warning and
-        // fall through to blueprint-based assembly below — never silently invoke AI.
-        this.logger.warn(
-          `  [ASSEMBLY ⚠️] Clone of reusable assembly ${reusableAssembly.id} failed — ` +
-          `falling back to full blueprint assembly. Reason: ${
-            cloneErr instanceof Error ? cloneErr.message : String(cloneErr)
-          }`,
-        );
       }
     }
 

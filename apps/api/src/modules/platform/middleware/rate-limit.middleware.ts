@@ -49,8 +49,8 @@ export class RateLimitGuard extends ThrottlerGuard {
     } else if (path.includes("/api/v1/generation")) {
       customLimit = 20; // AI Generation: 20 requests/min
       customTtl = 60;
-    } else if (role === "CANDIDATE") {
-      customLimit = Math.max(limit, 300); // Candidate API: at least 300 requests/min
+    } else if (role === "CANDIDATE" || path.includes("/auth/refresh")) {
+      customLimit = Math.max(limit, 300); // Candidate API & refresh: at least 300 requests/min
       customTtl = 60;
     }
 
@@ -71,7 +71,21 @@ export class RateLimitGuard extends ThrottlerGuard {
       return `attempt:${req.params.id}`;
     }
 
-    // 3. For auth endpoints (signup/login), track by IP + email to avoid campus Wi-Fi/NAT/runner collision
+    // 3. For token refresh, track by unique refreshToken to avoid shared NAT / test-runner collisions
+    const refreshToken = req.body?.refreshToken;
+    if (refreshToken && typeof refreshToken === "string") {
+      const tokenSnippet = refreshToken.slice(-32);
+      return `refresh:${tokenSnippet}`;
+    }
+
+    // 4. If Bearer token is provided in Authorization header, track by token snippet
+    const authHeader = req.headers?.authorization;
+    if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+      const tokenSnippet = authHeader.slice(-32);
+      return `token:${tokenSnippet}`;
+    }
+
+    // 5. For auth endpoints (signup/login), track by IP + email to avoid campus Wi-Fi/NAT/runner collision
     const email = req.body?.email || req.query?.email;
     const forwarded = req.headers?.["x-forwarded-for"];
     let ip = req.ip || req.socket?.remoteAddress || "anonymous";

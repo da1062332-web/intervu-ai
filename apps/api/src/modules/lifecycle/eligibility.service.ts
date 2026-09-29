@@ -12,10 +12,25 @@ export interface EligibilityResult {
   activeTestId?: string;
   isExamConfig?: boolean;
   resolvedConfigId?: string;
+  attemptCount?: number;
+  config?: any;
 }
 
 @Injectable()
 export class EligibilityService {
+  private static configCache = new Map<
+    string,
+    { config: any; isExamConfig: boolean; expiry: number }
+  >();
+
+  public static clearConfigCache(configId?: string) {
+    if (configId) {
+      EligibilityService.configCache.delete(configId);
+    } else {
+      EligibilityService.configCache.clear();
+    }
+  }
+
   constructor(
     private readonly userRepository: UserRepository,
     private readonly testConfigRepository: TestConfigRepository,
@@ -72,55 +87,71 @@ export class EligibilityService {
     }
 
     // Validate Config Exists and is Active
-    let config: any = await this.testConfigRepository.findById(testConfigId);
+    let config: any = null;
     let isExamConfig = false;
 
-    if (!config) {
-      config = await this.prisma.examConfig.findUnique({
-        where: { id: testConfigId },
-        include: { ruleFlags: true },
-      });
-      if (config) {
-        isExamConfig = true;
-      }
-    }
+    const cachedConfigEntry = EligibilityService.configCache.get(testConfigId);
+    if (cachedConfigEntry && cachedConfigEntry.expiry > Date.now()) {
+      config = cachedConfigEntry.config;
+      isExamConfig = cachedConfigEntry.isExamConfig;
+    } else {
+      config = await this.testConfigRepository.findById(testConfigId);
 
-    // Resolve by ExamConfig unique code
-    if (!config) {
-      config = await this.prisma.examConfig.findFirst({
-        where: { code: testConfigId },
-        include: { ruleFlags: true },
-      });
-      if (config) {
-        isExamConfig = true;
-      }
-    }
-
-    // Resolve by TestConfig unique configKey
-    if (!config) {
-      config = await this.prisma.testConfig.findFirst({
-        where: { configKey: testConfigId },
-      });
-    }
-
-    // Fallback: If passed ID is a testInstance ID or assembledTest ID, resolve the parent config ID
-    if (!config) {
-      const testInstance = await this.prisma.testInstance.findUnique({
-        where: { id: testConfigId },
-        select: { examConfigId: true, testConfigId: true },
-      });
-
-      const resolvedConfigId = testInstance?.examConfigId || testInstance?.testConfigId;
-
-      if (resolvedConfigId) {
+      if (!config) {
         config = await this.prisma.examConfig.findUnique({
-          where: { id: resolvedConfigId },
+          where: { id: testConfigId },
           include: { ruleFlags: true },
         });
         if (config) {
           isExamConfig = true;
-        } else {
-          config = await this.testConfigRepository.findById(resolvedConfigId);
+        }
+      }
+
+      // Resolve by ExamConfig unique code
+      if (!config) {
+        config = await this.prisma.examConfig.findFirst({
+          where: { code: testConfigId },
+          include: { ruleFlags: true },
+        });
+        if (config) {
+          isExamConfig = true;
+        }
+      }
+
+      // Resolve by TestConfig unique configKey
+      if (!config) {
+        config = await this.prisma.testConfig.findFirst({
+          where: { configKey: testConfigId },
+        });
+      }
+
+      // Fallback: If passed ID is a testInstance ID or assembledTest ID, resolve the parent config ID
+      if (!config) {
+        const testInstance = await this.prisma.testInstance.findUnique({
+          where: { id: testConfigId },
+          select: { examConfigId: true, testConfigId: true },
+        });
+
+        const resolvedConfigId = testInstance?.examConfigId || testInstance?.testConfigId;
+
+        if (resolvedConfigId) {
+          config = await this.prisma.examConfig.findUnique({
+            where: { id: resolvedConfigId },
+            include: { ruleFlags: true },
+          });
+          if (config) {
+            isExamConfig = true;
+          } else {
+            config = await this.testConfigRepository.findById(resolvedConfigId);
+          }
+        }
+      }
+
+      if (config) {
+        const cachePayload = { config, isExamConfig, expiry: Date.now() + 900_000 };
+        EligibilityService.configCache.set(testConfigId, cachePayload);
+        if (config.id && config.id !== testConfigId) {
+          EligibilityService.configCache.set(config.id, cachePayload);
         }
       }
     }
@@ -182,15 +213,14 @@ export class EligibilityService {
     }
 
     // Validate Active Test Limit (User shouldn't have an ongoing test for the same config)
-    // Only block if there is an actively IN_PROGRESS attempt (not COMPLETED/SUBMITTED)
+    // Only return if there is an actively in-progress/non-expired attempt
     const activeTest = isExamConfig
       ? await this.prisma.testInstance.findFirst({
           where: {
             userId,
             examConfigId: targetConfigId,
             // Includes the recovery-workflow statuses: an attempt awaiting admin
-            // review or resume is still "in flight" and must be reclaimed by the
-            // expiry below, not left running alongside a brand-new attempt.
+            // review or resume is still "in flight" and must be resumed, not duplicated.
             status: {
               in: [
                 "CREATED",
@@ -201,6 +231,7 @@ export class EligibilityService {
                 "AUTO_SUBMITTED",
               ],
             },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
         })
       : await this.testInstanceRepository.findActiveByUser(
@@ -209,10 +240,14 @@ export class EligibilityService {
         );
 
     if (activeTest) {
-      await this.prisma.testInstance.update({
-        where: { id: activeTest.id },
-        data: { expiresAt: new Date(Date.now() - 1000) },
-      });
+      return {
+        eligible: false,
+        errorCode: "ACTIVE_TEST_EXISTS",
+        activeTestId: activeTest.id,
+        reason: "User already has an active test attempt in progress",
+        isExamConfig,
+        resolvedConfigId: targetConfigId,
+      };
     }
 
     let effectiveMaxAttempts: number =
@@ -262,7 +297,7 @@ export class EligibilityService {
     }
 
     if (isVip) {
-      return { eligible: true, isExamConfig, resolvedConfigId: targetConfigId };
+      return { eligible: true, isExamConfig, resolvedConfigId: targetConfigId, attemptCount: 0, config };
     }
 
     const previousAttempts = await this.testInstanceRepository.countAttempts(
@@ -278,6 +313,12 @@ export class EligibilityService {
       };
     }
 
-    return { eligible: true, isExamConfig, resolvedConfigId: targetConfigId };
+    return {
+      eligible: true,
+      isExamConfig,
+      resolvedConfigId: targetConfigId,
+      attemptCount: previousAttempts,
+      config,
+    };
   }
 }
