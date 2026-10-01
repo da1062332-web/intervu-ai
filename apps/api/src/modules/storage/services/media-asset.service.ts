@@ -21,6 +21,12 @@ export class MediaAssetService {
     file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
     altText: string | undefined,
     createdById: string,
+    options?: {
+      folder?: string;
+      topicId?: string;
+      topicSlug?: string;
+      topicName?: string;
+    },
   ): Promise<MediaAssetDto> {
     this.validationService.validateMimeType(file.mimetype);
     this.validationService.validateMagicBytes(file.buffer, file.mimetype);
@@ -32,11 +38,59 @@ export class MediaAssetService {
     );
 
     const ext = file.originalname.split('.').pop() || 'png';
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
     const assetId = createId();
-    const storageKey = `${year}/${month}/${assetId}.${ext}`;
+
+    let storageFolder = '';
+
+    if (options?.folder && options.folder.trim()) {
+      storageFolder = options.folder.trim().replace(/^\/+|\/+$/g, '');
+    } else if (options?.topicId && options.topicId.trim()) {
+      const trimmedTopicId = options.topicId.trim();
+      const topic = await this.prisma.topic.findFirst({
+        where: {
+          OR: [
+            { id: trimmedTopicId },
+            { code: trimmedTopicId },
+          ],
+        },
+      });
+
+      if (topic && topic.name) {
+        const slug = topic.name
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        storageFolder = `questions/${slug}`;
+      } else {
+        const slug = trimmedTopicId
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        storageFolder = `questions/${slug}`;
+      }
+    } else if (options?.topicName && options.topicName.trim()) {
+      const slug = options.topicName
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      storageFolder = `questions/${slug}`;
+    } else if (options?.topicSlug && options.topicSlug.trim()) {
+      const slug = options.topicSlug
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      storageFolder = `questions/${slug}`;
+    } else {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      storageFolder = `${year}/${month}`;
+    }
+
+    const storageKey = `${storageFolder}/${assetId}.${ext}`;
 
     await this.storageService.upload(storageKey, file.buffer, file.mimetype);
 

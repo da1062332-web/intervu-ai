@@ -2,11 +2,21 @@ import { apiClient } from '@/services/api/client';
 import { MediaAsset, ListMediaParams, ListMediaResponse } from './types';
 
 export const mediaApi = {
-  uploadImage: async (file: File, altText?: string): Promise<MediaAsset> => {
+  uploadImage: async (
+    file: File,
+    options?: { altText?: string; folder?: string; topicId?: string; topicSlug?: string; topicName?: string } | string,
+  ): Promise<MediaAsset> => {
     const formData = new FormData();
     formData.append('file', file);
-    if (altText) {
-      formData.append('altText', altText);
+    
+    if (typeof options === 'string') {
+      if (options) formData.append('altText', options);
+    } else if (options) {
+      if (options.altText) formData.append('altText', options.altText);
+      if (options.folder) formData.append('folder', options.folder);
+      if (options.topicId) formData.append('topicId', options.topicId);
+      if (options.topicSlug) formData.append('topicSlug', options.topicSlug);
+      if (options.topicName) formData.append('topicName', options.topicName);
     }
     
     return apiClient.request<MediaAsset>('/media/images', {

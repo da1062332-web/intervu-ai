@@ -207,6 +207,7 @@ export function ManualStrategyPanel({ templateId, template }: StrategyPanelProps
         <QuestionImageAttachment
           value={questionMedia}
           onChange={setQuestionMedia}
+          topicId={template?.topicId || template?.topic?.id || template?.concept?.topicId || template?.conceptKey}
         />
 
         {/* MCQ Options */}
@@ -315,6 +316,7 @@ export function ManualStrategyPanel({ templateId, template }: StrategyPanelProps
           {uploaderOptIdx !== null && (
             <ImageUploader
               onUploaded={(asset) => handleImageSelect(uploaderOptIdx, asset)}
+              topicId={template?.topicId || template?.topic?.id || template?.concept?.topicId || template?.conceptKey}
             />
           )}
         </div>

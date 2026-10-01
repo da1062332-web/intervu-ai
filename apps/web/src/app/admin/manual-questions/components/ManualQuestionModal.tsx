@@ -402,6 +402,7 @@ export function ManualQuestionModal({
             value={questionAttachment}
             onChange={(att) => setQuestionAttachment(att)}
             disabled={isSubmitting}
+            topicId={topicId}
           />
 
           <div className='grid grid-cols-2 gap-4'>
@@ -678,6 +679,7 @@ export function ManualQuestionModal({
               <ImageUploader
                 onUploaded={(asset) => handleOptionImageSelect(uploaderOptionIndex, asset)}
                 disabled={isSubmitting}
+                topicId={topicId}
               />
             )}
           </div>

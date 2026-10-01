@@ -390,10 +390,11 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
               />
             </div>
 
-            <div className="space-y-1">
-              <Label className="font-medium text-xs">Question Diagram (Optional)</Label>
-              <QuestionImageAttachment value={questionMedia} onChange={setQuestionMedia} />
-            </div>
+              <QuestionImageAttachment
+                value={questionMedia}
+                onChange={setQuestionMedia}
+                topicId={template?.topicId || template?.topic?.id || template?.concept?.topicId || template?.conceptKey}
+              />
           </div>
 
           {/* Options & Correct Answer Section */}
@@ -704,6 +705,7 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
           {uploaderOptIdx !== null && (
             <ImageUploader
               onUploaded={(asset: MediaAsset) => handleImageSelect(uploaderOptIdx, asset)}
+              topicId={template?.topicId || template?.topic?.id || template?.concept?.topicId || template?.conceptKey}
             />
           )}
         </div>

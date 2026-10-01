@@ -12,9 +12,21 @@ interface QuestionImageAttachmentProps {
   value?: { mediaId?: string; mediaUrl?: string; svgCode?: string; altText?: string } | null;
   onChange: (attachment: { mediaId?: string; mediaUrl?: string; svgCode?: string; altText?: string } | null) => void;
   disabled?: boolean;
+  topicId?: string;
+  topicSlug?: string;
+  topicName?: string;
+  folder?: string;
 }
 
-export function QuestionImageAttachment({ value, onChange, disabled }: QuestionImageAttachmentProps) {
+export function QuestionImageAttachment({
+  value,
+  onChange,
+  disabled,
+  topicId,
+  topicSlug,
+  topicName,
+  folder,
+}: QuestionImageAttachmentProps) {
   const [showUploader, setShowUploader] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [showInlineSvg, setShowInlineSvg] = useState(Boolean(value?.svgCode));
@@ -174,7 +186,14 @@ export function QuestionImageAttachment({ value, onChange, disabled }: QuestionI
         </div>
       ) : showUploader ? (
         <div className="space-y-2">
-          <ImageUploader onUploaded={handleSelect} disabled={disabled} />
+          <ImageUploader
+            onUploaded={handleSelect}
+            disabled={disabled}
+            topicId={topicId}
+            topicSlug={topicSlug}
+            topicName={topicName}
+            folder={folder}
+          />
           <div className="flex justify-end">
             <Button
               type="button"

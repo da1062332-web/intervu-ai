@@ -166,6 +166,7 @@ export function QuestionCard({ index, onRemove, onDuplicate, disabled }: Questio
                   setValue(`questions.${index}.questionMedia`, att || null, { shouldDirty: true });
                 }}
                 disabled={disabled}
+                topicId={watch('topicId') || watch(`questions.${index}.topicId`)}
               />
             )}
           </div>
@@ -176,7 +177,13 @@ export function QuestionCard({ index, onRemove, onDuplicate, disabled }: Questio
               Type Configuration
             </h5>
 
-            {questionType === 'MCQ' && <McqEditor index={index} disabled={disabled} />}
+            {questionType === 'MCQ' && (
+              <McqEditor
+                index={index}
+                disabled={disabled}
+                topicId={watch('topicId') || watch(`questions.${index}.topicId`)}
+              />
+            )}
             {questionType === 'TRUE_FALSE' && <TrueFalseEditor index={index} disabled={disabled} />}
             {questionType === 'CODING' && <CodingEditor index={index} disabled={disabled} />}
 

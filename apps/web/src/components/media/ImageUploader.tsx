@@ -11,6 +11,11 @@ interface ImageUploaderProps {
   onSelect?: (asset: MediaAsset) => void;
   disabled?: boolean;
   className?: string;
+  folder?: string;
+  topicId?: string;
+  topicSlug?: string;
+  topicName?: string;
+  altText?: string;
 }
 
 export function ImageUploader({
@@ -19,6 +24,11 @@ export function ImageUploader({
   onSelect,
   disabled,
   className,
+  folder,
+  topicId,
+  topicSlug,
+  topicName,
+  altText,
 }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +43,14 @@ export function ImageUploader({
     }
 
     try {
-      const asset = await uploadImage.mutateAsync({ file });
+      const asset = await uploadImage.mutateAsync({
+        file,
+        altText,
+        folder,
+        topicId,
+        topicSlug,
+        topicName,
+      });
       toast.success('Image uploaded successfully');
       if (typeof onUploaded === 'function') {
         onUploaded(asset);

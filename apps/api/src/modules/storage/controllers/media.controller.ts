@@ -73,6 +73,12 @@ export class MediaController {
       },
       dto.altText,
       userId || 'admin',
+      {
+        folder: dto.folder,
+        topicId: dto.topicId,
+        topicSlug: dto.topicSlug,
+        topicName: dto.topicName,
+      },
     );
 
     return {
