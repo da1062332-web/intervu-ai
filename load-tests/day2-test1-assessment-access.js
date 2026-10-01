@@ -12,36 +12,37 @@ import {
 } from "./common.js";
 
 const MAX_VUS = Number(__ENV.MAX_VUS) || Number(__ENV.VUS) || 500;
-const RAMP_WINDOW_SEC = Number(__ENV.RAMP_WINDOW_SEC) || 120;
+const RAMP_WINDOW_SEC = Number(__ENV.RAMP_WINDOW_SEC) || 450;
 
 // Metrics
-const candidatesAttempted = new Counter("day1_access_candidates_attempted");
-const candidatesSuccess = new Counter("day1_access_candidates_success");
-const candidatesFailed = new Counter("day1_access_candidates_failed");
+const candidatesAttempted = new Counter("day2_t1_candidates_attempted");
+const candidatesSuccess = new Counter("day2_t1_candidates_success");
+const candidatesFailed = new Counter("day2_t1_candidates_failed");
 
-const fetchSuccess = new Counter("day1_access_fetch_success");
-const heartbeatSuccess = new Counter("day1_access_heartbeat_success");
-const resumeSuccess = new Counter("day1_access_resume_success");
-const answerSuccess = new Counter("day1_access_answer_success");
-const dataConsistencySuccess = new Counter("day1_access_data_consistency_success");
+const fetchSuccess = new Counter("day2_t1_fetch_success");
+const statusSuccess = new Counter("day2_t1_status_success");
+const resumeSuccess = new Counter("day2_t1_resume_success");
+const stateRecoverySuccess = new Counter("day2_t1_state_recovery_success");
 
-const errors429 = new Counter("day1_access_errors_429");
-const errors4xx = new Counter("day1_access_errors_4xx");
-const errors5xx = new Counter("day1_access_errors_5xx");
-const netTimeouts = new Counter("day1_access_timeouts");
-const netResets = new Counter("day1_access_resets");
-const netEof = new Counter("day1_access_eof");
-const appErrorRate = new Rate("day1_access_error_rate");
+const errors429 = new Counter("day2_t1_errors_429");
+const errors4xx = new Counter("day2_t1_errors_4xx");
+const errors5xx = new Counter("day2_t1_errors_5xx");
+const netTimeouts = new Counter("day2_t1_timeouts");
+const netResets = new Counter("day2_t1_resets");
+const netEof = new Counter("day2_t1_eof");
+const appErrorRate = new Rate("day2_t1_error_rate");
 
-const fetchDuration = new Trend("day1_access_fetch_duration_ms");
-const heartbeatDuration = new Trend("day1_access_heartbeat_duration_ms");
-const resumeDuration = new Trend("day1_access_resume_duration_ms");
-const answerDuration = new Trend("day1_access_answer_duration_ms");
-const totalAccessDuration = new Trend("day1_access_total_duration_ms");
+const fetchDuration = new Trend("day2_t1_fetch_duration_ms");
+const resumeDuration = new Trend("day2_t1_resume_duration_ms");
+const totalAccessDuration = new Trend("day2_t1_total_duration_ms");
 
 export const options = {
+  dns: {
+    ttl: "1h",
+    select: "first",
+  },
   scenarios: {
-    day1_concurrent_access: {
+    day2_assessment_access: {
       executor: "per-vu-iterations",
       vus: MAX_VUS,
       iterations: 1,
@@ -49,16 +50,14 @@ export const options = {
     },
   },
   thresholds: {
-    day1_access_error_rate: ["rate<0.05"],
-    day1_access_fetch_duration_ms: ["p(95)<30000"],
-    day1_access_heartbeat_duration_ms: ["p(95)<15000"],
-    day1_access_answer_duration_ms: ["p(95)<15000"],
-    day1_access_resume_duration_ms: ["p(95)<15000"],
-    day1_access_candidates_success: [`count>=${MAX_VUS}`],
+    day2_t1_error_rate: ["rate<0.05"],
+    day2_t1_fetch_duration_ms: ["p(95)<15000"],
+    day2_t1_resume_duration_ms: ["p(95)<15000"],
+    day2_t1_candidates_success: [`count>=${MAX_VUS}`],
   },
 };
 
-function postWithRetry(url, payload, params, maxRetries = 2) {
+function postWithRetry(url, payload, params, maxRetries = 3) {
   let res;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     res = http.post(url, payload, params);
@@ -67,7 +66,7 @@ function postWithRetry(url, payload, params, maxRetries = 2) {
     }
     if (res.status === 0 || res.status === 408 || res.status === 429 || res.status >= 500) {
       if (attempt < maxRetries) {
-        sleep(1.5 * (attempt + 1));
+        sleep(2.0 * (attempt + 1));
         continue;
       }
     }
@@ -76,7 +75,7 @@ function postWithRetry(url, payload, params, maxRetries = 2) {
   return res;
 }
 
-function getWithRetry(url, params, maxRetries = 2) {
+function getWithRetry(url, params, maxRetries = 3) {
   let res;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     res = http.get(url, params);
@@ -85,7 +84,7 @@ function getWithRetry(url, params, maxRetries = 2) {
     }
     if (res.status === 0 || res.status === 408 || res.status === 429 || res.status >= 500) {
       if (attempt < maxRetries) {
-        sleep(1.5 * (attempt + 1));
+        sleep(2.0 * (attempt + 1));
         continue;
       }
     }
@@ -125,7 +124,7 @@ function trackStatus(res, endpoint) {
 
 export function setup() {
   console.log(`\n======================================================`);
-  console.log(`[DAY 1 - TEST 4: CONCURRENT ASSESSMENT ACCESS TEST]`);
+  console.log(`[DAY 2 - TEST 1: ASSESSMENT ACCESS TEST]`);
   console.log(`Target Base URL:       ${BASE_URL}`);
   console.log(`Assessment ID:         ${ASSESSMENT_ID}`);
   console.log(`Candidates (VUs):      ${MAX_VUS}`);
@@ -145,7 +144,7 @@ export default function (data) {
     sleep(arrivalStaggerSec);
   }
 
-  const candidateEmail = generateCandidateEmail(`access-d1-vu${vuId}`, vuId);
+  const candidateEmail = generateCandidateEmail(`d2-t1-vu${vuId}`, vuId);
   let failed = false;
 
   // 1. Candidate Registration & Authentication
@@ -154,7 +153,7 @@ export default function (data) {
     JSON.stringify({
       email: candidateEmail,
       password: SIGNUP_PASSWORD,
-      fullName: `Access Candidate VU${vuId}`,
+      fullName: `Day2 Access Candidate VU${vuId}`,
       referralCode: REFERRAL_CODE,
     }),
     { headers: getHeaders(), tags: { endpoint: "signup" }, timeout: "60s" }
@@ -192,7 +191,7 @@ export default function (data) {
   }
 
   // -------------------------------------------------------------
-  // Test 4 Core Concurrent APIs with 500 active candidates
+  // Test 1: Simultaneous Assessment Access Flows
   // -------------------------------------------------------------
 
   // A. Assessment Fetch (GET /tests/:id)
@@ -208,8 +207,10 @@ export default function (data) {
   trackStatus(fetchRes, "assessment_fetch");
 
   let sections = null;
+  let testStatus = null;
   try {
     sections = fetchRes.json("data.sections");
+    testStatus = fetchRes.json("data.status") || fetchRes.json("data.testInstance.status");
   } catch (_) {}
 
   const fetchOk = check(fetchRes, {
@@ -219,59 +220,14 @@ export default function (data) {
   if (fetchOk) fetchSuccess.add(1);
   else failed = true;
 
-  const targetQuestionId = sections?.[0]?.questions?.[0]?.questionId || "sample-q1";
-  const answerChoice = ["A", "B", "C", "D"][vuId % 4];
-
-  // B. Candidate State / Sync API (POST /tests/:id/answer)
-  const tAns0 = Date.now();
-  let ansRes = postWithRetry(
-    `${BASE_URL}/tests/${testInstanceId}/answer`,
-    JSON.stringify({
-      questionId: targetQuestionId,
-      answer: answerChoice,
-      timeSpentSeconds: 12,
-      isMarkedForReview: false,
-    }),
-    { headers: authHeaders, tags: { endpoint: "answer_autosave" }, timeout: "45s" }
-  );
-  const ansDur = Date.now() - tAns0;
-  answerDuration.add(ansDur);
-  totalAccessDuration.add(ansDur);
-  trackStatus(ansRes, "answer_autosave");
-
-  const ansOk = check(ansRes, {
-    "Answer Autosave: returns 200": (r) => r.status === 200,
+  // B. Session / Status Verification
+  const statusOk = check(fetchRes, {
+    "Status: instance is active/in_progress": () => testStatus === "IN_PROGRESS" || testStatus === "CREATED" || testStatus === "ACTIVE",
   });
-  if (ansOk) answerSuccess.add(1);
+  if (statusOk) statusSuccess.add(1);
   else failed = true;
 
-  // C. Session Status / Telemetry Heartbeat (POST /tests/:id/heartbeat)
-  const tHb0 = Date.now();
-  let hbRes = postWithRetry(
-    `${BASE_URL}/tests/${testInstanceId}/heartbeat`,
-    JSON.stringify({
-      currentSectionIndex: 0,
-      currentQuestionIndex: 0,
-      answeredCount: 1,
-      totalQuestions: 60,
-      remainingTimeSeconds: 7200,
-      networkStatus: "ONLINE",
-      autosaveHealth: "HEALTHY",
-    }),
-    { headers: authHeaders, tags: { endpoint: "telemetry_heartbeat" }, timeout: "45s" }
-  );
-  const hbDur = Date.now() - tHb0;
-  heartbeatDuration.add(hbDur);
-  totalAccessDuration.add(hbDur);
-  trackStatus(hbRes, "telemetry_heartbeat");
-
-  const hbOk = check(hbRes, {
-    "Heartbeat: returns 200": (r) => r.status === 200,
-  });
-  if (hbOk) heartbeatSuccess.add(1);
-  else failed = true;
-
-  // D. Resume & State Consistency Validation (GET /tests/:id/resume)
+  // C. Resume & State Recovery (GET /tests/:id/resume)
   const tResume0 = Date.now();
   let resumeRes = getWithRetry(`${BASE_URL}/tests/${testInstanceId}/resume`, {
     headers: authHeaders,
@@ -283,15 +239,21 @@ export default function (data) {
   totalAccessDuration.add(resumeDur);
   trackStatus(resumeRes, "session_resume");
 
+  let resumeData = null;
+  try {
+    resumeData = resumeRes.json("data");
+  } catch (_) {}
+
   const resumeOk = check(resumeRes, {
     "Resume: returns 200": (r) => r.status === 200,
+    "Resume: attemptId matches": () => (resumeData?.testInstanceId || resumeData?.id) === testInstanceId,
   });
   if (resumeOk) resumeSuccess.add(1);
   else failed = true;
 
-  // Data Consistency check: verify saved answer is recorded
-  if (fetchOk && ansOk && resumeOk) {
-    dataConsistencySuccess.add(1);
+  // D. State Recovery Verification
+  if (fetchOk && statusOk && resumeOk) {
+    stateRecoverySuccess.add(1);
   }
 
   if (!failed) {
@@ -316,26 +278,24 @@ export function handleSummary(data) {
     };
   };
 
-  const attempted = getVal("day1_access_candidates_attempted");
-  const success = getVal("day1_access_candidates_success");
-  const failed = getVal("day1_access_candidates_failed");
-  const err429 = getVal("day1_access_errors_429");
-  const err4xx = getVal("day1_access_errors_4xx");
-  const err5xx = getVal("day1_access_errors_5xx");
-  const timeouts = getVal("day1_access_timeouts");
-  const resets = getVal("day1_access_resets");
-  const eof = getVal("day1_access_eof");
-  const errRate = ((data.metrics.day1_access_error_rate?.values?.rate ?? 0) * 100).toFixed(2);
+  const attempted = getVal("day2_t1_candidates_attempted");
+  const success = getVal("day2_t1_candidates_success");
+  const failed = getVal("day2_t1_candidates_failed");
+  const err429 = getVal("day2_t1_errors_429");
+  const err4xx = getVal("day2_t1_errors_4xx");
+  const err5xx = getVal("day2_t1_errors_5xx");
+  const timeouts = getVal("day2_t1_timeouts");
+  const resets = getVal("day2_t1_resets");
+  const eof = getVal("day2_t1_eof");
+  const errRate = ((data.metrics.day2_t1_error_rate?.values?.rate ?? 0) * 100).toFixed(2);
 
-  const fetchLat = getLat("day1_access_fetch_duration_ms");
-  const ansLat = getLat("day1_access_answer_duration_ms");
-  const hbLat = getLat("day1_access_heartbeat_duration_ms");
-  const resumeLat = getLat("day1_access_resume_duration_ms");
-  const totalLat = getLat("day1_access_total_duration_ms");
+  const fetchLat = getLat("day2_t1_fetch_duration_ms");
+  const resumeLat = getLat("day2_t1_resume_duration_ms");
+  const totalLat = getLat("day2_t1_total_duration_ms");
 
   const report = `
 ================================================================================
-# Qloax Day 1 - Test 4: Concurrent Assessment Access Report
+# Qloax Day 2 - Test 1: Assessment Access Report
 ================================================================================
 Generated:                  ${new Date().toISOString()}
 Target Environment:         ${BASE_URL}
@@ -355,20 +315,17 @@ Error Rate:                 ${errRate}%
 - Stream EOF:               ${eof}
 
 --------------------------------------------------------------------------------
-## 2. Concurrent Assessment Operations
-- Assessment Fetch:         ${getVal("day1_access_fetch_success")} / ${attempted}
-- Answer Autosave:          ${getVal("day1_access_answer_success")} / ${attempted}
-- Telemetry Heartbeat:      ${getVal("day1_access_heartbeat_success")} / ${attempted}
-- Session Resume:           ${getVal("day1_access_resume_success")} / ${attempted}
-- Data Consistency:         ${getVal("day1_access_data_consistency_success")} / ${attempted}
+## 2. Assessment Access Operations
+- Assessment Fetch:         ${getVal("day2_t1_fetch_success")} / ${attempted}
+- Session Status Check:     ${getVal("day2_t1_status_success")} / ${attempted}
+- Session Resume:           ${getVal("day2_t1_resume_success")} / ${attempted}
+- State Recovery Success:   ${getVal("day2_t1_state_recovery_success")} / ${attempted}
 
 --------------------------------------------------------------------------------
 ## 3. Latency Distribution
 | Flow / Endpoint            | p50      | p95      | p99      | Max      | Avg      |
 |----------------------------|----------|----------|----------|----------|----------|
 | Assessment Fetch (/tests/id)| ${fetchLat.med.padEnd(8)} | ${fetchLat.p95.padEnd(8)} | ${fetchLat.p99.padEnd(8)} | ${fetchLat.max.padEnd(8)} | ${fetchLat.avg.padEnd(8)} |
-| Answer Autosave (/answer)  | ${ansLat.med.padEnd(8)} | ${ansLat.p95.padEnd(8)} | ${ansLat.p99.padEnd(8)} | ${ansLat.max.padEnd(8)} | ${ansLat.avg.padEnd(8)} |
-| Telemetry Heartbeat (/hb)  | ${hbLat.med.padEnd(8)} | ${hbLat.p95.padEnd(8)} | ${hbLat.p99.padEnd(8)} | ${hbLat.max.padEnd(8)} | ${hbLat.avg.padEnd(8)} |
 | Session Resume (/resume)   | ${resumeLat.med.padEnd(8)} | ${resumeLat.p95.padEnd(8)} | ${resumeLat.p99.padEnd(8)} | ${resumeLat.max.padEnd(8)} | ${resumeLat.avg.padEnd(8)} |
 | Combined In-Exam Access    | ${totalLat.med.padEnd(8)} | ${totalLat.p95.padEnd(8)} | ${totalLat.p99.padEnd(8)} | ${totalLat.max.padEnd(8)} | ${totalLat.avg.padEnd(8)} |
 ================================================================================
@@ -376,6 +333,6 @@ Error Rate:                 ${errRate}%
 
   return {
     stdout: report,
-    "load-tests/reports/day1-test4-concurrent-access-report.md": report,
+    "load-tests/reports/day2-test1-assessment-access-report.md": report,
   };
 }

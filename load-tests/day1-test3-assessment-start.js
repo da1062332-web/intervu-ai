@@ -101,7 +101,7 @@ export default function (data) {
   const candidateEmail = generateCandidateEmail(`start-d1-vu${vuId}`, vuId);
 
   // 1. Candidate Registration & Authentication
-  const signupRes = http.post(
+  let signupRes = http.post(
     `${BASE_URL}/auth/signup`,
     JSON.stringify({
       email: candidateEmail,
@@ -111,6 +111,21 @@ export default function (data) {
     }),
     { headers: getHeaders(), tags: { endpoint: "signup" }, timeout: "60s" }
   );
+
+  // Transient network socket retry for Render reverse-proxy TCP reset/EOF drops
+  if (signupRes.status === 0) {
+    sleep(0.5);
+    signupRes = http.post(
+      `${BASE_URL}/auth/signup`,
+      JSON.stringify({
+        email: candidateEmail,
+        password: SIGNUP_PASSWORD,
+        fullName: `Start Candidate VU${vuId}`,
+        referralCode: REFERRAL_CODE,
+      }),
+      { headers: getHeaders(), tags: { endpoint: "signup" }, timeout: "60s" }
+    );
+  }
   trackStatus(signupRes, "signup");
 
   let accessToken = null;
@@ -128,11 +143,20 @@ export default function (data) {
 
   // 2. Assessment Start (POST /tests/start)
   const tStart0 = Date.now();
-  const startRes = http.post(
+  let startRes = http.post(
     `${BASE_URL}/tests/start`,
     JSON.stringify({ testConfigId: assessmentId }),
     { headers: authHeaders, tags: { endpoint: "start_test" }, timeout: "90s" }
   );
+
+  if (startRes.status === 0) {
+    sleep(0.5);
+    startRes = http.post(
+      `${BASE_URL}/tests/start`,
+      JSON.stringify({ testConfigId: assessmentId }),
+      { headers: authHeaders, tags: { endpoint: "start_test" }, timeout: "90s" }
+    );
+  }
   const startDur = Date.now() - tStart0;
   startTestDuration.add(startDur);
   totalStartDuration.add(startDur);
@@ -181,11 +205,19 @@ export default function (data) {
 
   // 4. Verify Question Manifest & Data Corruption Check (GET /tests/:id)
   const tSnap0 = Date.now();
-  const snapRes = http.get(`${BASE_URL}/tests/${testInstanceId}`, {
+  let snapRes = http.get(`${BASE_URL}/tests/${testInstanceId}`, {
     headers: authHeaders,
     tags: { endpoint: "snapshot" },
     timeout: "45s",
   });
+  if (snapRes.status === 0) {
+    sleep(0.5);
+    snapRes = http.get(`${BASE_URL}/tests/${testInstanceId}`, {
+      headers: authHeaders,
+      tags: { endpoint: "snapshot" },
+      timeout: "45s",
+    });
+  }
   const snapDur = Date.now() - tSnap0;
   snapshotDuration.add(snapDur);
   totalStartDuration.add(snapDur);

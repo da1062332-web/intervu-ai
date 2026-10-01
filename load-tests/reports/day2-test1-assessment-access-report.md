@@ -1,8 +1,8 @@
 
 ================================================================================
-# Qloax Day 1 - Test 3: Assessment Start Report
+# Qloax Day 2 - Test 1: Assessment Access Report
 ================================================================================
-Generated:                  2026-09-29T10:19:04.203Z
+Generated:                  2026-09-30T06:12:05.706Z
 Target Environment:         https://skillitrix.onrender.com/api/v1
 Assessment ID:              cmsifafam000099s9csfe33pg
 Candidates Attempted:       500
@@ -20,16 +20,17 @@ Error Rate:                 0.00%
 - Stream EOF:               0
 
 --------------------------------------------------------------------------------
-## 2. Assessment Start & Data Integrity Verification
-- Assessment Starts:        500 / 500
-- No Duplicate Sessions:    500 / 500
-- Zero Data Corruption:     500 / 500
+## 2. Assessment Access Operations
+- Assessment Fetch:         500 / 500
+- Session Status Check:     500 / 500
+- Session Resume:           500 / 500
+- State Recovery Success:   500 / 500
 
 --------------------------------------------------------------------------------
 ## 3. Latency Distribution
 | Flow / Endpoint            | p50      | p95      | p99      | Max      | Avg      |
 |----------------------------|----------|----------|----------|----------|----------|
-| Assessment Start (/start)  | 6400ms   | 6991ms   | 0ms      | 9497ms   | 6449ms   |
-| Snapshot Load (/tests/:id) | 2036ms   | 2490ms   | 0ms      | 6881ms   | 2115ms   |
-| Total Provisioning Latency | 5062ms   | 6774ms   | 0ms      | 9497ms   | 4282ms   |
+| Assessment Fetch (/tests/id)| 2055ms   | 2692ms   | 0ms      | 5469ms   | 2143ms   |
+| Session Resume (/resume)   | 1114ms   | 1361ms   | 0ms      | 3495ms   | 1161ms   |
+| Combined In-Exam Access    | 1812ms   | 2379ms   | 0ms      | 5469ms   | 1652ms   |
 ================================================================================
