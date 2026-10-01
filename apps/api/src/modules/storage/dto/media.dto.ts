@@ -28,6 +28,26 @@ export class UploadImageDto {
   @IsString()
   @IsOptional()
   altText?: string;
+
+  @ApiPropertyOptional({ example: 'questions/figure-series' })
+  @IsString()
+  @IsOptional()
+  folder?: string;
+
+  @ApiPropertyOptional({ example: 'vr-top-001' })
+  @IsString()
+  @IsOptional()
+  topicId?: string;
+
+  @ApiPropertyOptional({ example: 'figure-series' })
+  @IsString()
+  @IsOptional()
+  topicSlug?: string;
+
+  @ApiPropertyOptional({ example: 'Figure Series' })
+  @IsString()
+  @IsOptional()
+  topicName?: string;
 }
 
 export class ListMediaQueryDto {

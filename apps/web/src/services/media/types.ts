@@ -42,3 +42,13 @@ export interface RichMcqOption {
   mediaUrl: string | null;
   svgCode?: string | null;
 }
+
+export interface UploadImageOptions {
+  altText?: string;
+  folder?: string;
+  topicId?: string;
+  topicSlug?: string;
+  topicName?: string;
+}
+
+

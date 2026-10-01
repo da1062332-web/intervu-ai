@@ -20,10 +20,16 @@ export interface RichOptionState {
 interface McqEditorProps {
   index: number;
   disabled?: boolean;
+  topicId?: string;
+  topicSlug?: string;
+  topicName?: string;
+  folder?: string;
 }
 
-export function McqEditor({ index, disabled }: McqEditorProps) {
+export function McqEditor({ index, disabled, topicId: propTopicId, topicSlug, topicName, folder }: McqEditorProps) {
   const { register, watch, setValue } = useFormContext();
+  const contextTopicId = watch('topicId') || watch(`questions.${index}.topicId`);
+  const effectiveTopicId = propTopicId || contextTopicId;
 
   const { field: richOptionsField } = useController({
     name: `questions.${index}.richOptions`,
@@ -238,6 +244,10 @@ export function McqEditor({ index, disabled }: McqEditorProps) {
             <ImageUploader
               onUploaded={(asset) => handleImageSelect(uploaderOptIdx, asset)}
               disabled={disabled}
+              topicId={effectiveTopicId}
+              topicSlug={topicSlug}
+              topicName={topicName}
+              folder={folder}
             />
           )}
         </div>

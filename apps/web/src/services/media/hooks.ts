@@ -14,8 +14,22 @@ export const useUploadImage = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ file, altText }: { file: File; altText?: string }) => 
-      mediaApi.uploadImage(file, altText),
+    mutationFn: ({
+      file,
+      altText,
+      folder,
+      topicId,
+      topicSlug,
+      topicName,
+    }: {
+      file: File;
+      altText?: string;
+      folder?: string;
+      topicId?: string;
+      topicSlug?: string;
+      topicName?: string;
+    }) =>
+      mediaApi.uploadImage(file, { altText, folder, topicId, topicSlug, topicName }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mediaKeys.lists() });
     },
