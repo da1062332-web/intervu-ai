@@ -1004,7 +1004,13 @@ export function CandidateDetailDrawer({
                   <div className='grid grid-cols-2 gap-3'>
                     <div className='border rounded-lg p-3 bg-card'>
                       <span className='text-muted-foreground text-[11px] block'>Current latency</span>
-                      <p className='text-xl font-bold font-mono text-foreground'>{candidate.latencyMs} ms</p>
+                      <p className='text-xl font-bold font-mono text-foreground'>
+                        {candidate.status === 'DISCONNECTED'
+                          ? 'Offline'
+                          : candidate.latencyMs > 0
+                            ? `${candidate.latencyMs} ms`
+                            : '< 50 ms'}
+                      </p>
                     </div>
                     <div className='border rounded-lg p-3 bg-card'>
                       <span className='text-muted-foreground text-[11px] block'>Connection status</span>

@@ -38,6 +38,11 @@ export function useLiveTelemetry(testInstanceId?: string) {
           (a) => a.status === 'MARKED_FOR_REVIEW',
         ).length;
 
+        const currentPing =
+          typeof state.ping === 'number' && state.ping > 0
+            ? state.ping
+            : (typeof navigator !== 'undefined' && (navigator as any).connection?.rtt) || 35;
+
         const payload = {
           currentSectionKey,
           currentSectionIndex: state.currentSectionIndex,
@@ -47,7 +52,7 @@ export function useLiveTelemetry(testInstanceId?: string) {
           totalQuestions,
           markedQuestionsCount: markedCount,
           remainingTimeSeconds: state.remainingTime,
-          latencyMs: state.ping || 40,
+          latencyMs: currentPing,
           networkStatus: state.connectionStatus || 'ONLINE',
           autosaveHealth:
             state.autosaveStatus === 'FAILED'
@@ -61,11 +66,16 @@ export function useLiveTelemetry(testInstanceId?: string) {
           clientTimestamp: new Date().toISOString(),
         };
 
+        const startTime = Date.now();
         const res = await apiClient.request<any>(`/tests/${testInstanceId}/heartbeat`, {
           method: 'POST',
           body: payload,
           skipErrorToast: true,
         });
+        const elapsed = Math.max(1, Date.now() - startTime);
+        if (elapsed > 0) {
+          useExecutionStore.getState().setPing(elapsed);
+        }
 
         if (res) {
           // Server-authoritative timer expiry and FORCE_SUBMIT enforcement

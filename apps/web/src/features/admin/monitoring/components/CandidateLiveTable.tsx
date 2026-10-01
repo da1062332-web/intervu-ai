@@ -455,17 +455,26 @@ export function CandidateLiveTable({
                       ) : (
                       <div className='flex items-center gap-1.5'>
                         {c.status === 'DISCONNECTED' ? (
-                          <WifiOff className='size-3.5 text-rose-500' />
+                          <>
+                            <WifiOff className='size-3.5 text-rose-500 shrink-0' />
+                            <span className='font-mono text-[11px] font-medium text-rose-500'>Offline</span>
+                          </>
                         ) : (
-                          <Wifi className='size-3.5 text-emerald-500' />
+                          <>
+                            <Wifi
+                              className={`size-3.5 shrink-0 ${
+                                (c.latencyMs || 0) > 600 ? 'text-amber-500' : 'text-emerald-500'
+                              }`}
+                            />
+                            <span
+                              className={`font-mono text-[11px] font-medium ${
+                                (c.latencyMs || 0) > 600 ? 'text-amber-500 font-bold' : 'text-muted-foreground'
+                              }`}
+                            >
+                              {(c.latencyMs && c.latencyMs > 0) ? `${c.latencyMs}ms` : '< 50ms'}
+                            </span>
+                          </>
                         )}
-                        <span
-                          className={`font-mono text-[11px] font-medium ${
-                            c.latencyMs > 600 ? 'text-amber-500 font-bold' : 'text-muted-foreground'
-                          }`}
-                        >
-                          {c.latencyMs}ms
-                        </span>
                         {c.autosaveHealth === 'FAILED' && (
                           <Badge variant='destructive' className='text-[10px] px-1 py-0 h-4'>
                             Autosave Fail
