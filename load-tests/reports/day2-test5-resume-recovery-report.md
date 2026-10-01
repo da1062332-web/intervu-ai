@@ -1,8 +1,8 @@
 
 ================================================================================
-# Qloax Day 1 - Test 3: Assessment Start Report
+# Qloax Day 2 - Test 5: Resume & Refresh Recovery Report
 ================================================================================
-Generated:                  2026-09-29T10:19:04.203Z
+Generated:                  2026-09-30T07:12:46.461Z
 Target Environment:         https://skillitrix.onrender.com/api/v1
 Assessment ID:              cmsifafam000099s9csfe33pg
 Candidates Attempted:       500
@@ -20,16 +20,17 @@ Error Rate:                 0.00%
 - Stream EOF:               0
 
 --------------------------------------------------------------------------------
-## 2. Assessment Start & Data Integrity Verification
-- Assessment Starts:        500 / 500
-- No Duplicate Sessions:    500 / 500
-- Zero Data Corruption:     500 / 500
+## 2. Resume & Refresh Recovery Operations
+- Attempt Reused (No Duplicates): 500 / 500
+- Duplicate Attempts Detected:    0 (Should be 0)
+- Answers Intact Post-Refresh:    500 / 500
+- Timer Restored Correctly:       500 / 500
+- Complete Recovery Success:      500 / 500
 
 --------------------------------------------------------------------------------
 ## 3. Latency Distribution
 | Flow / Endpoint            | p50      | p95      | p99      | Max      | Avg      |
 |----------------------------|----------|----------|----------|----------|----------|
-| Assessment Start (/start)  | 6400ms   | 6991ms   | 0ms      | 9497ms   | 6449ms   |
-| Snapshot Load (/tests/:id) | 2036ms   | 2490ms   | 0ms      | 6881ms   | 2115ms   |
-| Total Provisioning Latency | 5062ms   | 6774ms   | 0ms      | 9497ms   | 4282ms   |
+| Session Resume (/resume)   | 1449ms   | 2219ms   | 0ms      | 5349ms   | 1528ms   |
+| Total Candidate Flow       | 18418ms  | 23865ms  | 0ms      | 38829ms  | 19380ms  |
 ================================================================================

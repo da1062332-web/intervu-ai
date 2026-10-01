@@ -1,8 +1,8 @@
 
 ================================================================================
-# Qloax Day 1 - Test 3: Assessment Start Report
+# Qloax Day 2 - Test 4: Section Transitions Report
 ================================================================================
-Generated:                  2026-09-29T10:19:04.203Z
+Generated:                  2026-09-30T06:43:44.439Z
 Target Environment:         https://skillitrix.onrender.com/api/v1
 Assessment ID:              cmsifafam000099s9csfe33pg
 Candidates Attempted:       500
@@ -20,16 +20,18 @@ Error Rate:                 0.00%
 - Stream EOF:               0
 
 --------------------------------------------------------------------------------
-## 2. Assessment Start & Data Integrity Verification
-- Assessment Starts:        500 / 500
-- No Duplicate Sessions:    500 / 500
-- Zero Data Corruption:     500 / 500
+## 2. Section Transition & State Integrity Operations
+- Section Advances Attempted: 500
+- Section Advances Succeeded: 500
+- Section Advances Failed:    0
+- Pre-Advance Answers Saved:  500 / 500
+- Post-Advance Answers Saved: 500 / 500
+- Total State Integrity:      500 / 500
 
 --------------------------------------------------------------------------------
 ## 3. Latency Distribution
 | Flow / Endpoint            | p50      | p95      | p99      | Max      | Avg      |
 |----------------------------|----------|----------|----------|----------|----------|
-| Assessment Start (/start)  | 6400ms   | 6991ms   | 0ms      | 9497ms   | 6449ms   |
-| Snapshot Load (/tests/:id) | 2036ms   | 2490ms   | 0ms      | 6881ms   | 2115ms   |
-| Total Provisioning Latency | 5062ms   | 6774ms   | 0ms      | 9497ms   | 4282ms   |
+| Section Advance (/advance) | 2963ms   | 3420ms   | 0ms      | 12920ms  | 3065ms   |
+| Total Candidate Flow       | 268000ms | 521506ms | 0ms      | 533747ms | 270113ms |
 ================================================================================

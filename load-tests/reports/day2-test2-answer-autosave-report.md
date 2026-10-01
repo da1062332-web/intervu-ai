@@ -1,8 +1,8 @@
 
 ================================================================================
-# Qloax Day 1 - Test 3: Assessment Start Report
+# Qloax Day 2 - Test 2: Answer Autosave Report
 ================================================================================
-Generated:                  2026-09-29T10:19:04.203Z
+Generated:                  2026-09-30T06:22:41.082Z
 Target Environment:         https://skillitrix.onrender.com/api/v1
 Assessment ID:              cmsifafam000099s9csfe33pg
 Candidates Attempted:       500
@@ -20,16 +20,16 @@ Error Rate:                 0.00%
 - Stream EOF:               0
 
 --------------------------------------------------------------------------------
-## 2. Assessment Start & Data Integrity Verification
-- Assessment Starts:        500 / 500
-- No Duplicate Sessions:    500 / 500
-- Zero Data Corruption:     500 / 500
+## 2. Answer Autosave Operations
+- Total Answers Attempted:  2000
+- Total Answers Persisted:  2000
+- Total Lost Answers:       0
+- Persistence Rate:         100.00%
 
 --------------------------------------------------------------------------------
 ## 3. Latency Distribution
 | Flow / Endpoint            | p50      | p95      | p99      | Max      | Avg      |
 |----------------------------|----------|----------|----------|----------|----------|
-| Assessment Start (/start)  | 6400ms   | 6991ms   | 0ms      | 9497ms   | 6449ms   |
-| Snapshot Load (/tests/:id) | 2036ms   | 2490ms   | 0ms      | 6881ms   | 2115ms   |
-| Total Provisioning Latency | 5062ms   | 6774ms   | 0ms      | 9497ms   | 4282ms   |
+| Answer Autosave (/answer)  | 548ms    | 1255ms   | 0ms      | 3886ms   | 717ms    |
+| Total Candidate Flow       | 266058ms | 490604ms | 0ms      | 515878ms | 266644ms |
 ================================================================================
