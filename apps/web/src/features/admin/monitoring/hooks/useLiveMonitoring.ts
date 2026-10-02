@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { apiClient } from '@/services/api/client';
+import { apiClient, buildUrl, getApiBaseUrl } from '@/services/api/client';
 import { normalizeApiError } from '@/services/api/error';
 import { useSessionStore } from '@/store/session.store';
 import { toast } from 'sonner';
@@ -485,8 +485,11 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
           useSessionStore.getState().accessToken ||
           localStorage.getItem('token') ||
           '';
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-        const sseUrl = `${baseUrl}/api/v1/admin/monitoring/assessments/${assessmentId}/live-stream?token=${encodeURIComponent(token)}`;
+        const sseUrl = buildUrl(
+          getApiBaseUrl(),
+          `/admin/monitoring/assessments/${assessmentId}/live-stream`,
+          token ? { token } : undefined,
+        );
 
         const es = new EventSource(sseUrl, { withCredentials: true });
         eventSourceRef.current = es;

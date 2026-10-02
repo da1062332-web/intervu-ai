@@ -70,6 +70,7 @@ export const TEST_RUN_ID = __ENV.TEST_RUN_ID || `run-qloax-500cand-${Date.now().
 // Quick Run flag for fast CI/Smoke verification
 const isQuickRun = __ENV.QUICK_RUN === "true" || __ENV.ACCELERATED === "true";
 export const isSignupOnly = __ENV.SIGNUP_ONLY === "true" || __ENV.AUTH_ONLY === "true";
+export const enableCodingRun = __ENV.ENABLE_CODING_RUN === "true";
 
 // Concurrency: Default 500 real candidates (or 5 for quick run)
 export const MAX_VUS = Number(__ENV.MAX_VUS) || (isQuickRun ? 5 : 500);
@@ -508,36 +509,40 @@ export default function (data) {
       codingInteractionsCount++;
       const codingQuestionId = codingTarget.questionId;
 
-      // Phase 1: Draft initial code implementation
-      const initialPythonCode = codingTarget.starterCode || `def solution(arr, k):\n    # Candidate iteration ${codingInteractionsCount}\n    if not arr: return 0\n    return sum(arr[:k])\n`;
+      // Phase 1: Draft initial code implementation (Optional interactive execution if Judge0 is active)
+      const initialPythonCode = typeof codingTarget.starterCode === "string"
+        ? codingTarget.starterCode
+        : (codingTarget.starterCode?.python || `def matrixDiagonalSums(mat):\n    # Candidate iteration ${codingInteractionsCount}\n    return sum(1 for x in mat if x)\n`);
 
-      const tRun0 = Date.now();
-      const runRes1 = httpPostWithRetry(
-        `${BASE_URL}/coding/run`,
-        JSON.stringify({
-          questionId: codingQuestionId,
-          testInstanceId,
-          code: initialPythonCode,
-          language: "python",
-        }),
-        { headers: authHeaders, tags: { endpoint: "coding_run" }, timeout: "45s" },
-        "coding_run",
-        2
-      );
-      metrics.codingRunLatency.add(Date.now() - tRun0);
-      metrics.codingRunsExecuted.add(1);
+      if (enableCodingRun) {
+        const tRun0 = Date.now();
+        const runRes1 = httpPostWithRetry(
+          `${BASE_URL}/coding/run`,
+          JSON.stringify({
+            questionId: codingQuestionId,
+            testInstanceId,
+            code: initialPythonCode,
+            language: "python",
+          }),
+          { headers: authHeaders, tags: { endpoint: "coding_run" }, timeout: "45s" },
+          "coding_run",
+          2
+        );
+        metrics.codingRunLatency.add(Date.now() - tRun0);
+        metrics.codingRunsExecuted.add(1);
 
-      if (runRes1.status === 503) {
-        metrics.codingCapacityRejections.add(1);
-      } else if (runRes1.status !== 200) {
-        metrics.codingExecFailures.add(1);
+        if (runRes1.status === 503) {
+          metrics.codingCapacityRejections.add(1);
+        } else if (runRes1.status !== 200) {
+          metrics.codingExecFailures.add(1);
+        }
       }
 
-      // Simulate candidate thinking & debugging code (5-10s)
+      // Simulate candidate thinking & writing code (5-10s)
       sleep(isQuickRun ? 1 : 6);
 
-      // Phase 2: Modify & refine solution code
-      const modifiedPythonCode = `def solution(arr, k):\n    # Optimized window logic\n    if not arr or k <= 0: return 0\n    k = min(k, len(arr))\n    curr = sum(arr[:k])\n    res = curr\n    for i in range(k, len(arr)):\n        curr += arr[i] - arr[i-k]\n        if curr > res: res = curr\n    return res\n`;
+      // Phase 2: Modify & refine solution code -> Persist answer in DB (Always active!)
+      const modifiedPythonCode = `def matrixDiagonalSums(mat):\n    # Refined matrix diagonal calculation\n    n = len(mat)\n    total = 0\n    for i in range(n):\n        total += mat[i][i]\n        if i != n - 1 - i:\n            total += mat[i][n - 1 - i]\n    return total\n`;
 
       // Autosave modified code answer
       const codeAnswerPayload = JSON.stringify({
@@ -559,40 +564,41 @@ export default function (data) {
       metrics.answersAutosaved.add(1);
       candidateSavedAnswers.set(codingQuestionId, JSON.stringify({ code: modifiedPythonCode, language: "python" }));
 
-      // Phase 3: Re-run public test cases
-      const runRes2 = httpPostWithRetry(
-        `${BASE_URL}/coding/run`,
-        JSON.stringify({
-          questionId: codingQuestionId,
-          testInstanceId,
-          code: modifiedPythonCode,
-          language: "python",
-        }),
-        { headers: authHeaders, tags: { endpoint: "coding_run" }, timeout: "45s" },
-        "coding_run",
-        2
-      );
-      metrics.codingRunsExecuted.add(1);
-      if (runRes2.status === 503) metrics.codingCapacityRejections.add(1);
+      // Phase 3 & 4: Re-run & full suite submit (if Judge0 is active)
+      if (enableCodingRun) {
+        const runRes2 = httpPostWithRetry(
+          `${BASE_URL}/coding/run`,
+          JSON.stringify({
+            questionId: codingQuestionId,
+            testInstanceId,
+            code: modifiedPythonCode,
+            language: "python",
+          }),
+          { headers: authHeaders, tags: { endpoint: "coding_run" }, timeout: "45s" },
+          "coding_run",
+          2
+        );
+        metrics.codingRunsExecuted.add(1);
+        if (runRes2.status === 503) metrics.codingCapacityRejections.add(1);
 
-      // Phase 4: Full coding test suite submission
-      const tSubmitCode0 = Date.now();
-      const submitCodeRes = httpPostWithRetry(
-        `${BASE_URL}/coding/submit`,
-        JSON.stringify({
-          questionId: codingQuestionId,
-          testInstanceId,
-          code: modifiedPythonCode,
-          language: "python",
-        }),
-        { headers: authHeaders, tags: { endpoint: "coding_submit" }, timeout: "120s" },
-        "coding_submit",
-        2
-      );
-      metrics.codingSubmitLatency.add(Date.now() - tSubmitCode0);
-      metrics.codingSubmitsExecuted.add(1);
-      if (submitCodeRes.status === 503) metrics.codingCapacityRejections.add(1);
-      else if (submitCodeRes.status !== 200) metrics.codingExecFailures.add(1);
+        const tSubmitCode0 = Date.now();
+        const submitCodeRes = httpPostWithRetry(
+          `${BASE_URL}/coding/submit`,
+          JSON.stringify({
+            questionId: codingQuestionId,
+            testInstanceId,
+            code: modifiedPythonCode,
+            language: "python",
+          }),
+          { headers: authHeaders, tags: { endpoint: "coding_submit" }, timeout: "120s" },
+          "coding_submit",
+          2
+        );
+        metrics.codingSubmitLatency.add(Date.now() - tSubmitCode0);
+        metrics.codingSubmitsExecuted.add(1);
+        if (submitCodeRes.status === 503) metrics.codingCapacityRejections.add(1);
+        else if (submitCodeRes.status !== 200) metrics.codingExecFailures.add(1);
+      }
     }
 
     // C. MCQ Question Answering & Revising Answers

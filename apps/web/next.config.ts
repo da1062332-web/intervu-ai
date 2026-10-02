@@ -3,7 +3,14 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   compress: true,
-  allowedDevOrigins: ['172.16.0.2', 'localhost'],
+  allowedDevOrigins: [
+    '172.16.0.2',
+    'localhost',
+    '127.0.0.1',
+    'app.skillitrix.com',
+    'skillitrix.com',
+    '*.skillitrix.com',
+  ],
   experimental: {
     optimizePackageImports: [
       '@intervu/shared',

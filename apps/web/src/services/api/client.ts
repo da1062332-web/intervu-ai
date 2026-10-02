@@ -40,7 +40,20 @@ type ResponseInterceptor = (
 
 const API_PREFIX = '/api/v1';
 
-const DEFAULT_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+export function getApiBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host.includes('skillitrix.com') || host.includes('vercel.app')) {
+      return 'https://skillitrix.onrender.com';
+    }
+  }
+  return 'http://localhost:4000';
+}
+
+const DEFAULT_BASE_URL = getApiBaseUrl();
 
 const apiAuthHooks: Partial<AuthClientHooks> = {};
 
@@ -58,8 +71,8 @@ function isApiSuccess<TData>(payload: unknown): payload is ApiSuccessResponse<TD
   return maybeResponse.success === true;
 }
 
-function buildUrl(baseUrl: string, path: string, query?: Record<string, QueryValue>): string {
-  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+export function buildUrl(baseUrl: string, path: string, query?: Record<string, QueryValue>): string {
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl || getApiBaseUrl());
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   const url = new URL(`${API_PREFIX}${normalizedPath}`, normalizedBaseUrl);
 
@@ -85,7 +98,7 @@ function buildUrl(baseUrl: string, path: string, query?: Record<string, QueryVal
   return url.toString();
 }
 
-function normalizeBaseUrl(baseUrl: string): string {
+export function normalizeBaseUrl(baseUrl: string): string {
   const parsed = new URL(baseUrl);
   const pathname = parsed.pathname.replace(/\/$/, '');
 
