@@ -207,6 +207,26 @@ export class QueryCandidatesDto {
   endDate?: string;
 }
 
+export class MonitoringOverviewQueryDto {
+  @ApiPropertyOptional({
+    description: "Date filter: 'today', 'yesterday', 'custom', or 'all'",
+    default: "today",
+  })
+  @IsOptional()
+  @IsString()
+  dateFilter?: "today" | "yesterday" | "custom" | "all";
+
+  @ApiPropertyOptional({ description: "Start date (ISO or YYYY-MM-DD) for custom filter" })
+  @IsOptional()
+  @IsString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ description: "End date (ISO or YYYY-MM-DD) for custom filter" })
+  @IsOptional()
+  @IsString()
+  endDate?: string;
+}
+
 export class BulkExtendTimeDto {
   @ApiProperty({ description: "Array of attempt IDs to extend time for", type: [String] })
   @IsArray()

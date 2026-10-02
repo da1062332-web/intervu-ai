@@ -162,7 +162,7 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
       if (opts.sortOrder) queryParams.set('sortOrder', opts.sortOrder);
       if (opts.page) queryParams.set('page', String(opts.page));
       if (opts.limit) queryParams.set('limit', String(opts.limit));
-      if (opts.dateFilter && opts.dateFilter !== 'all') queryParams.set('dateFilter', opts.dateFilter);
+      if (opts.dateFilter) queryParams.set('dateFilter', opts.dateFilter);
       if (opts.startDate) queryParams.set('startDate', opts.startDate);
       if (opts.endDate) queryParams.set('endDate', opts.endDate);
 

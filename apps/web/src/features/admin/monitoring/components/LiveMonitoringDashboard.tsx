@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Activity, RefreshCw, ArrowLeft, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useLiveMonitoring, CandidateItem } from '../hooks/useLiveMonitoring';
 import { SystemHealthRibbon } from './SystemHealthRibbon';
 import { NeedsAttentionQueue } from './NeedsAttentionQueue';
@@ -26,12 +27,19 @@ interface LiveMonitoringDashboardProps {
 export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMonitoringDashboardProps) {
   const isGlobalAll = assessmentId === 'all';
   const shortId = assessmentId.length > 10 ? `${assessmentId.slice(0, 8)}…` : assessmentId;
+  const searchParams = useSearchParams();
+  const paramDate = searchParams?.get('dateFilter') as 'today' | 'yesterday' | 'custom' | 'all' | null;
+  const initialDateFilter: 'today' | 'yesterday' | 'custom' | 'all' =
+    paramDate && ['today', 'yesterday', 'custom', 'all'].includes(paramDate) ? paramDate : 'today';
+  const initialStartDate = searchParams?.get('startDate') || '';
+  const initialEndDate = searchParams?.get('endDate') || '';
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [attentionOnly, setAttentionOnly] = useState(false);
-  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'custom' | 'all'>('today');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'custom' | 'all'>(initialDateFilter);
+  const [startDate, setStartDate] = useState(initialStartDate);
+  const [endDate, setEndDate] = useState(initialEndDate);
   const [page, setPage] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);

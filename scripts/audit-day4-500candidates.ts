@@ -42,14 +42,18 @@ export async function auditDay4Candidates() {
   console.log(`Candidate answers persisted in DB: ${totalAnswers}`);
 
   // Coding answers persisted
-  const codingAnswers = await prisma.candidateAnswer.findMany({
-    where: {
-      testInstanceId: { in: instanceIds },
-      answer: { contains: 'matrixDiagonalSums' }
-    },
-    select: { id: true }
-  });
-  console.log(`Coding solutions autosaved: ${codingAnswers.length}`);
+  let codingAnswersCount = 0;
+  if (instanceIds.length > 0) {
+    const allAnswers = await prisma.candidateAnswer.findMany({
+      where: { testInstanceId: { in: instanceIds } },
+      select: { answer: true }
+    });
+    codingAnswersCount = allAnswers.filter(a => {
+      const str = typeof a.answer === 'string' ? a.answer : JSON.stringify(a.answer || {});
+      return str.includes('matrixDiagonalSums');
+    }).length;
+  }
+  console.log(`Coding solutions autosaved: ${codingAnswersCount}`);
 
   // 4. Duplicate Session Audit
   const userInstanceMap = new Map<string, number>();
@@ -77,16 +81,16 @@ export async function auditDay4Candidates() {
       testInstanceId: true,
       status: true,
       submittedAt: true,
-      evaluation: true
+      isAutoSubmit: true
     }
   });
   console.log(`Total submissions recorded: ${submissions.length}`);
 
-  const evaluations = await prisma.evaluation.findMany({
-    where: { testInstanceId: { in: instanceIds } },
-    select: { id: true, status: true, totalScore: true }
+  const candidateResults = await prisma.candidateResult.findMany({
+    where: { attemptId: { in: instanceIds } },
+    select: { id: true, score: true, percentage: true, qualification: true }
   });
-  console.log(`Total evaluations generated: ${evaluations.length}`);
+  console.log(`Total candidate results generated: ${candidateResults.length}`);
 
   // 7. Platform Real Users Safety Check
   const realUsers = await prisma.user.count({
@@ -101,10 +105,10 @@ export async function auditDay4Candidates() {
     instancesCount: instances.length,
     statusCounts,
     totalAnswers,
-    codingAnswersCount: codingAnswers.length,
+    codingAnswersCount,
     duplicateSessions,
     submissionsCount: submissions.length,
-    evaluationsCount: evaluations.length,
+    resultsCount: candidateResults.length,
     realUsers
   };
 }

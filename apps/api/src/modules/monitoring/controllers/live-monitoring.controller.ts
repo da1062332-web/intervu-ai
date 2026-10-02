@@ -37,6 +37,7 @@ import {
   BulkRecoverDto,
   BulkForceSubmitDto,
   BulkDeleteDto,
+  MonitoringOverviewQueryDto,
 } from "../dto/monitoring.dto";
 import { PrismaService } from "../../../prisma/prisma.service";
 
@@ -56,7 +57,34 @@ export class LiveMonitoringController {
 
   @Get("overview")
   @ApiOperation({ summary: "Overview of all active assessments and system monitoring" })
-  async getMonitoringOverview() {
+  async getMonitoringOverview(@Query() query: MonitoringOverviewQueryDto) {
+    const filter = query?.dateFilter || "today";
+    let dateStart: Date | undefined;
+    let dateEnd: Date | undefined;
+
+    if (filter === "today") {
+      dateStart = new Date();
+      dateStart.setHours(0, 0, 0, 0);
+      dateEnd = new Date();
+      dateEnd.setHours(23, 59, 59, 999);
+    } else if (filter === "yesterday") {
+      dateStart = new Date();
+      dateStart.setDate(dateStart.getDate() - 1);
+      dateStart.setHours(0, 0, 0, 0);
+      dateEnd = new Date();
+      dateEnd.setDate(dateEnd.getDate() - 1);
+      dateEnd.setHours(23, 59, 59, 999);
+    } else if (filter === "custom" && (query?.startDate || query?.endDate)) {
+      if (query.startDate) {
+        dateStart = new Date(query.startDate);
+        if (query.startDate.length === 10) dateStart.setHours(0, 0, 0, 0);
+      }
+      if (query.endDate) {
+        dateEnd = new Date(query.endDate);
+        if (query.endDate.length === 10) dateEnd.setHours(23, 59, 59, 999);
+      }
+    }
+
     const [examConfigs, testConfigs] = await Promise.all([
       this.prisma.examConfig.findMany({
         where: { isArchived: false },
@@ -110,25 +138,39 @@ export class LiveMonitoringController {
 
     const assessmentIds = mappedAssessments.map((a) => a.id);
 
+    const whereClause: any = {
+      user: {
+        role: { notIn: ["ADMIN", "PLAN_MANAGER"] as any },
+      },
+    };
+
+    if (assessmentIds.length > 0) {
+      whereClause.OR = [
+        { examConfigId: { in: assessmentIds } },
+        { testConfigId: { in: assessmentIds } },
+      ];
+    }
+
+    if (dateStart || dateEnd) {
+      whereClause.createdAt = {};
+      if (dateStart) whereClause.createdAt.gte = dateStart;
+      if (dateEnd) whereClause.createdAt.lte = dateEnd;
+    }
+
     const activeAttemptsCounts =
       assessmentIds.length > 0
         ? await this.prisma.testInstance.groupBy({
             by: ["examConfigId", "testConfigId", "status"],
-            where: {
-              OR: [
-                { examConfigId: { in: assessmentIds } },
-                { testConfigId: { in: assessmentIds } },
-              ],
-              user: {
-                role: { notIn: ["ADMIN", "PLAN_MANAGER"] as any },
-              },
-            },
+            where: whereClause,
             _count: { id: true },
           })
         : [];
 
     return {
       timestamp: new Date().toISOString(),
+      dateFilter: filter,
+      startDate: dateStart?.toISOString(),
+      endDate: dateEnd?.toISOString(),
       assessments: mappedAssessments.map((a) => {
         const counts = activeAttemptsCounts.filter(
           (c) => c.examConfigId === a.id || c.testConfigId === a.id,
