@@ -1752,6 +1752,7 @@ enum GenerationStrategy {
   HYBRID
   CODING_PATTERN
   MANUAL
+  SVG
 }
 
 enum QuestionGenerationJobStatus {

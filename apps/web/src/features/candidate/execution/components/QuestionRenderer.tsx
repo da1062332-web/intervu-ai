@@ -97,6 +97,7 @@ export function QuestionRenderer() {
     }
   }
 
+  const qAny: any = currentQuestion;
   let parsedInstructions: any = null;
   if (currentQuestion.instructions) {
     if (typeof currentQuestion.instructions === 'string') {
@@ -260,9 +261,39 @@ export function QuestionRenderer() {
             selectedOptionId === (typeof option === 'object' ? option?.id : null);
 
           const optMediaUrl =
-            typeof option === 'object' && option !== null
-              ? option.mediaUrl || option.url || option.media?.url || option.image || null
-              : null;
+            (typeof option === 'object' && option !== null
+              ? option.imageUrl ||
+                option.mediaUrl ||
+                option.url ||
+                option.image ||
+                option.src ||
+                option.attachmentUrl ||
+                option.media?.url ||
+                option.media?.mediaUrl ||
+                option.media?.imageUrl ||
+                null
+              : null) ||
+            qAny?.attachments?.optionsImages?.find?.(
+              (oi: any) =>
+                oi?.label?.toUpperCase?.() === letter ||
+                oi?.key?.toUpperCase?.() === letter ||
+                oi?.label === String(index)
+            )?.url ||
+            qAny?.questionSnapshot?.attachments?.optionsImages?.find?.(
+              (oi: any) =>
+                oi?.label?.toUpperCase?.() === letter ||
+                oi?.key?.toUpperCase?.() === letter ||
+                oi?.label === String(index)
+            )?.url ||
+            qAny?.mcqData?.options?.[index]?.imageUrl ||
+            qAny?.mcqData?.options?.[index]?.url ||
+            qAny?.mcqData?.options?.[index]?.mediaUrl ||
+            qAny?.questionSnapshot?.mcqData?.options?.[index]?.imageUrl ||
+            qAny?.questionSnapshot?.mcqData?.options?.[index]?.url ||
+            qAny?.questionSnapshot?.mcqData?.options?.[index]?.mediaUrl ||
+            qAny?.questionSnapshot?.config?.richOptions?.[index]?.url ||
+            qAny?.questionSnapshot?.config?.richOptions?.[index]?.mediaUrl ||
+            null;
 
           const optSvgCode =
             typeof option === 'object' && option !== null
@@ -274,17 +305,33 @@ export function QuestionRenderer() {
                 option.media?.content ||
                 (typeof option.text === 'string' && option.text.includes('<svg') ? option.text : null) ||
                 (typeof option.value === 'string' && option.value.includes('<svg') ? option.value : null) ||
-                (typeof option.content === 'string' && option.content.includes('<svg') ? option.content : null)
+                (typeof option.content === 'string' && option.content.includes('<svg') ? option.content : null) ||
+                qAny?.attachments?.optionsSvgs?.[index] ||
+                qAny?.questionSnapshot?.attachments?.optionsSvgs?.[index] ||
+                null
               : typeof option === 'string' && option.includes('<svg')
                 ? option
                 : null;
 
-          const isDiagramOnly =
+          const isExplicitDiagramOnly =
             option?.mode === 'diagram-only' ||
             option?.mode === 'svg-code' ||
-            Boolean(optSvgCode) ||
-            (Boolean(optMediaUrl) &&
-              (!optText.trim() || optText.trim() === letter || optText.trim() === letter.toLowerCase()));
+            qAny?.optionsMode === 'diagram-only' ||
+            qAny?.mcqData?.optionsMode === 'diagram-only' ||
+            qAny?.questionSnapshot?.optionsMode === 'diagram-only' ||
+            qAny?.questionSnapshot?.mcqData?.optionsMode === 'diagram-only' ||
+            qAny?.questionSnapshot?.config?.optionsMode === 'diagram-only';
+
+          const hasVisualMedia = Boolean(optSvgCode || optMediaUrl);
+          const isDiagramOnly = isExplicitDiagramOnly
+            ? hasVisualMedia
+            : Boolean(
+                hasVisualMedia &&
+                  (!optText.trim() ||
+                    optText.trim().toLowerCase() === letter.toLowerCase() ||
+                    optText.trim().toLowerCase() === `option ${letter.toLowerCase()}` ||
+                    optText.trim().toLowerCase() === `figure ${letter.toLowerCase()}`)
+              );
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
@@ -379,9 +426,39 @@ export function QuestionRenderer() {
             (typeof option === 'object' && option?.id && selectedOptionIds.includes(option.id));
 
           const optMediaUrl =
-            typeof option === 'object' && option !== null
-              ? option.mediaUrl || option.url || option.media?.url || option.image || null
-              : null;
+            (typeof option === 'object' && option !== null
+              ? option.imageUrl ||
+                option.mediaUrl ||
+                option.url ||
+                option.image ||
+                option.src ||
+                option.attachmentUrl ||
+                option.media?.url ||
+                option.media?.mediaUrl ||
+                option.media?.imageUrl ||
+                null
+              : null) ||
+            qAny?.attachments?.optionsImages?.find?.(
+              (oi: any) =>
+                oi?.label?.toUpperCase?.() === letter ||
+                oi?.key?.toUpperCase?.() === letter ||
+                oi?.label === String(index)
+            )?.url ||
+            qAny?.questionSnapshot?.attachments?.optionsImages?.find?.(
+              (oi: any) =>
+                oi?.label?.toUpperCase?.() === letter ||
+                oi?.key?.toUpperCase?.() === letter ||
+                oi?.label === String(index)
+            )?.url ||
+            qAny?.mcqData?.options?.[index]?.imageUrl ||
+            qAny?.mcqData?.options?.[index]?.url ||
+            qAny?.mcqData?.options?.[index]?.mediaUrl ||
+            qAny?.questionSnapshot?.mcqData?.options?.[index]?.imageUrl ||
+            qAny?.questionSnapshot?.mcqData?.options?.[index]?.url ||
+            qAny?.questionSnapshot?.mcqData?.options?.[index]?.mediaUrl ||
+            qAny?.questionSnapshot?.config?.richOptions?.[index]?.url ||
+            qAny?.questionSnapshot?.config?.richOptions?.[index]?.mediaUrl ||
+            null;
 
           const optSvgCode =
             typeof option === 'object' && option !== null
@@ -393,17 +470,33 @@ export function QuestionRenderer() {
                 option.media?.content ||
                 (typeof option.text === 'string' && option.text.includes('<svg') ? option.text : null) ||
                 (typeof option.value === 'string' && option.value.includes('<svg') ? option.value : null) ||
-                (typeof option.content === 'string' && option.content.includes('<svg') ? option.content : null)
+                (typeof option.content === 'string' && option.content.includes('<svg') ? option.content : null) ||
+                qAny?.attachments?.optionsSvgs?.[index] ||
+                qAny?.questionSnapshot?.attachments?.optionsSvgs?.[index] ||
+                null
               : typeof option === 'string' && option.includes('<svg')
                 ? option
                 : null;
 
-          const isDiagramOnly =
+          const isExplicitDiagramOnly =
             option?.mode === 'diagram-only' ||
             option?.mode === 'svg-code' ||
-            Boolean(optSvgCode) ||
-            (Boolean(optMediaUrl) &&
-              (!optText.trim() || optText.trim() === letter || optText.trim() === letter.toLowerCase()));
+            qAny?.optionsMode === 'diagram-only' ||
+            qAny?.mcqData?.optionsMode === 'diagram-only' ||
+            qAny?.questionSnapshot?.optionsMode === 'diagram-only' ||
+            qAny?.questionSnapshot?.mcqData?.optionsMode === 'diagram-only' ||
+            qAny?.questionSnapshot?.config?.optionsMode === 'diagram-only';
+
+          const hasVisualMedia = Boolean(optSvgCode || optMediaUrl);
+          const isDiagramOnly = isExplicitDiagramOnly
+            ? hasVisualMedia
+            : Boolean(
+                hasVisualMedia &&
+                  (!optText.trim() ||
+                    optText.trim().toLowerCase() === letter.toLowerCase() ||
+                    optText.trim().toLowerCase() === `option ${letter.toLowerCase()}` ||
+                    optText.trim().toLowerCase() === `figure ${letter.toLowerCase()}`)
+              );
 
           const htmlId = `opt-${currentQuestion.id}-${index}`;
 
