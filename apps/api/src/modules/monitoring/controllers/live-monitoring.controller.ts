@@ -58,7 +58,7 @@ export class LiveMonitoringController {
   @Get("overview")
   @ApiOperation({ summary: "Overview of all active assessments and system monitoring" })
   async getMonitoringOverview(@Query() query: MonitoringOverviewQueryDto) {
-    const filter = query?.dateFilter || "today";
+    const filter = query?.dateFilter || "all";
     let dateStart: Date | undefined;
     let dateEnd: Date | undefined;
 

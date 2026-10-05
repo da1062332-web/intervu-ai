@@ -201,8 +201,13 @@ export class TestPoolManagerService {
     const reusableAssembly = !isCandidateNoRepeat
       ? await this.assembledTestRepo.findByConfigId(configId)
       : null;
+    const isReusableStale = Boolean(
+      reusableAssembly?.examConfig?.updatedAt &&
+      new Date(reusableAssembly.updatedAt).getTime() < new Date(reusableAssembly.examConfig.updatedAt).getTime(),
+    );
     const hasValidReusable =
       reusableAssembly &&
+      !isReusableStale &&
       Array.isArray(reusableAssembly.sections) &&
       reusableAssembly.sections.length > 0 &&
       reusableAssembly.sections.every((s: any) => s.questions && s.questions.length > 0);
@@ -418,5 +423,30 @@ export class TestPoolManagerService {
     this.logger.log(`[POOL-REFILL ✅] Successfully added ${totalAdded} ready instances to pool for "${status.configName}" in ${durationMs}ms! Current depth: ${currentDepth}`);
 
     return { added: totalAdded, currentDepth };
+  }
+
+  /**
+   * Rebuilds the pre-generated test pool for a configuration:
+   * 1. Safely deletes all old/stale un-claimed test instances (READY & EXPIRED),
+   *    preserving any CLAIMED instances so active candidate sessions are untouched.
+   * 2. Generates new pool instances matching the updated blueprint & version hash.
+   */
+  async rebuildPool(
+    configId: string,
+  ): Promise<{ deleted: number; added: number; currentDepth: number }> {
+    const tStart = Date.now();
+    this.logger.log(`[POOL-REBUILD 🔄] Starting complete pool rebuild for config: ${configId}...`);
+
+    // 1. Delete all old/stale un-claimed test instances
+    const deleted = await this.pregeneratedRepo.purgeUnclaimedInstances(configId);
+    this.logger.log(`[POOL-REBUILD 🗑️] Purged ${deleted} old pool instances for config ${configId}`);
+
+    // 2. Generate new pool instances with the updated blueprint & version hash
+    const refillResult = await this.refillPool(configId);
+    this.logger.log(
+      `[POOL-REBUILD 🚀] Generated ${refillResult.added} fresh pool instances (Depth: ${refillResult.currentDepth}) in ${Date.now() - tStart}ms`,
+    );
+
+    return { deleted, ...refillResult };
   }
 }

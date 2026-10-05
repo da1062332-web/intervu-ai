@@ -3,6 +3,9 @@ import {
   BadRequestException,
   NotFoundException,
   Inject,
+  Optional,
+  forwardRef,
+  Logger,
 } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { ConfigurationValidatorService } from "../validators/configuration-validator.service";
@@ -10,8 +13,8 @@ import { ConfigDependencyValidatorService } from "../validators/config-dependenc
 import { ConfigVersionService } from "../versioning/config-version.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
 import { ConfigurationValidationResult } from "../validators/configuration-validator.service";
-
 import { ExamConfigReadinessService } from "../services/exam-config-readiness.service";
+import { TestPoolManagerService } from "../../assembly/services/test-pool-manager.service";
 
 export interface PublishResult {
   configId: string;
@@ -38,6 +41,8 @@ export interface PublishResult {
  */
 @Injectable()
 export class ConfigPublisherService {
+  private readonly logger = new Logger(ConfigPublisherService.name);
+
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(ConfigurationValidatorService)
@@ -50,6 +55,9 @@ export class ConfigPublisherService {
     private readonly readinessService: ExamConfigReadinessService,
     @Inject(RedisCacheService)
     private readonly cacheService: RedisCacheService,
+    @Optional()
+    @Inject(forwardRef(() => TestPoolManagerService))
+    private readonly testPoolManager?: TestPoolManagerService,
   ) {}
 
   async publish(
@@ -190,8 +198,25 @@ export class ConfigPublisherService {
       { timeout: 120000, maxWait: 60000 },
     );
 
-    await this.cacheService.invalidateBlueprint(configId);
-    await this.cacheService.delete("dashboard:examConfigs:available:v2");
+    await this.cacheService.invalidateBlueprint?.(configId);
+    await this.cacheService.delete?.("dashboard:examConfigs:available:v2");
+
+    // ─── Step 6: Dynamic Pre-Generated Pool Rebuild ──────────────────────────
+    try {
+      const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
+        where: { examConfigId: configId },
+        select: { poolEnabled: true },
+      });
+
+      if (ruleFlags?.poolEnabled && this.testPoolManager) {
+        this.logger.log(`[ConfigPublisher 🚀] Pool enabled for config ${configId}. Triggering immediate pool rebuild...`);
+        await this.testPoolManager.rebuildPool(configId);
+      }
+    } catch (poolErr: any) {
+      this.logger.error(
+        `[ConfigPublisher ⚠️] Post-publish pool rebuild failed for config ${configId}: ${poolErr?.message || poolErr}`,
+      );
+    }
 
     return {
       configId,

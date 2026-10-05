@@ -169,4 +169,28 @@ export class PregeneratedTestRepository {
       return 0;
     }
   }
+
+  /**
+   * Safely purges un-claimed pool instances (READY and EXPIRED) for a config.
+   * Preserves CLAIMED instances to ensure ongoing and past candidate test sessions are never disturbed.
+   *
+   * @param configId The exam configuration ID
+   * @returns Number of deleted instances
+   */
+  async purgeUnclaimedInstances(configId: string): Promise<number> {
+    try {
+      const result = await (this.prisma as any).pregeneratedTestInstance.deleteMany({
+        where: {
+          configId,
+          status: { in: ["READY", "EXPIRED"] },
+        },
+      });
+
+      this.logger.log(`  [POOL-PURGE 🗑️] Deleted ${result.count} unclaimed instances for config ${configId}`);
+      return result.count;
+    } catch (err: any) {
+      this.logger.error(`  [POOL-PURGE ❌] Failed to purge unclaimed instances for ${configId}: ${err?.message || err}`);
+      return 0;
+    }
+  }
 }
