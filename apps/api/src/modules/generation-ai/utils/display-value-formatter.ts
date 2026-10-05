@@ -71,6 +71,28 @@ export function normalizeDisplayOption(option: any): any {
 
 export function isPlaceholderOptions(options: any[]): boolean {
   if (!Array.isArray(options) || options.length === 0) return true;
+
+  // If any option has visual media or is explicitly diagram-only / svg-code, it is NOT a placeholder!
+  const hasVisual = options.some(
+    (opt) =>
+      typeof opt === "object" &&
+      opt !== null &&
+      (Boolean(opt.mediaUrl ||
+        opt.imageUrl ||
+        opt.url ||
+        opt.image ||
+        opt.src ||
+        opt.attachmentUrl ||
+        opt.svgCode ||
+        opt.svg ||
+        opt.media?.url ||
+        opt.media?.imageUrl ||
+        opt.media?.mediaUrl) ||
+        opt.mode === "diagram-only" ||
+        opt.mode === "svg-code"),
+  );
+  if (hasVisual) return false;
+
   const dummyStrings = new Set([
     "option a",
     "option b",
@@ -233,15 +255,35 @@ export function extractAndNormalizeOptions(
       (opt) =>
         typeof opt === "object" &&
         opt !== null &&
-        ("mediaUrl" in opt || "image" in opt || "url" in opt || "mode" in opt || "mediaId" in opt),
+        Boolean(
+          opt.mediaUrl ||
+          opt.imageUrl ||
+          opt.url ||
+          opt.image ||
+          opt.src ||
+          opt.attachmentUrl ||
+          opt.svgCode ||
+          opt.svg ||
+          opt.mode === "diagram-only" ||
+          opt.mode === "svg-code" ||
+          opt.mediaId ||
+          opt.media?.url ||
+          opt.media?.imageUrl ||
+          opt.media?.mediaUrl
+        ),
     );
     if (isRich) {
-      const richList = rawOptions.map((opt) => {
+      const richList = rawOptions.map((opt, i) => {
         if (typeof opt === "object" && opt !== null) {
           const text = extractStringFromOption(opt);
+          const letter = String.fromCharCode(65 + i);
           return {
             ...(opt as Record<string, unknown>),
-            text: text || (opt as any).text || (opt as any).value || "",
+            key: opt.key || letter,
+            text: text || (opt as any).text || (opt as any).value || `Option ${letter}`,
+            mediaUrl: opt.mediaUrl || opt.imageUrl || opt.url || opt.image || opt.src || opt.media?.url || null,
+            imageUrl: opt.imageUrl || opt.mediaUrl || opt.url || opt.image || opt.src || opt.media?.imageUrl || null,
+            mode: opt.mode || (opt.mediaUrl || opt.imageUrl || opt.url || opt.svgCode ? 'diagram-only' : undefined),
           };
         }
         return opt;

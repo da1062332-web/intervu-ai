@@ -178,44 +178,56 @@ export class ExecutionService {
       (executionState as any)?.currentSectionIndex ?? 0;
     const currentQuestionIndex = executionState?.currentQuestionIndex ?? 0;
 
-    // 5a. Identify templates and questions needing fallback
+    // 5a. Identify templates and questions needing fallback / media enrichment
+    const allQuestionIds = new Set<string>();
     const templateIds = new Set<string>();
-    const missingQuestionIds = new Set<string>();
     for (const section of snapshot.sections) {
       for (const q of section.questions) {
+        if (q.questionId) allQuestionIds.add(q.questionId);
         const rawSnapshot = (q.questionSnapshot || {}) as any;
         if (rawSnapshot.templateId) {
           templateIds.add(rawSnapshot.templateId);
         }
-        const rawChoices = rawSnapshot.options || rawSnapshot.choices;
-        if ((!rawChoices || (Array.isArray(rawChoices) && rawChoices.length < 2)) && !rawSnapshot.codingData && q.questionId) {
-          missingQuestionIds.add(q.questionId);
-        }
       }
     }
 
-    // Fallback ONLY for questions where options or coding data are genuinely missing in the pre-assembled snapshot
     const questionTemplateMap = new Map<string, string>();
     const questionMcqDataMap = new Map<string, any>();
     const questionCodingDataMap = new Map<string, any>();
     const questionMetaMap = new Map<string, any>();
-    if (missingQuestionIds.size > 0) {
+    const questionDbMap = new Map<string, any>();
+    const templateMap = new Map<string, any>();
+
+    if (allQuestionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
-        where: { id: { in: Array.from(missingQuestionIds) } },
+        where: { id: { in: Array.from(allQuestionIds) } },
         select: {
           id: true,
           templateId: true,
+          questionImage: true,
+          attachments: true,
           mcqData: true,
           codingData: true,
           metadata: true,
           questionStatement: true,
           instructions: true,
+          template: {
+            select: {
+              id: true,
+              structure: true,
+              config: true,
+            },
+          },
         },
       });
       for (const q of dbQuestions) {
+        questionDbMap.set(q.id, q);
         if (q.templateId) {
           questionTemplateMap.set(q.id, q.templateId);
           templateIds.add(q.templateId);
+        }
+        if (q.template) {
+          templateMap.set(q.template.id, q.template);
         }
         if (q.mcqData) {
           questionMcqDataMap.set(q.id, q.mcqData);
@@ -228,14 +240,17 @@ export class ExecutionService {
           questionStatement: q.questionStatement,
           instructions: q.instructions,
           metadata: q.metadata,
+          attachments: q.attachments,
+          questionImage: q.questionImage,
+          mcqData: q.mcqData,
         });
       }
     }
 
-    const templateMap = new Map<string, any>();
-    if (templateIds.size > 0) {
+    const missingTemplateIds = Array.from(templateIds).filter((id) => !templateMap.has(id));
+    if (missingTemplateIds.length > 0) {
       const templates = await this.prisma.template.findMany({
-        where: { id: { in: Array.from(templateIds) } },
+        where: { id: { in: missingTemplateIds } },
         select: { id: true, structure: true, config: true },
       });
       for (const t of templates) {
@@ -338,29 +353,45 @@ export class ExecutionService {
             }
 
             // Enrich questionMedia and option mediaUrls from Template / Question if missing
-            const templateObj = templateMap.get(rawSnapshot.templateId || rawSnapshot.id || q.questionId);
+            const dbQuestion = questionDbMap.get(q.questionId) || questionMetaMap.get(q.questionId);
+            const templateObj = templateMap.get(rawSnapshot.templateId || dbQuestion?.templateId || rawSnapshot.id || q.questionId);
+            const tManualConfig = (templateObj?.manualConfig as any) || {};
             const tStructure = (templateObj?.structure as any) || {};
             const tMetadata = (templateObj?.metadata as any) || {};
             const tConfig = (templateObj?.config as any) || {};
-            const dbQuestion = questionMetaMap.get(q.questionId);
+
+            if (dbQuestion?.attachments && !candidateSafeSnapshot.attachments) {
+              candidateSafeSnapshot.attachments = dbQuestion.attachments;
+            }
+            if (dbQuestion?.mcqData && !candidateSafeSnapshot.mcqData) {
+              candidateSafeSnapshot.mcqData = dbQuestion.mcqData;
+            }
 
             if (!candidateSafeSnapshot.questionMedia) {
               const stemMedia =
+                dbQuestion?.questionImage ||
+                (dbQuestion?.attachments as any)?.stemImageUrl ||
+                (dbQuestion?.mcqData as any)?.questionMedia ||
                 (dbQuestion?.metadata as any)?.questionMedia ||
                 (dbQuestion?.metadata as any)?.questionImage ||
+                tManualConfig?.stemMedia ||
+                tManualConfig?.questionMedia ||
+                tConfig.questionMedia ||
                 tMetadata.questionMedia ||
                 tStructure.mcq?.questionMedia ||
                 tStructure.media ||
-                tConfig.questionMedia ||
                 null;
               if (stemMedia) {
-                candidateSafeSnapshot.questionMedia = stemMedia;
+                candidateSafeSnapshot.questionMedia = typeof stemMedia === 'string' ? { url: stemMedia } : stemMedia;
               }
             }
 
             const templateOptions =
+              tManualConfig.options ||
               tConfig.richOptions ||
               tConfig.options ||
+              (dbQuestion?.mcqData as any)?.options ||
+              (dbQuestion?.attachments as any)?.optionsImages ||
               tStructure.mcq?.options ||
               tStructure.options ||
               tMetadata.options ||
@@ -369,13 +400,47 @@ export class ExecutionService {
 
             if (Array.isArray(templateOptions) && Array.isArray(candidateSafeSnapshot.options)) {
               candidateSafeSnapshot.options = candidateSafeSnapshot.options.map((opt: any, idx: number) => {
-                const tOpt = templateOptions[idx] || templateOptions.find((o: any) => (o.id && opt.id && o.id === opt.id) || (o.key && opt.key && o.key === opt.key));
-                if (tOpt && (tOpt.mediaUrl || tOpt.url || tOpt.image || tOpt.media?.url)) {
-                  const mediaUrl = tOpt.mediaUrl || tOpt.url || tOpt.image || tOpt.media?.url;
+                const letter = String.fromCharCode(65 + idx);
+                const tOpt = templateOptions.find((o: any) =>
+                  (o.key && opt.key && String(o.key).toUpperCase() === String(opt.key).toUpperCase()) ||
+                  (o.key && typeof opt === 'string' && String(o.key).toUpperCase() === opt.trim().toUpperCase()) ||
+                  (o.label && opt.label && String(o.label).toUpperCase() === String(opt.label).toUpperCase()) ||
+                  (o.label && typeof opt === 'string' && String(o.label).toUpperCase() === opt.trim().toUpperCase()) ||
+                  (o.id && opt.id && o.id === opt.id) ||
+                  (o.text && opt.text && o.text.trim().toLowerCase() === opt.text.trim().toLowerCase())
+                ) || templateOptions[idx];
+
+                const imgAttachment = (dbQuestion?.attachments as any)?.optionsImages?.find?.(
+                  (oi: any) => oi?.label?.toUpperCase?.() === letter || oi?.key?.toUpperCase?.() === letter || oi?.label === String(idx)
+                );
+
+                const optUrl = tOpt?.imageUrl || tOpt?.mediaUrl || tOpt?.url || tOpt?.image || tOpt?.src || tOpt?.media?.url || tOpt?.media?.imageUrl || imgAttachment?.url;
+                const optSvg = tOpt?.svgCode || tOpt?.svg || (dbQuestion?.attachments as any)?.optionsSvgs?.[idx];
+
+                if (optUrl || optSvg) {
+                  const mediaUrl = optUrl || null;
+                  const mode = tOpt?.mode || (opt as any)?.mode || 'diagram-only';
                   if (typeof opt === 'object' && opt !== null) {
-                    return { ...opt, mediaUrl, mode: tOpt.mode || (opt as any).mode };
+                    return {
+                      ...opt,
+                      key: opt.key || tOpt?.key || letter,
+                      mediaUrl,
+                      imageUrl: mediaUrl,
+                      url: mediaUrl,
+                      svgCode: optSvg || null,
+                      mode,
+                    };
                   } else {
-                    return { id: `opt-${idx + 1}`, text: String(opt), mediaUrl, mode: tOpt.mode };
+                    return {
+                      id: `opt-${idx + 1}`,
+                      key: letter,
+                      text: String(opt),
+                      mediaUrl,
+                      imageUrl: mediaUrl,
+                      url: mediaUrl,
+                      svgCode: optSvg || null,
+                      mode,
+                    };
                   }
                 }
                 return opt;
@@ -385,6 +450,52 @@ export class ExecutionService {
             // Normalize question text, options, and numbers for clean presentation
             const normalizedSnapshot = normalizeDisplayQuestion(candidateSafeSnapshot);
             Object.assign(candidateSafeSnapshot, normalizedSnapshot);
+
+            // Post-normalization safeguard: ensure options retain media if lost during normalization
+            if (Array.isArray(templateOptions) && Array.isArray(candidateSafeSnapshot.options)) {
+              candidateSafeSnapshot.options = candidateSafeSnapshot.options.map((opt: any, idx: number) => {
+                const letter = String.fromCharCode(65 + idx);
+                const tOpt = templateOptions.find((o: any) =>
+                  (o.key && opt.key && String(o.key).toUpperCase() === String(opt.key).toUpperCase()) ||
+                  (o.key && typeof opt === 'string' && String(o.key).toUpperCase() === opt.trim().toUpperCase())
+                ) || templateOptions[idx];
+
+                const imgAttachment = (dbQuestion?.attachments as any)?.optionsImages?.find?.(
+                  (oi: any) => oi?.label?.toUpperCase?.() === letter || oi?.key?.toUpperCase?.() === letter || oi?.label === String(idx)
+                );
+
+                const optUrl = tOpt?.imageUrl || tOpt?.mediaUrl || tOpt?.url || tOpt?.image || tOpt?.src || tOpt?.media?.url || tOpt?.media?.imageUrl || imgAttachment?.url;
+                const optSvg = tOpt?.svgCode || tOpt?.svg || (dbQuestion?.attachments as any)?.optionsSvgs?.[idx];
+
+                if (optUrl || optSvg) {
+                  const mediaUrl = optUrl || null;
+                  const mode = tOpt?.mode || (opt as any)?.mode || 'diagram-only';
+                  if (typeof opt === 'object' && opt !== null) {
+                    return {
+                      ...opt,
+                      key: opt.key || tOpt?.key || letter,
+                      mediaUrl: opt.mediaUrl || mediaUrl,
+                      imageUrl: opt.imageUrl || mediaUrl,
+                      url: opt.url || mediaUrl,
+                      svgCode: opt.svgCode || optSvg || null,
+                      mode: opt.mode || mode,
+                    };
+                  } else {
+                    return {
+                      id: `opt-${idx + 1}`,
+                      key: letter,
+                      text: String(opt),
+                      mediaUrl,
+                      imageUrl: mediaUrl,
+                      url: mediaUrl,
+                      svgCode: optSvg || null,
+                      mode,
+                    };
+                  }
+                }
+                return opt;
+              });
+            }
 
             // Enrich questionStatement and instructions from Question table if missing
             if (
