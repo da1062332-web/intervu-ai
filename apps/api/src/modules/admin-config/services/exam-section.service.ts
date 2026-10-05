@@ -3,11 +3,16 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  Inject,
+  Optional,
+  forwardRef,
 } from "@nestjs/common";
 import { ExamSectionRepository } from "../repositories/exam-section.repository";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamSectionDto, UpdateExamSectionDto } from "@intervu/shared";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { TestPoolManagerService } from "../../assembly/services/test-pool-manager.service";
 
 @Injectable()
 export class ExamSectionService {
@@ -15,7 +20,34 @@ export class ExamSectionService {
     private readonly sectionRepo: ExamSectionRepository,
     private readonly configRepo: ExamConfigRepository,
     private readonly redisCacheService: RedisCacheService,
+    @Optional()
+    @Inject(PrismaService)
+    private readonly prisma?: PrismaService,
+    @Optional()
+    @Inject(forwardRef(() => TestPoolManagerService))
+    private readonly poolManager?: TestPoolManagerService,
   ) {}
+
+  private async triggerPoolRebuildIfPublished(configId: string): Promise<void> {
+    if (!this.poolManager || !this.prisma) return;
+    try {
+      const config = await this.configRepo.findById(configId);
+      if (config?.status === "PUBLISHED") {
+        const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
+          where: { examConfigId: configId },
+          select: { poolEnabled: true },
+        });
+        if (ruleFlags?.poolEnabled) {
+          await this.poolManager.rebuildPool(configId);
+        }
+      }
+    } catch (err: any) {
+      console.warn(
+        `[ExamSectionService] Pool rebuild on section update failed for ${configId}:`,
+        err?.message || err,
+      );
+    }
+  }
 
   async createSection(configId: string, dto: CreateExamSectionDto) {
     const config = await this.configRepo.findById(configId);
@@ -68,6 +100,7 @@ export class ExamSectionService {
 
     const created = await this.sectionRepo.create(createData);
     await this.redisCacheService.invalidateBlueprint(configId);
+    await this.triggerPoolRebuildIfPublished(configId);
     return created;
   }
 
@@ -125,6 +158,7 @@ export class ExamSectionService {
 
     const updated = await this.sectionRepo.update(sectionId, dto);
     await this.redisCacheService.invalidateBlueprint(section.examConfigId);
+    await this.triggerPoolRebuildIfPublished(section.examConfigId);
     return updated;
   }
 
@@ -145,6 +179,7 @@ export class ExamSectionService {
 
     const deleted = await this.sectionRepo.delete(sectionId);
     await this.redisCacheService.invalidateBlueprint(section.examConfigId);
+    await this.triggerPoolRebuildIfPublished(section.examConfigId);
     return deleted;
   }
 }

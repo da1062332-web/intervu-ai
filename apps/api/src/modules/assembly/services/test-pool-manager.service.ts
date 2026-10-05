@@ -195,6 +195,11 @@ export class TestPoolManagerService {
     const generatedBatch: Array<{ sectionsJson: any; configVersionHash?: string }> = [];
     const versionHash = (blueprint as any).versionHash || (blueprint as any).id || null;
 
+    if (versionHash) {
+      // Ensure any instances not matching the fresh blueprint version hash are purged immediately
+      await this.pregeneratedRepo.expireStaleInstances(configId, versionHash);
+    }
+
     // Strategy 1: Fast Permutation from existing Master Assembly if published
     const isCandidateNoRepeat = status.candidateNoRepeatEnabled ?? false;
 

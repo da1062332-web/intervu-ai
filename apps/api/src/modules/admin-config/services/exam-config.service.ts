@@ -3,17 +3,28 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Inject,
+  Optional,
+  forwardRef,
 } from "@nestjs/common";
 import { ExamConfig } from "@prisma/client";
 import { ExamConfigRepository } from "../repositories/exam-config.repository";
 import { CreateExamConfigDto, UpdateExamConfigDto } from "@intervu/shared";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
+import { PrismaService } from "../../../prisma/prisma.service";
+import { TestPoolManagerService } from "../../assembly/services/test-pool-manager.service";
 
 @Injectable()
 export class ExamConfigService {
   constructor(
     private readonly examConfigRepository: ExamConfigRepository,
     private readonly redisCacheService: RedisCacheService,
+    @Optional()
+    @Inject(PrismaService)
+    private readonly prisma?: PrismaService,
+    @Optional()
+    @Inject(forwardRef(() => TestPoolManagerService))
+    private readonly poolManager?: TestPoolManagerService,
   ) {}
 
   async create(
@@ -111,6 +122,21 @@ export class ExamConfigService {
     const updated = await this.examConfigRepository.update(id, dto);
     await this.redisCacheService.invalidateBlueprint(id);
     await this.redisCacheService.delete("dashboard:examConfigs:available:v2");
+
+    if (config.status === "PUBLISHED" && this.poolManager && this.prisma) {
+      try {
+        const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
+          where: { examConfigId: id },
+          select: { poolEnabled: true },
+        });
+        if (ruleFlags?.poolEnabled) {
+          await this.poolManager.rebuildPool(id);
+        }
+      } catch (err: any) {
+        console.warn(`[ExamConfigService] Pool rebuild on update failed for ${id}:`, err?.message || err);
+      }
+    }
+
     return updated;
   }
 

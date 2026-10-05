@@ -37,7 +37,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Zap, Layers, RefreshCw } from 'lucide-react';
+import { Zap, Layers, RefreshCw, Loader2 } from 'lucide-react';
+import { apiClient } from '@/services/api/client';
 
 interface RuleFlagsTabProps {
   configId: string;
@@ -61,8 +62,26 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
   const [poolTargetSize, setPoolTargetSize] = useState<number>(10);
   const [poolMinThreshold, setPoolMinThreshold] = useState<number>(3);
   const [poolRefillBatchSize, setPoolRefillBatchSize] = useState<number>(5);
+  const [isRebuildingPool, setIsRebuildingPool] = useState(false);
 
   const { setRules, setDirty } = useConfigRulesStore();
+
+  const handleRebuildPool = async () => {
+    setIsRebuildingPool(true);
+    try {
+      const res = await apiClient.request<any>(`/assembly/pool/${configId}/rebuild`, {
+        method: 'POST',
+      });
+      const data = res?.data || res;
+      toast.success(
+        `Pool Rebuilt! Purged ${data?.deleted ?? 0} stale test(s), generated ${data?.added ?? 0} fresh test(s). (Pool Depth: ${data?.currentDepth ?? 0})`,
+      );
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to rebuild test pool');
+    } finally {
+      setIsRebuildingPool(false);
+    }
+  };
 
   useEffect(() => {
     if (ruleFlags) {
@@ -426,6 +445,33 @@ export function RuleFlagsTab({ configId, onNext }: RuleFlagsTabProps) {
                 }}
                 className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
               />
+            </div>
+
+            <div className='col-span-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-muted/40 rounded-lg border border-border/50'>
+              <div className='space-y-0.5'>
+                <p className='text-xs font-semibold text-foreground flex items-center gap-1.5'>
+                  <RefreshCw className='h-3.5 w-3.5 text-primary' />
+                  On-Demand Pool Rebuild & Purge
+                </p>
+                <p className='text-[11px] text-muted-foreground'>
+                  Purges all stale or unclaimed pre-generated tests and immediately generates fresh instances matching the latest config blueprint.
+                </p>
+              </div>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                disabled={isRebuildingPool}
+                onClick={handleRebuildPool}
+                className='shrink-0 gap-1.5'
+              >
+                {isRebuildingPool ? (
+                  <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                ) : (
+                  <RefreshCw className='h-3.5 w-3.5' />
+                )}
+                {isRebuildingPool ? 'Rebuilding...' : 'Rebuild Pool Now'}
+              </Button>
             </div>
           </div>
         )}
