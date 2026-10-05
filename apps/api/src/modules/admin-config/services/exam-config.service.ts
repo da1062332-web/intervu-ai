@@ -124,17 +124,19 @@ export class ExamConfigService {
     await this.redisCacheService.delete("dashboard:examConfigs:available:v2");
 
     if (config.status === "PUBLISHED" && this.poolManager && this.prisma) {
-      try {
-        const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
-          where: { examConfigId: id },
-          select: { poolEnabled: true },
-        });
-        if (ruleFlags?.poolEnabled) {
-          await this.poolManager.rebuildPool(id);
+      setImmediate(async () => {
+        try {
+          const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
+            where: { examConfigId: id },
+            select: { poolEnabled: true },
+          });
+          if (ruleFlags?.poolEnabled) {
+            await this.poolManager?.rebuildPool(id);
+          }
+        } catch (err: any) {
+          console.warn(`[ExamConfigService] Background pool rebuild on update failed for ${id}:`, err?.message || err);
         }
-      } catch (err: any) {
-        console.warn(`[ExamConfigService] Pool rebuild on update failed for ${id}:`, err?.message || err);
-      }
+      });
     }
 
     return updated;

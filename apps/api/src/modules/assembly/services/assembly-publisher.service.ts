@@ -144,22 +144,24 @@ export class AssemblyPublisherService {
         );
       }
 
-      // Automatically purge stale instances and rebuild pool for updated config
+      // Automatically purge stale instances and rebuild pool for updated config in background
       if (this.poolManager) {
-        try {
-          const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
-            where: { examConfigId: targetConfigId },
-            select: { poolEnabled: true },
-          });
-          if (ruleFlags?.poolEnabled) {
-            await this.poolManager.rebuildPool(targetConfigId);
+        setImmediate(async () => {
+          try {
+            const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
+              where: { examConfigId: targetConfigId },
+              select: { poolEnabled: true },
+            });
+            if (ruleFlags?.poolEnabled) {
+              await this.poolManager?.rebuildPool(targetConfigId);
+            }
+          } catch (poolErr: any) {
+            console.warn(
+              `[AssemblyPublisher] Background pool rebuild on assembly publish failed for ${targetConfigId}:`,
+              poolErr?.message || poolErr,
+            );
           }
-        } catch (poolErr: any) {
-          console.warn(
-            `[AssemblyPublisher] Pool rebuild on assembly publish failed for ${targetConfigId}:`,
-            poolErr?.message || poolErr,
-          );
-        }
+        });
       }
     }
 

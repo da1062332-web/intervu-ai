@@ -202,20 +202,26 @@ export class ConfigPublisherService {
     await this.cacheService.delete?.("dashboard:examConfigs:available:v2");
 
     // ─── Step 6: Dynamic Pre-Generated Pool Rebuild ──────────────────────────
-    try {
-      const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
-        where: { examConfigId: configId },
-        select: { poolEnabled: true },
-      });
+    if (this.testPoolManager) {
+      setImmediate(async () => {
+        try {
+          const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
+            where: { examConfigId: configId },
+            select: { poolEnabled: true },
+          });
 
-      if (ruleFlags?.poolEnabled && this.testPoolManager) {
-        this.logger.log(`[ConfigPublisher 🚀] Pool enabled for config ${configId}. Triggering immediate pool rebuild...`);
-        await this.testPoolManager.rebuildPool(configId);
-      }
-    } catch (poolErr: any) {
-      this.logger.error(
-        `[ConfigPublisher ⚠️] Post-publish pool rebuild failed for config ${configId}: ${poolErr?.message || poolErr}`,
-      );
+          if (ruleFlags?.poolEnabled && this.testPoolManager) {
+            this.logger.log(
+              `[ConfigPublisher 🚀] Pool enabled for config ${configId}. Triggering background pool rebuild...`,
+            );
+            await this.testPoolManager.rebuildPool(configId);
+          }
+        } catch (poolErr: any) {
+          this.logger.error(
+            `[ConfigPublisher ⚠️] Post-publish background pool rebuild failed for config ${configId}: ${poolErr?.message || poolErr}`,
+          );
+        }
+      });
     }
 
     return {

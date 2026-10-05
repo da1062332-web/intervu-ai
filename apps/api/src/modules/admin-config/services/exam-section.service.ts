@@ -30,23 +30,25 @@ export class ExamSectionService {
 
   private async triggerPoolRebuildIfPublished(configId: string): Promise<void> {
     if (!this.poolManager || !this.prisma) return;
-    try {
-      const config = await this.configRepo.findById(configId);
-      if (config?.status === "PUBLISHED") {
-        const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
-          where: { examConfigId: configId },
-          select: { poolEnabled: true },
-        });
-        if (ruleFlags?.poolEnabled) {
-          await this.poolManager.rebuildPool(configId);
+    setImmediate(async () => {
+      try {
+        const config = await this.configRepo.findById(configId);
+        if (config?.status === "PUBLISHED") {
+          const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
+            where: { examConfigId: configId },
+            select: { poolEnabled: true },
+          });
+          if (ruleFlags?.poolEnabled) {
+            await this.poolManager?.rebuildPool(configId);
+          }
         }
+      } catch (err: any) {
+        console.warn(
+          `[ExamSectionService] Background pool rebuild on section update failed for ${configId}:`,
+          err?.message || err,
+        );
       }
-    } catch (err: any) {
-      console.warn(
-        `[ExamSectionService] Pool rebuild on section update failed for ${configId}:`,
-        err?.message || err,
-      );
-    }
+    });
   }
 
   async createSection(configId: string, dto: CreateExamSectionDto) {
