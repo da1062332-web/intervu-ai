@@ -6,9 +6,9 @@ import { ConfigurationValidatorService } from "../validators/configuration-valid
 import { ConfigDependencyValidatorService } from "../validators/config-dependency-validator.service";
 import { ConfigVersionService } from "../versioning/config-version.service";
 import { FullExamConfig } from "../types";
-
 import { ExamConfigReadinessService } from "../services/exam-config-readiness.service";
 import { RedisCacheService } from "../../../cache/redis-cache.service";
+import { TestPoolManagerService } from "../../assembly/services/test-pool-manager.service";
 
 const mockTransaction = {
   examConfig: { update: jest.fn() },
@@ -24,6 +24,13 @@ const mockPrisma = {
     update: jest.fn(),
   },
   blueprint: { findUnique: jest.fn().mockResolvedValue({ id: "bp-1" }), create: jest.fn() },
+  ruleFlags: {
+    findUnique: jest.fn().mockResolvedValue({ poolEnabled: false }),
+  },
+};
+
+const mockPoolManager = {
+  rebuildPool: jest.fn().mockResolvedValue({ deleted: 2, added: 10, currentDepth: 10 }),
 };
 
 const mockValidator = {
@@ -46,6 +53,7 @@ const mockCacheService = {
   delete: jest.fn().mockResolvedValue(true),
   get: jest.fn().mockResolvedValue(null),
   set: jest.fn().mockResolvedValue(true),
+  invalidateBlueprint: jest.fn().mockResolvedValue(undefined),
 };
 
 const DRAFT_CONFIG = {
@@ -71,6 +79,7 @@ describe("ConfigPublisherService", () => {
         { provide: ConfigVersionService, useValue: mockVersionService },
         { provide: ExamConfigReadinessService, useValue: mockReadinessService },
         { provide: RedisCacheService, useValue: mockCacheService },
+        { provide: TestPoolManagerService, useValue: mockPoolManager },
       ],
     }).compile();
 
@@ -123,6 +132,64 @@ describe("ConfigPublisherService", () => {
         }),
       );
       expect(mockTransaction.configPublishLog.create).toHaveBeenCalled();
+    });
+
+    it("should trigger pool rebuild when ruleFlags.poolEnabled is true", async () => {
+      mockPrisma.examConfig.findUnique.mockResolvedValue(DRAFT_CONFIG);
+      mockValidator.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+      });
+      mockDepValidator.validateDependencies.mockResolvedValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+      });
+      mockReadinessService.checkReadiness.mockResolvedValue({
+        status: "READY",
+        score: 100,
+        checks: [],
+      });
+      mockVersionService.createVersion.mockResolvedValue({
+        versionNumber: 1,
+      });
+      mockPrisma.ruleFlags.findUnique.mockResolvedValue({
+        poolEnabled: true,
+      });
+
+      await service.publish("config-1", "admin-1");
+
+      expect(mockPoolManager.rebuildPool).toHaveBeenCalledWith("config-1");
+    });
+
+    it("should not trigger pool rebuild when ruleFlags.poolEnabled is false", async () => {
+      mockPrisma.examConfig.findUnique.mockResolvedValue(DRAFT_CONFIG);
+      mockValidator.validate.mockResolvedValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+      });
+      mockDepValidator.validateDependencies.mockResolvedValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+      });
+      mockReadinessService.checkReadiness.mockResolvedValue({
+        status: "READY",
+        score: 100,
+        checks: [],
+      });
+      mockVersionService.createVersion.mockResolvedValue({
+        versionNumber: 1,
+      });
+      mockPrisma.ruleFlags.findUnique.mockResolvedValue({
+        poolEnabled: false,
+      });
+
+      await service.publish("config-1", "admin-1");
+
+      expect(mockPoolManager.rebuildPool).not.toHaveBeenCalled();
     });
 
     it("should throw BadRequestException when readiness score is under 100%", async () => {

@@ -210,7 +210,7 @@ export class QueryCandidatesDto {
 export class MonitoringOverviewQueryDto {
   @ApiPropertyOptional({
     description: "Date filter: 'today', 'yesterday', 'custom', or 'all'",
-    default: "today",
+    default: "all",
   })
   @IsOptional()
   @IsString()

@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { ExamConfigController } from "./controllers/exam-config.controller";
 import { ExamConfigService } from "./services/exam-config.service";
 import { ExamConfigRepository } from "./repositories/exam-config.repository";
@@ -15,9 +15,14 @@ import { HiringEvaluationController } from "./controllers/hiring-evaluation.cont
 import { HiringEvaluationService } from "./services/hiring-evaluation.service";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { QuestionBankModule } from "../question-bank/question-bank.module";
+import { AssemblyModule } from "../assembly/assembly.module";
 
 @Module({
-  imports: [PrismaModule, QuestionBankModule],
+  imports: [
+    PrismaModule,
+    QuestionBankModule,
+    forwardRef(() => AssemblyModule),
+  ],
   controllers: [
     ExamConfigController,
     ExamSectionController,

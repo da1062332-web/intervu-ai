@@ -109,24 +109,27 @@ export class PregeneratedTestRepository {
   }
 
   /**
-   * Marks READY instances whose content no longer matches the current blueprint
-   * as EXPIRED, so they stop counting toward pool depth and are never claimed.
-   * Returns the number of instances expired.
+   * Safely removes stale pool instances whose content no longer matches the current blueprint version hash.
+   * Preserves CLAIMED instances.
+   * Returns the number of instances deleted.
    */
   async expireStaleInstances(configId: string, currentVersionHash: string): Promise<number> {
     try {
       const result = await this.prisma.$executeRaw(
         Prisma.sql`
-          UPDATE "pregenerated_test_instances"
-          SET "status" = 'EXPIRED', "updated_at" = NOW()
+          DELETE FROM "pregenerated_test_instances"
           WHERE "config_id" = ${configId}
-            AND "status" = 'READY'
+            AND "status" IN ('READY', 'EXPIRED')
             AND ("config_version_hash" IS NULL OR "config_version_hash" != ${currentVersionHash});
         `,
       );
-      return Number(result) || 0;
+      const count = Number(result) || 0;
+      if (count > 0) {
+        this.logger.log(`  [POOL-EXPIRE 🗑️] Purged ${count} stale pool instances not matching hash ${currentVersionHash} for ${configId}`);
+      }
+      return count;
     } catch (err: any) {
-      this.logger.warn(`  [POOL-EXPIRE ⚠️] Failed to expire stale instances for ${configId}: ${err?.message || err}`);
+      this.logger.warn(`  [POOL-EXPIRE ⚠️] Failed to expire/purge stale instances for ${configId}: ${err?.message || err}`);
       return 0;
     }
   }
@@ -167,6 +170,42 @@ export class PregeneratedTestRepository {
     } catch (err: any) {
       this.logger.error(`Failed to batch insert pregenerated instances: ${err?.message || err}`);
       return 0;
+    }
+  }
+
+  /**
+   * Safely purges un-claimed pool instances (READY and EXPIRED) for a config.
+   * Preserves CLAIMED instances to ensure ongoing and past candidate test sessions are never disturbed.
+   *
+   * @param configId The exam configuration ID
+   * @returns Number of deleted instances
+   */
+  async purgeUnclaimedInstances(configId: string): Promise<number> {
+    try {
+      const result = await this.prisma.$executeRaw(
+        Prisma.sql`
+          DELETE FROM "pregenerated_test_instances"
+          WHERE "config_id" = ${configId}
+            AND "status" IN ('READY', 'EXPIRED');
+        `,
+      );
+      const count = Number(result) || 0;
+      this.logger.log(`  [POOL-PURGE 🗑️] Deleted ${count} unclaimed instances for config ${configId}`);
+      return count;
+    } catch (err: any) {
+      // Fallback in case of mock/unit test environments where $executeRaw might not be mocked
+      try {
+        const fallbackResult = await (this.prisma as any).pregeneratedTestInstance.deleteMany({
+          where: {
+            configId,
+            status: { in: ["READY", "EXPIRED"] },
+          },
+        });
+        return fallbackResult.count || 0;
+      } catch {
+        this.logger.error(`  [POOL-PURGE ❌] Failed to purge unclaimed instances for ${configId}: ${err?.message || err}`);
+        return 0;
+      }
     }
   }
 }

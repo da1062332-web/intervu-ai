@@ -564,5 +564,23 @@ export class AssemblyController {
     const result = await this.poolManagerService.refillPool(configId, count);
     return { success: true, data: result, error: null, meta: null };
   }
+
+  /**
+   * POST /assembly/pool/:configId/rebuild
+   * Safely purges all un-claimed pool instances and generates fresh instances matching the latest config blueprint.
+   */
+  @Post("pool/:configId/rebuild")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Rebuild pre-generated test pool (purge stale unclaimed instances & generate fresh tests)",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Pool rebuild results containing deleted count, added count, and current depth",
+  })
+  async rebuildPool(@Param("configId") configId: string) {
+    const result = await this.poolManagerService.rebuildPool(configId);
+    return { success: true, data: result, error: null, meta: null };
+  }
 }
 

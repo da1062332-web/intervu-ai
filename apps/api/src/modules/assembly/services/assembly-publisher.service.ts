@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { Injectable, BadRequestException, Inject, Optional, forwardRef } from "@nestjs/common";
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { AssemblyRepository } from "../repositories/assembly.repository";
 import { AssemblyVersionService } from "./assembly-version.service";
@@ -7,6 +7,7 @@ import { AssemblyStatus } from "@prisma/client";
 import { BlueprintBuilderService } from "./blueprint-builder.service";
 import { PublishReadinessService } from "./publish-readiness.service";
 import { PrismaService } from "../../../prisma/prisma.service";
+import { TestPoolManagerService } from "./test-pool-manager.service";
 
 @Injectable()
 export class AssemblyPublisherService {
@@ -18,6 +19,9 @@ export class AssemblyPublisherService {
     private readonly blueprintBuilder: BlueprintBuilderService,
     private readonly readinessService: PublishReadinessService,
     private readonly prisma: PrismaService,
+    @Optional()
+    @Inject(forwardRef(() => TestPoolManagerService))
+    private readonly poolManager?: TestPoolManagerService,
   ) {}
 
   async publishAssembly(assemblyId: string, userId: string = "system-user") {
@@ -138,6 +142,26 @@ export class AssemblyPublisherService {
           `Skipped syncing ExamConfig ${targetConfigId} status:`,
           err,
         );
+      }
+
+      // Automatically purge stale instances and rebuild pool for updated config in background
+      if (this.poolManager) {
+        setImmediate(async () => {
+          try {
+            const ruleFlags = await (this.prisma as any)?.ruleFlags?.findUnique?.({
+              where: { examConfigId: targetConfigId },
+              select: { poolEnabled: true },
+            });
+            if (ruleFlags?.poolEnabled) {
+              await this.poolManager?.rebuildPool(targetConfigId);
+            }
+          } catch (poolErr: any) {
+            console.warn(
+              `[AssemblyPublisher] Background pool rebuild on assembly publish failed for ${targetConfigId}:`,
+              poolErr?.message || poolErr,
+            );
+          }
+        });
       }
     }
 

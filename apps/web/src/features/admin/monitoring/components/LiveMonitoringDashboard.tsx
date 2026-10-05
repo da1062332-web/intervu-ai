@@ -30,7 +30,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
   const searchParams = useSearchParams();
   const paramDate = searchParams?.get('dateFilter') as 'today' | 'yesterday' | 'custom' | 'all' | null;
   const initialDateFilter: 'today' | 'yesterday' | 'custom' | 'all' =
-    paramDate && ['today', 'yesterday', 'custom', 'all'].includes(paramDate) ? paramDate : 'today';
+    paramDate && ['today', 'yesterday', 'custom', 'all'].includes(paramDate) ? paramDate : 'all';
   const initialStartDate = searchParams?.get('startDate') || '';
   const initialEndDate = searchParams?.get('endDate') || '';
 
