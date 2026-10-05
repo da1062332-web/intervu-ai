@@ -8,6 +8,7 @@ import { PregeneratedTestRepository } from "../repositories/pregenerated-test.re
 import { AssembledTestRepository } from "../repositories/assembled-test.repository";
 import { FinalShufflerService } from "../../tests/start-test/final-shuffler.service";
 import { AllocatedSectionDto } from "@intervu/shared";
+import { RedisCacheService } from "../../../cache/redis-cache.service";
 
 export interface PoolStatusResponse {
   configId: string;
@@ -33,6 +34,7 @@ export interface UpdatePoolConfigDto {
 @Injectable()
 export class TestPoolManagerService {
   private readonly logger = new Logger(TestPoolManagerService.name);
+  private readonly activeRebuilds = new Map<string, Promise<{ deleted: number; added: number; currentDepth: number }>>();
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
@@ -43,6 +45,7 @@ export class TestPoolManagerService {
     @Inject(PregeneratedTestRepository) private readonly pregeneratedRepo: PregeneratedTestRepository,
     @Inject(AssembledTestRepository) private readonly assembledTestRepo: AssembledTestRepository,
     @Optional() @Inject(FinalShufflerService) private readonly finalShuffler?: FinalShufflerService,
+    @Optional() @Inject(RedisCacheService) private readonly redisCacheService?: RedisCacheService,
   ) {}
 
   private sanitizeSections(sections: any[]): any[] {
@@ -188,7 +191,7 @@ export class TestPoolManagerService {
     const tStart = Date.now();
     this.logger.log(`[POOL-REFILL 🚀] Refilling pool for "${status.configName}": generating ${needed} instances...`);
 
-    const blueprint = await this.blueprintBuilder.generateBlueprint(configId);
+    const blueprint = await this.blueprintBuilder.generateBlueprint(configId, true);
     if (!blueprint || !blueprint.sections || blueprint.sections.length === 0) {
       throw new Error(`Cannot refill pool: Blueprint for ${configId} has no sections.`);
     }
@@ -440,8 +443,31 @@ export class TestPoolManagerService {
   async rebuildPool(
     configId: string,
   ): Promise<{ deleted: number; added: number; currentDepth: number }> {
+    if (this.activeRebuilds.has(configId)) {
+      this.logger.warn(`[POOL-REBUILD ⚠️] Rebuild already in progress for config ${configId}. Reusing active rebuild task...`);
+      return this.activeRebuilds.get(configId)!;
+    }
+
+    const task = this.executeRebuildPool(configId);
+    this.activeRebuilds.set(configId, task);
+
+    try {
+      return await task;
+    } finally {
+      this.activeRebuilds.delete(configId);
+    }
+  }
+
+  private async executeRebuildPool(
+    configId: string,
+  ): Promise<{ deleted: number; added: number; currentDepth: number }> {
     const tStart = Date.now();
     this.logger.log(`[POOL-REBUILD 🔄] Starting complete pool rebuild for config: ${configId}...`);
+
+    // Invalidate cached blueprint so the latest blueprint with updated sections & hash is regenerated
+    if (this.redisCacheService) {
+      await this.redisCacheService.invalidateBlueprint(configId);
+    }
 
     // 1. Delete all old/stale un-claimed test instances
     const deleted = await this.pregeneratedRepo.purgeUnclaimedInstances(configId);
@@ -452,6 +478,15 @@ export class TestPoolManagerService {
     this.logger.log(
       `[POOL-REBUILD 🚀] Generated ${refillResult.added} fresh pool instances (Depth: ${refillResult.currentDepth}) in ${Date.now() - tStart}ms`,
     );
+
+    // 3. Guarantee that the final pool depth never exceeds poolTargetSize
+    const status = await this.getPoolStatus(configId);
+    if (status.readyPoolCount > status.poolTargetSize) {
+      const excess = status.readyPoolCount - status.poolTargetSize;
+      const trimmed = await this.pregeneratedRepo.trimExcessReadyInstances(configId, excess);
+      this.logger.log(`[POOL-REBUILD ✂️] Trimmed ${trimmed} excess instances. Final pool depth: ${status.poolTargetSize}`);
+      refillResult.currentDepth = status.poolTargetSize;
+    }
 
     return { deleted, ...refillResult };
   }

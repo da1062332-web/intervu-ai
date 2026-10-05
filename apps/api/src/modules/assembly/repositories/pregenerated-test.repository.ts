@@ -208,4 +208,34 @@ export class PregeneratedTestRepository {
       }
     }
   }
+
+  /**
+   * Safely trims excess READY instances beyond the target pool capacity.
+   * Keeps the oldest READY instances and deletes the excess newly created ones.
+   */
+  async trimExcessReadyInstances(configId: string, excessCount: number): Promise<number> {
+    if (excessCount <= 0) return 0;
+    try {
+      const result = await this.prisma.$executeRaw(
+        Prisma.sql`
+          DELETE FROM "pregenerated_test_instances"
+          WHERE "id" IN (
+            SELECT "id" FROM "pregenerated_test_instances"
+            WHERE "config_id" = ${configId} AND "status" = 'READY'
+            ORDER BY "created_at" DESC
+            LIMIT ${excessCount}
+          );
+        `,
+      );
+      const count = Number(result) || 0;
+      if (count > 0) {
+        this.logger.log(`  [POOL-TRIM ✂️] Trimmed ${count} excess READY instances for config ${configId}`);
+      }
+      return count;
+    } catch (err: any) {
+      this.logger.warn(`  [POOL-TRIM ⚠️] Failed to trim excess ready instances for ${configId}: ${err?.message || err}`);
+      return 0;
+    }
+  }
 }
+
