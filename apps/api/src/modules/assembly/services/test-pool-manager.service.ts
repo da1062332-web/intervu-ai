@@ -177,7 +177,8 @@ export class TestPoolManagerService {
    */
   async refillPool(configId: string, count?: number): Promise<{ added: number; currentDepth: number }> {
     const status = await this.getPoolStatus(configId);
-    const needed = count !== undefined ? count : Math.max(0, status.poolTargetSize - status.readyPoolCount);
+    const deficit = Math.max(0, status.poolTargetSize - status.readyPoolCount);
+    const needed = count !== undefined ? Math.min(count, deficit) : deficit;
 
     if (needed <= 0) {
       this.logger.log(`[POOL-REFILL ℹ️] Pool for "${status.configName}" is already at capacity (${status.readyPoolCount}/${status.poolTargetSize}).`);

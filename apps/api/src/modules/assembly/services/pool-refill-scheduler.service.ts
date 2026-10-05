@@ -54,12 +54,14 @@ export class PoolRefillSchedulerService {
           continue;
         }
 
-        const needed = Math.max(
-          status.poolRefillBatchSize,
-          status.poolTargetSize - status.readyPoolCount,
-        );
+        const deficit = Math.max(0, status.poolTargetSize - status.readyPoolCount);
+        if (deficit <= 0) {
+          continue;
+        }
+
+        const needed = Math.min(status.poolRefillBatchSize, deficit);
         this.logger.log(
-          `[POOL-SCHEDULER 🚀] "${status.configName}" ready depth (${status.readyPoolCount}) below threshold (${status.poolMinThreshold}). Refilling ${needed}...`,
+          `[POOL-SCHEDULER 🚀] "${status.configName}" ready depth (${status.readyPoolCount}) below threshold (${status.poolMinThreshold}). Refilling ${needed} (target: ${status.poolTargetSize})...`,
         );
         const result = await this.poolManager.refillPool(examConfigId, needed);
         this.logger.log(
