@@ -67,6 +67,8 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
   }
 
   const isPublished = config?.status === 'PUBLISHED' || config?.status === 'ACTIVE';
+  const currentVersion = config?.currentVersionNumber ?? 1;
+  const nextVersion = (config?.currentVersionNumber ?? 0) + 1;
 
   return (
     <div className='space-y-6 max-w-4xl'>
@@ -78,6 +80,7 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
         totalQuestions={preview.questions}
         status={config?.status}
         code={config?.code}
+        versionNumber={config?.currentVersionNumber}
       />
 
       {/* Difficulty */}
@@ -95,7 +98,7 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
       <TopicSummary sections={preview.sectionBreakdown} />
 
       {/* Readiness Gate Banner */}
-      {readiness && !isPublished && (
+      {readiness && (
         <div
           className={`rounded-xl border p-4 ${
             readiness.score === 100
@@ -197,28 +200,25 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
 
       {/* Actions */}
       <div className='flex items-center gap-3 pt-4 border-t'>
-        {!isPublished && (
-          <Button
-            variant='outline'
-            onClick={handleValidate}
-            disabled={validateMutation.isPending}
-            className='gap-2'
-          >
-            {validateMutation.isPending ? (
-              <Loader2 className='w-4 h-4 animate-spin' />
-            ) : (
-              <CheckCircle2 className='w-4 h-4' />
-            )}
-            {validateMutation.isPending ? 'Validating...' : 'Run Validation'}
-          </Button>
-        )}
+        <Button
+          variant='outline'
+          onClick={handleValidate}
+          disabled={validateMutation.isPending}
+          className='gap-2'
+        >
+          {validateMutation.isPending ? (
+            <Loader2 className='w-4 h-4 animate-spin' />
+          ) : (
+            <CheckCircle2 className='w-4 h-4' />
+          )}
+          {validateMutation.isPending ? 'Validating...' : 'Run Validation'}
+        </Button>
 
         <div className='flex flex-col gap-1'>
           <Button
             onClick={() => setShowPublishConfirm(true)}
             disabled={
               publishMutation.isPending ||
-              isPublished ||
               !validationResult ||
               !validationResult.valid ||
               (readiness && readiness.score < 100)
@@ -231,18 +231,18 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
             ) : (
               <Upload className='w-4 h-4' />
             )}
-            {isPublished
-              ? 'Already Published'
-              : publishMutation.isPending
-                ? 'Publishing...'
-                : 'Publish Configuration'}
+            {publishMutation.isPending
+              ? 'Publishing...'
+              : isPublished
+                ? `Publish New Version (V${nextVersion})`
+                : 'Publish Configuration (V1)'}
           </Button>
-          {!isPublished && readiness && readiness.score < 100 && (
+          {readiness && readiness.score < 100 && (
             <span className='text-xs text-amber-600 dark:text-amber-400 ml-1 font-medium'>
               100% readiness score required to publish.
             </span>
           )}
-          {!isPublished && !validationResult && (!readiness || readiness.score === 100) && (
+          {!validationResult && (!readiness || readiness.score === 100) && (
             <span className='text-xs text-muted-foreground ml-1'>
               Run validation before publishing.
             </span>
@@ -250,25 +250,32 @@ export function ConfigurationPreview({ configId }: ConfigurationPreviewProps) {
         </div>
 
         {isPublished && (
-          <div className='flex items-center gap-2 text-sm text-green-600 dark:text-green-400'>
+          <div className='flex items-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium'>
             <CheckCircle2 className='w-4 h-4' />
-            Published
+            Currently Active (V{currentVersion})
           </div>
         )}
       </div>
 
       <Modal isOpen={showPublishConfirm} onClose={() => setShowPublishConfirm(false)}>
-        <h3 className='text-lg font-semibold mb-2'>Publish Configuration?</h3>
-        <p className='text-sm text-muted-foreground mb-6'>
-          This action will create a new version and make the configuration available to downstream
-          modules.
+        <h3 className='text-lg font-semibold mb-2'>
+          Publish {isPublished ? `New Version V${nextVersion}` : 'Configuration V1'}?
+        </h3>
+        <p className='text-sm text-muted-foreground mb-6 leading-relaxed'>
+          {isPublished
+            ? `This action will freeze the current configuration state, create an immutable release (V${nextVersion}), supersede previous active versions, and make the updated version available to candidates.`
+            : `This action will freeze the configuration snapshot, create an immutable release (V1), and make the assessment available to candidates.`}
         </p>
         <div className='flex items-center justify-end gap-3'>
           <Button variant='outline' onClick={() => setShowPublishConfirm(false)}>
             Cancel
           </Button>
           <Button onClick={handlePublish} disabled={publishMutation.isPending}>
-            {publishMutation.isPending ? 'Publishing...' : 'Publish'}
+            {publishMutation.isPending
+              ? 'Publishing...'
+              : isPublished
+                ? `Publish V${nextVersion}`
+                : 'Publish V1'}
           </Button>
         </div>
       </Modal>

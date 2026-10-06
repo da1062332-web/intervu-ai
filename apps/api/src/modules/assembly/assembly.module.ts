@@ -40,6 +40,7 @@ import { TestPoolManagerService } from "./services/test-pool-manager.service";
 import { PoolRefillSchedulerService } from "./services/pool-refill-scheduler.service";
 
 import { GenerationAiModule } from "../generation-ai/generation-ai.module";
+import { AdminConfigModule } from "../admin-config/admin-config.module";
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { GenerationAiModule } from "../generation-ai/generation-ai.module";
     QuestionPoolModule,
     QuestionBankModule,
     forwardRef(() => GenerationAiModule),
+    forwardRef(() => AdminConfigModule),
   ],
   controllers: [AssemblyController],
   providers: [

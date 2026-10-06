@@ -36,10 +36,12 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { CustomFormCard } from '@/components/ui/custom-form-card';
 import Link from 'next/link';
 import { useTopics } from '@/services/topics/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AssemblyPreviewPage() {
   const router = useRouter();
   const params = useParams();
+  const queryClient = useQueryClient();
 
   const [assembly, setAssembly] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
@@ -114,6 +116,11 @@ export default function AssemblyPreviewPage() {
 
       await apiClient.request(`/assembly/${params.id}/publish`, { method: 'POST' });
       toast.success('Assembly published successfully!');
+      queryClient.invalidateQueries({ queryKey: ['configs'] });
+      queryClient.invalidateQueries({ queryKey: ['config-versions'] });
+      queryClient.invalidateQueries({ queryKey: ['published-versions'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-tests'] });
       setAssembly((prev: any) => ({ ...prev, status: 'PUBLISHED' }));
       fetchData(params.id as string);
     } catch (error: any) {
@@ -132,6 +139,9 @@ export default function AssemblyPreviewPage() {
     try {
       await apiClient.request(`/assembly/${params.id}/version`, { method: 'POST' });
       toast.success('Version snapshot created successfully.');
+      queryClient.invalidateQueries({ queryKey: ['config-versions'] });
+      queryClient.invalidateQueries({ queryKey: ['published-versions'] });
+      queryClient.invalidateQueries({ queryKey: ['configs'] });
       await fetchData(params.id as string);
     } catch (error: any) {
       toast.error(error.message || 'Failed to create version');
