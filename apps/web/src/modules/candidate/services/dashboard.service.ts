@@ -17,6 +17,8 @@ export interface DashboardTestItem {
   questionCount: number;
   difficulty?: string | null;
   description?: string | null;
+  currentVersionNumber?: number | null;
+  versionName?: string | null;
 }
 
 export interface DashboardActiveTest {
@@ -27,6 +29,10 @@ export interface DashboardActiveTest {
   testId: string;
   testName: string;
   instanceId: string;
+  publishedVersionId?: string | null;
+  versionNumber?: number | null;
+  versionName?: string | null;
+  isLegacy?: boolean;
 }
 
 export interface DashboardCompletedAttempt {
@@ -37,6 +43,10 @@ export interface DashboardCompletedAttempt {
   completedDate: string;
   status: string;
   instanceId: string;
+  publishedVersionId?: string | null;
+  versionNumber?: number | null;
+  versionName?: string | null;
+  isLegacy?: boolean;
 }
 
 export interface CandidateDashboardData {
@@ -81,6 +91,8 @@ export const dashboardService = {
         questionCount: t.totalQuestions ?? t.questionCount ?? 0,
         difficulty: t.difficulty || null,
         description: t.description || null,
+        currentVersionNumber: t.currentVersionNumber ?? t.versionNumber ?? null,
+        versionName: t.versionName ?? null,
       }));
 
       const activeTests: DashboardActiveTest[] = (data.activeAttempts || []).map((a: any) => ({
@@ -91,6 +103,10 @@ export const dashboardService = {
         testId: a.configId,
         testName: a.name,
         instanceId: a.instanceId,
+        publishedVersionId: a.publishedVersionId ?? null,
+        versionNumber: a.versionNumber ?? null,
+        versionName: a.versionName ?? null,
+        isLegacy: a.isLegacy ?? false,
       }));
 
       const completedAttempts: DashboardCompletedAttempt[] = (data.completedTests || []).map(
@@ -102,6 +118,10 @@ export const dashboardService = {
           completedDate: t.submittedAt || new Date().toISOString(),
           status: 'COMPLETED',
           instanceId: t.instanceId,
+          publishedVersionId: t.publishedVersionId ?? null,
+          versionNumber: t.versionNumber ?? null,
+          versionName: t.versionName ?? null,
+          isLegacy: t.isLegacy ?? false,
         }),
       );
 

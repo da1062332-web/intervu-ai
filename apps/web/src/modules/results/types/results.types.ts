@@ -17,6 +17,10 @@ export type ResultDetails = {
   advancedScore?: number;
   codingSolved?: number;
   qualificationDetails?: any;
+  publishedVersionId?: string | null;
+  versionNumber?: number | null;
+  versionName?: string | null;
+  isLegacy?: boolean;
   candidate?: {
     fullName: string;
     email: string;
@@ -24,7 +28,13 @@ export type ResultDetails = {
 };
 
 export type PaginatedResults = {
-  data: (CandidateResultDto & { assessmentName: string })[];
+  data: (CandidateResultDto & {
+    assessmentName: string;
+    versionNumber?: number | null;
+    versionName?: string | null;
+    isLegacy?: boolean;
+    publishedVersionId?: string | null;
+  })[];
   meta: {
     total: number;
     page: number;

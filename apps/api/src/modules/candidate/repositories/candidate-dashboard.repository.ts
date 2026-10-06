@@ -17,6 +17,11 @@ export class CandidateDashboardRepository {
     CandidateDashboardRepository.dashboardMemCache.delete(userId);
   }
 
+  static invalidateGlobalExamConfigsCache() {
+    CandidateDashboardRepository.examConfigsMemCache = null;
+    CandidateDashboardRepository.dashboardMemCache.clear();
+  }
+
   async getDashboardData(userId: string) {
     const now = Date.now();
     const cached = CandidateDashboardRepository.dashboardMemCache.get(userId);
@@ -62,7 +67,7 @@ export class CandidateDashboardRepository {
             status: { in: ["IN_PROGRESS", "CREATED"] },
             expiresAt: { gt: now },
             examConfig: {
-              status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
+              status: { in: ["PUBLISHED", "ACTIVE"] },
               isActive: true,
               isArchived: false,
             },
@@ -117,7 +122,7 @@ export class CandidateDashboardRepository {
           where: {
             candidateId: userId,
             examConfig: {
-              status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
+              status: { in: ["PUBLISHED", "ACTIVE"] },
               isActive: true,
               isArchived: false,
             },
@@ -187,6 +192,8 @@ export class CandidateDashboardRepository {
           extraExamConfigs = await this.prisma.examConfig.findMany({
             where: {
               isArchived: false,
+              isActive: true,
+              status: { in: ["PUBLISHED", "ACTIVE"] },
               OR: [
                 { id: { in: missingCodes } },
                 { code: { in: missingCodes } },
@@ -273,7 +280,7 @@ export class CandidateDashboardRepository {
 
     if (!data) {
       data = await this.prisma.examConfig.findMany({
-        where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
+        where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE"] } },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,

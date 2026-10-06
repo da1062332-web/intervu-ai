@@ -16,10 +16,15 @@ import { ConfigurationValidationResult } from "../validators/configuration-valid
 import { ExamConfigReadinessService } from "../services/exam-config-readiness.service";
 import { TestPoolManagerService } from "../../assembly/services/test-pool-manager.service";
 
+import * as crypto from "crypto";
+import { CandidateDashboardRepository } from "../../candidate/repositories/candidate-dashboard.repository";
+
 export interface PublishResult {
   configId: string;
   status: string;
   version: string;
+  versionNumber: number;
+  publishedVersionId: string;
   publishedAt: Date;
   validation: ConfigurationValidationResult;
 }
@@ -31,9 +36,11 @@ export interface PublishResult {
  *   1. Validate (blocks if invalid)
  *   2. Validate Dependencies
  *   3. Enforce 100% Readiness Gate (blocks if score < 100%)
- *   4. Create Version (history entry containing full snapshot)
- *   5. Update status → PUBLISHED
- *   6. Write PublishLog
+ *   4. Create Immutable ExamPublishedVersion with frozen sections & questions
+ *   5. Supersede previous active versions
+ *   6. Update ExamConfig status → PUBLISHED, activeVersionId, currentVersionNumber
+ *   7. Cascade status to AssembledTest & write PublishLog
+ *   8. Evict all candidate dashboard caches
  *
  * Execution is wrapped in a Prisma $transaction for safety.
  * Only DRAFT or VALIDATED configs can be published.
@@ -64,12 +71,12 @@ export class ConfigPublisherService {
     configId: string,
     publishedBy?: string,
   ): Promise<PublishResult> {
-    // ─── Pre-flight check & Fetch Graph ───────────────────────────────────────
-    // Fetch once to avoid N+1 queries in validators and snapshot creation.
+    // ─── Pre-flight check & Fetch Full Graph ─────────────────────────────────
     const config = await this.prisma.examConfig.findUnique({
       where: { id: configId },
       include: {
         sections: {
+          orderBy: { sectionOrder: "asc" },
           include: {
             sectionTopics: {
               include: {
@@ -81,10 +88,25 @@ export class ConfigPublisherService {
                 },
               },
             },
+            questions: {
+              include: {
+                questionMedia: {
+                  include: {
+                    mediaAsset: true,
+                  },
+                  orderBy: { position: "asc" },
+                },
+              },
+            },
           },
         },
         difficultyDistribution: true,
         ruleFlags: true,
+        hiringEvaluationConfig: {
+          include: {
+            sectionMappings: true,
+          },
+        },
       },
     });
 
@@ -150,25 +172,183 @@ export class ConfigPublisherService {
     // Merge warnings from both validators
     const allWarnings = [...validationResult.warnings, ...depResult.warnings];
 
-    let finalVersionStr = "";
     const publishedAt = new Date();
+    let createdPublishedVersionId = "";
+    let finalVersionNumber = 1;
+    let finalVersionName = "";
 
-    // ─── Step 3-5: Execute Mutations in Transaction ─────────────────────────
+    // ─── Step 4-5: Execute Atomic Version Creation in Transaction ────────────
     await this.prisma.$transaction(
       async (tx) => {
         // Auto-generate Blueprint shell if missing to break circular deadlock & ensure readiness
         await this.autoEnsureBlueprint(tx, config);
 
-        // Create version using the pre-fetched graph
-        const versionEntry = await this.versionService.createVersion(config, tx);
-        finalVersionStr = `v${versionEntry.versionNumber}`;
+        // Determine next version number
+        const latestPublishedVersion = await tx.examPublishedVersion.findFirst({
+          where: { examConfigId: configId },
+          orderBy: { versionNumber: "desc" },
+        });
 
-        // Update status → PUBLISHED
+        finalVersionNumber = latestPublishedVersion
+          ? latestPublishedVersion.versionNumber + 1
+          : (config.currentVersionNumber ? config.currentVersionNumber + 1 : 1);
+        finalVersionName = `${config.name} — V${finalVersionNumber}`;
+
+        const configSnapshot = {
+          id: config.id,
+          name: config.name,
+          code: config.code,
+          role: config.role,
+          description: config.description,
+          durationMinutes: config.durationMinutes,
+          totalQuestions: config.totalQuestions,
+          sandboxUi: config.sandboxUi,
+          difficultyDistribution: config.difficultyDistribution,
+          hiringEvaluationConfig: config.hiringEvaluationConfig,
+        };
+
+        const scoringRulesSnapshot = {
+          negativeMarkingEnabled: config.ruleFlags?.negativeMarkingEnabled ?? false,
+          sectionalCutoffEnabled: config.ruleFlags?.sectionalCutoffEnabled ?? false,
+          adaptiveDifficultyEnabled: config.ruleFlags?.adaptiveDifficultyEnabled ?? false,
+          allowSectionNavigation: config.ruleFlags?.allowSectionNavigation ?? false,
+          sectionTimingEnabled: config.ruleFlags?.sectionTimingEnabled ?? false,
+          shuffleQuestionsEnabled: config.ruleFlags?.shuffleQuestionsEnabled ?? false,
+          shuffleOptionsEnabled: config.ruleFlags?.shuffleOptionsEnabled ?? false,
+          maxAttempts: config.ruleFlags?.maxAttempts ?? 3,
+        };
+
+        const versionDataToHash = {
+          configSnapshot,
+          scoringRulesSnapshot,
+          sections: config.sections.map((s) => ({
+            code: s.code,
+            name: s.name,
+            questionCount: s.questionCount,
+            duration: s.sectionDurationMinutes,
+            questions: s.questions.map((q) => q.id),
+          })),
+        };
+
+        const versionHash = crypto
+          .createHash("sha256")
+          .update(JSON.stringify(versionDataToHash))
+          .digest("hex");
+
+        // Supersede previous active versions
+        await tx.examPublishedVersion.updateMany({
+          where: { examConfigId: configId, status: "ACTIVE" },
+          data: { status: "SUPERSEDED" },
+        });
+
+        // Create new active immutable published version
+        const newPublishedVersion = await tx.examPublishedVersion.create({
+          data: {
+            examConfigId: configId,
+            versionNumber: finalVersionNumber,
+            versionName: finalVersionName,
+            status: "ACTIVE",
+            versionHash,
+            publishedBy: publishedBy ?? null,
+            changelogSummary: `Published version ${finalVersionNumber}`,
+            configSnapshot,
+            scoringRulesSnapshot,
+          },
+        });
+
+        createdPublishedVersionId = newPublishedVersion.id;
+
+        // Create version sections
+        const sectionsData = config.sections.map((section) => {
+          const topicDistribution = section.sectionTopics.map((st) => ({
+            topicId: st.topicId,
+            topicName: st.topic.name,
+            topicCode: st.topic.code,
+            weightagePercentage: st.topicWeightage?.weightagePercentage ?? null,
+          }));
+
+          return {
+            publishedVersionId: newPublishedVersion.id,
+            sectionCode: section.code,
+            sectionName: section.name,
+            sectionOrder: section.sectionOrder,
+            sectionDurationMinutes: section.sectionDurationMinutes,
+            questionCount: section.questionCount,
+            isRequired: section.isRequired,
+            topicDistributionJson: topicDistribution as any,
+          };
+        });
+
+        if (sectionsData.length > 0) {
+          await tx.examVersionSection.createMany({
+            data: sectionsData,
+          });
+        }
+
+        // Create version questions
+        const questionsData: any[] = [];
+        for (const section of config.sections) {
+          for (const question of section.questions) {
+            const media =
+              question.questionMedia?.map((m) => ({
+                id: m.mediaAsset.id,
+                storageKey: m.mediaAsset.storageKey,
+                mimeType: m.mediaAsset.mimeType,
+                altText: m.mediaAsset.altText,
+                position: m.position,
+              })) ?? [];
+
+            let optionsJson: any = [];
+            if (question.mcqData && typeof question.mcqData === "object") {
+              const mcqObj = question.mcqData as any;
+              optionsJson = Array.isArray(mcqObj)
+                ? mcqObj
+                : mcqObj.options || mcqObj.choices || [];
+            }
+
+            const correctAnswerJson = question.answer
+              ? { correctOption: question.answer, answer: question.answer }
+              : {};
+
+            questionsData.push({
+              publishedVersionId: newPublishedVersion.id,
+              sectionCode: section.code,
+              originalQuestionId: question.id,
+              questionStem: question.questionText || question.questionStatement || "",
+              questionType: question.questionType || "MCQ",
+              difficulty: (question.difficulty as any) || "MEDIUM",
+              optionsJson,
+              correctAnswerJson,
+              explanation: question.explanation,
+              marks: 1.0,
+              negativeMarks: config.ruleFlags?.negativeMarkingEnabled ? 0.25 : 0.0,
+              mediaAttachmentsJson: media,
+              codingDataJson: question.codingData as any,
+              metadataJson: {
+                conceptId: question.conceptId,
+                topicId: question.topicId,
+              },
+            });
+          }
+        }
+
+        if (questionsData.length > 0) {
+          await tx.examVersionQuestion.createMany({
+            data: questionsData,
+          });
+        }
+
+        // Maintain backward compatibility with ExamConfigVersion
+        await this.versionService.createVersion(config, tx);
+
+        // Update ExamConfig status → PUBLISHED and pin active version
         await tx.examConfig.update({
           where: { id: configId },
           data: {
             status: "PUBLISHED",
             isActive: true,
+            currentVersionNumber: finalVersionNumber,
+            activeVersionId: newPublishedVersion.id,
           },
         });
 
@@ -190,7 +370,7 @@ export class ConfigPublisherService {
           data: {
             configId,
             publishedBy: publishedBy ?? null,
-            version: finalVersionStr,
+            version: finalVersionName,
             publishedAt,
           },
         });
@@ -198,8 +378,11 @@ export class ConfigPublisherService {
       { timeout: 120000, maxWait: 60000 },
     );
 
+    // ─── Step 6: Evict Caches (Candidate Dashboard + Redis) ───────────────────
     await this.cacheService.invalidateBlueprint?.(configId);
+    await this.cacheService.delete?.("dashboard:examConfigs:available:v10");
     await this.cacheService.delete?.("dashboard:examConfigs:available:v2");
+    CandidateDashboardRepository.invalidateGlobalExamConfigsCache();
 
     // ─── Step 6: Dynamic Pre-Generated Pool Rebuild ──────────────────────────
     if (this.testPoolManager) {
@@ -227,7 +410,9 @@ export class ConfigPublisherService {
     return {
       configId,
       status: "PUBLISHED",
-      version: finalVersionStr,
+      version: finalVersionName,
+      versionNumber: finalVersionNumber,
+      publishedVersionId: createdPublishedVersionId,
       publishedAt,
       validation: {
         valid: true,

@@ -9,6 +9,7 @@ import { RecommendationService } from "../../src/modules/evaluation/recommendati
 import { TopicMasteryService } from "../../src/modules/evaluation/analytics/topic-mastery.service";
 import { StrengthWeaknessService } from "../../src/modules/evaluation/analytics/strength-weakness.service";
 import { CodingEvaluatorService } from "../../src/modules/evaluation/objective/coding-evaluator.service";
+import { HiringEvaluationEngine } from "../../src/modules/evaluation/services/hiring-evaluation.engine";
 
 import { ResultStorageService } from "../../src/modules/evaluation/services/result-storage.service";
 import { PrismaService } from "../../src/prisma/prisma.service";
@@ -87,6 +88,9 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
       evaluationInsight: {
         upsert: vi.fn().mockResolvedValue({}),
       },
+      topic: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
       $queryRawUnsafe: vi.fn().mockResolvedValue([]),
     };
 
@@ -103,6 +107,10 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
         {
           provide: CodingEvaluatorService,
           useValue: { evaluateAnswers: vi.fn().mockResolvedValue([]) },
+        },
+        {
+          provide: HiringEvaluationEngine,
+          useValue: { evaluateAttempt: vi.fn().mockResolvedValue(null) },
         },
         {
           provide: ResultStorageService,
@@ -144,6 +152,6 @@ describe("Evaluation Pipeline integration E2E Flow", () => {
     expect(result.sections![0].accuracy).toBe(100);
     expect(result.analytics!.completionRate).toBe(100);
     expect(result.recommendations!.length).toBe(1);
-    expect(result.recommendations![0].title).toBe("Maintain Excellence");
+    expect(result.recommendations![0].title).toBe("Excel in sec_math");
   });
 });

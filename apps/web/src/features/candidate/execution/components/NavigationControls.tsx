@@ -73,12 +73,7 @@ export const NavigationControls = memo(function NavigationControls({
     if (isFinalAssessmentQuestion) {
       if (onSubmitClick) onSubmitClick();
     } else if (isLastQuestionOfSection && !isLastSection) {
-      if (testInstance?.allowSectionNavigation !== false) {
-        goNext();
-      } else {
-        // Trigger section advance modal
-        requestNextSection();
-      }
+      requestNextSection();
     } else {
       goNext();
     }
@@ -96,15 +91,13 @@ export const NavigationControls = memo(function NavigationControls({
     <div className='flex flex-wrap items-center justify-between w-full gap-3 select-none font-sans'>
       {/* Left Button Group: Previous, Mark for Review & Next, Clear Response */}
       <div className='flex items-center gap-3 overflow-x-auto hide-scrollbar flex-wrap sm:flex-nowrap'>
-        {!isPreviousDisabled && (
-          <button
-            onClick={goPrevious}
-            disabled={isPreviousDisabled}
-            className='bg-[#d6eafb] hover:bg-[#c2dff5] text-[#1c3e66] font-bold text-sm px-5 py-2.5 rounded-sm border border-[#96bae0] shadow-sm transition-all flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
-          >
-            Previous
-          </button>
-        )}
+        <button
+          onClick={goPrevious}
+          disabled={isPreviousDisabled}
+          className='bg-[#d6eafb] hover:bg-[#c2dff5] text-[#1c3e66] font-bold text-sm px-5 py-2.5 rounded-sm border border-[#96bae0] shadow-sm transition-all flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+        >
+          Previous
+        </button>
         <button
           onClick={handleMarkForReview}
           className='bg-[#d6eafb] hover:bg-[#c2dff5] text-[#1c3e66] font-bold text-sm px-6 py-2.5 rounded-sm border border-[#96bae0] shadow-sm transition-all flex items-center justify-center shrink-0 cursor-pointer'

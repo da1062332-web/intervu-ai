@@ -28,6 +28,11 @@ export class TestInstanceRepository extends BaseRepository<
         user: true,
         examConfig: true,
         testConfig: true,
+        publishedVersion: {
+          include: {
+            versionQuestions: true,
+          },
+        },
         sections: {
           include: {
             questions: {

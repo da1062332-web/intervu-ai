@@ -132,6 +132,8 @@ describe("Exam Config & Section Integration Tests", () => {
       createdBy: "admin-1",
       createdAt: new Date(),
       updatedAt: new Date(),
+      currentVersionNumber: null,
+      activeVersionId: null,
     };
 
     const mockSection: ExamSection = {

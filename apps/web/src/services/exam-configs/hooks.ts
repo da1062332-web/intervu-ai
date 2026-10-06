@@ -133,7 +133,11 @@ export const usePublishConfig = (configId: string) => {
       queryClient.invalidateQueries({ queryKey: ['configs'] });
       queryClient.invalidateQueries({ queryKey: ['configs', configId] });
       queryClient.invalidateQueries({ queryKey: ['config-versions', configId] });
-      toast.success(`Configuration published as ${data.version}`);
+      queryClient.invalidateQueries({ queryKey: ['published-versions', configId] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate-tests'] });
+      queryClient.invalidateQueries({ queryKey: ['test-catalog'] });
+      toast.success(`Configuration published as ${data.version || `V${data.versionNumber}`}`);
     },
     onError: (error: any) => {
       const msg =
@@ -191,10 +195,33 @@ export const useRestoreVersion = (configId: string) => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['configs', configId] });
       queryClient.invalidateQueries({ queryKey: ['config-versions', configId] });
+      queryClient.invalidateQueries({ queryKey: ['published-versions', configId] });
       toast.success(data.message);
     },
     onError: () => {
       toast.error('Failed to restore version');
     },
+  });
+};
+
+/**
+ * Hook to fetch all immutable published versions with attempt statistics.
+ */
+export const usePublishedVersions = (configId: string) => {
+  return useQuery({
+    queryKey: ['published-versions', configId],
+    queryFn: () => examConfigsApi.getPublishedVersions(configId),
+    enabled: Boolean(configId),
+  });
+};
+
+/**
+ * Hook to fetch detailed snapshot of a specific published version.
+ */
+export const usePublishedVersionDetails = (configId: string, versionId?: string) => {
+  return useQuery({
+    queryKey: ['published-version-details', configId, versionId],
+    queryFn: () => examConfigsApi.getPublishedVersionDetails(configId, versionId!),
+    enabled: Boolean(configId) && Boolean(versionId),
   });
 };

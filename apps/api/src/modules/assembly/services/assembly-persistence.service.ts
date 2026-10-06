@@ -101,6 +101,12 @@ export class AssemblyPersistenceService {
     }
 
     const targetExamConfigId = reusable.configId || configId;
+    const activeVersion = targetExamConfigId
+      ? await this.prisma.examPublishedVersion.findFirst({
+          where: { examConfigId: targetExamConfigId, status: "ACTIVE" },
+        })
+      : null;
+
     const queries: Prisma.PrismaPromise<unknown>[] = [];
 
     // 1. Create candidate TestInstance directly in IN_PROGRESS state
@@ -112,6 +118,9 @@ export class AssemblyPersistenceService {
           userId,
           examConfigId: targetExamConfigId,
           testConfigId: null,
+          publishedVersionId: activeVersion?.id ?? null,
+          versionNumber: activeVersion?.versionNumber ?? null,
+          versionName: activeVersion?.versionName ?? null,
           status: "IN_PROGRESS",
           startedAt: new Date(),
           expiresAt,
@@ -253,6 +262,12 @@ export class AssemblyPersistenceService {
     const examConfigId = examConfig?.id ?? null;
     const testConfigId = !examConfig ? claimedInstance.configId : null;
 
+    const activeVersion = examConfigId
+      ? await this.prisma.examPublishedVersion.findFirst({
+          where: { examConfigId, status: "ACTIVE" },
+        })
+      : null;
+
     const queries: Prisma.PrismaPromise<unknown>[] = [];
 
     // 1. Create candidate TestInstance
@@ -263,6 +278,9 @@ export class AssemblyPersistenceService {
           userId,
           examConfigId,
           testConfigId,
+          publishedVersionId: activeVersion?.id ?? null,
+          versionNumber: activeVersion?.versionNumber ?? null,
+          versionName: activeVersion?.versionName ?? null,
           status: "CREATED",
           expiresAt,
         },
@@ -383,6 +401,12 @@ export class AssemblyPersistenceService {
     const expiresAt = new Date(Date.now() + (totalDuration || 3600) * 1000);
     const queries: Prisma.PrismaPromise<unknown>[] = [];
 
+    const activeVersion = examConfigId
+      ? await this.prisma.examPublishedVersion.findFirst({
+          where: { examConfigId, status: "ACTIVE" },
+        })
+      : null;
+
     queries.push(
       this.prisma.testInstance.create({
         data: {
@@ -390,6 +414,9 @@ export class AssemblyPersistenceService {
           userId,
           examConfigId,
           testConfigId,
+          publishedVersionId: activeVersion?.id ?? null,
+          versionNumber: activeVersion?.versionNumber ?? null,
+          versionName: activeVersion?.versionName ?? null,
           status: "CREATED",
           expiresAt,
         },

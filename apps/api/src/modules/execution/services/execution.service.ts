@@ -45,6 +45,10 @@ export interface AssessmentSnapshotResponse {
   assessmentName?: string;
   sandboxUi?: string;
   allowSectionNavigation?: boolean;
+  publishedVersionId?: string | null;
+  versionNumber?: number | null;
+  versionName?: string | null;
+  isLegacy?: boolean;
   sections: SectionSnapshot[];
 }
 
@@ -178,13 +182,33 @@ export class ExecutionService {
       (executionState as any)?.currentSectionIndex ?? 0;
     const currentQuestionIndex = executionState?.currentQuestionIndex ?? 0;
 
-    // 5a. Identify templates and questions needing fallback / media enrichment
-    const allQuestionIds = new Set<string>();
+    // 5a. Map version questions from the pinned published version snapshot
+    const versionQuestionsMap = new Map<string, any>();
+    if (snapshot.publishedVersion?.versionQuestions) {
+      for (const vq of snapshot.publishedVersion.versionQuestions) {
+        versionQuestionsMap.set(vq.originalQuestionId, vq);
+      }
+    }
+
+    // Identify templates and questions needing fallback (for unversioned legacy attempts)
+    const missingQuestionIds = new Set<string>();
     const templateIds = new Set<string>();
     for (const section of snapshot.sections) {
       for (const q of section.questions) {
-        if (q.questionId) allQuestionIds.add(q.questionId);
         const rawSnapshot = (q.questionSnapshot || {}) as any;
+        const vq = versionQuestionsMap.get(q.questionId);
+        const hasOptions =
+          (Array.isArray(rawSnapshot.options) && rawSnapshot.options.length >= 2) ||
+          (vq?.optionsJson && Array.isArray(vq.optionsJson) && vq.optionsJson.length >= 2);
+        const hasStem =
+          rawSnapshot.questionText ||
+          rawSnapshot.questionStatement ||
+          vq?.questionStem;
+
+        if ((!hasOptions || !hasStem) && q.questionId) {
+          missingQuestionIds.add(q.questionId);
+        }
+
         if (rawSnapshot.templateId) {
           templateIds.add(rawSnapshot.templateId);
         }
@@ -198,9 +222,10 @@ export class ExecutionService {
     const questionDbMap = new Map<string, any>();
     const templateMap = new Map<string, any>();
 
-    if (allQuestionIds.size > 0) {
+    // Fallback DB query ONLY for legacy attempts missing snapshot data
+    if (missingQuestionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
-        where: { id: { in: Array.from(allQuestionIds) } },
+        where: { id: { in: Array.from(missingQuestionIds) } },
         select: {
           id: true,
           templateId: true,
@@ -669,6 +694,10 @@ export class ExecutionService {
         "Candidate Assessment",
       sandboxUi,
       allowSectionNavigation,
+      publishedVersionId: snapshot.publishedVersionId ?? snapshot.publishedVersion?.id ?? null,
+      versionNumber: snapshot.versionNumber ?? snapshot.publishedVersion?.versionNumber ?? null,
+      versionName: snapshot.versionName ?? snapshot.publishedVersion?.versionName ?? null,
+      isLegacy: snapshot.isLegacy ?? false,
       sections: sectionsWithStatus,
     };
 

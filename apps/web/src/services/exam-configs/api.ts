@@ -106,6 +106,20 @@ export const examConfigsApi = {
   },
 
   /**
+   * List all immutable published versions with attempt metrics.
+   */
+  getPublishedVersions: (configId: string) => {
+    return apiClient.request<any[]>(`/admin/configs/${configId}/published-versions`);
+  },
+
+  /**
+   * Get detailed snapshot of an immutable published version.
+   */
+  getPublishedVersionDetails: (configId: string, versionId: string) => {
+    return apiClient.request<any>(`/admin/configs/${configId}/published-versions/${versionId}`);
+  },
+
+  /**
    * Restore a configuration to a previous version.
    * This resets the config status to DRAFT.
    */

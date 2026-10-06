@@ -78,6 +78,8 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      currentVersionNumber: null,
+      activeVersionId: null,
     };
 
     it("should successfully create a new section", async () => {
@@ -201,6 +203,8 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      currentVersionNumber: null,
+      activeVersionId: null,
     };
 
     it("should return sections list for a valid config id", async () => {
@@ -260,6 +264,8 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      currentVersionNumber: null,
+      activeVersionId: null,
     };
 
     it("should update section successfully", async () => {
@@ -424,6 +430,8 @@ describe("ExamSectionService", () => {
       createdBy: "admin",
       createdAt: new Date(),
       updatedAt: new Date(),
+      currentVersionNumber: null,
+      activeVersionId: null,
     };
 
     it("should delete section successfully", async () => {

@@ -219,6 +219,34 @@ export class ExamConfigController {
   }
 
   /**
+   * GET /admin/configs/:id/published-versions
+   * List all immutable published versions with attempt statistics.
+   */
+  @Get(":id/published-versions")
+  @ApiOperation({ summary: "List all immutable published versions of an exam configuration" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiOkResponse({ description: "List of immutable published versions" })
+  async getPublishedVersions(@Param("id") id: string) {
+    return this.configVersionService.getPublishedVersions(id);
+  }
+
+  /**
+   * GET /admin/configs/:id/published-versions/:versionId
+   * Get full details of a specific immutable published version.
+   */
+  @Get(":id/published-versions/:versionId")
+  @ApiOperation({ summary: "Get detailed snapshot of an immutable published version" })
+  @ApiParam({ name: "id", description: "Exam configuration ID" })
+  @ApiParam({ name: "versionId", description: "Published version ID" })
+  @ApiOkResponse({ description: "Detailed published version snapshot" })
+  async getPublishedVersionDetails(
+    @Param("id") id: string,
+    @Param("versionId") versionId: string,
+  ) {
+    return this.configVersionService.getPublishedVersionDetails(id, versionId);
+  }
+
+  /**
    * POST /admin/configs/:id/restore/:versionId
    * Restore a config to a previous version's state.
    * Resets status to DRAFT to force re-validation.
