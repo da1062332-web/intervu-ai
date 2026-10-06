@@ -126,6 +126,10 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
   const difficulty = (latestAssessment as any)?.difficulty || 'N/A';
   const maxAttempts = latestAssessment?.maxAttempts;
   const attemptCount = latestAssessment?.attemptCount ?? 0;
+  const versionNumber =
+    activeAttempt?.versionNumber ?? latestAssessment?.currentVersionNumber ?? null;
+  const isLegacyAttempt = Boolean(activeAttempt?.isLegacy);
+  const hasNewVersion = Boolean(!isInProgress && latestAssessment?.hasNewVersion);
 
   const handleAction = () => {
     if (!hasActivePlan) {
@@ -156,9 +160,25 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
             </div>
           )}
 
-          <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight truncate'>
-            {title}
-          </h2>
+          <div className='flex items-center gap-2.5 flex-wrap'>
+            <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight truncate'>
+              {title}
+            </h2>
+            {isLegacyAttempt ? (
+              <span className='px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border/60'>
+                Legacy (Unversioned)
+              </span>
+            ) : versionNumber != null ? (
+              <span className='px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-muted text-foreground border border-border/60'>
+                V{versionNumber}
+              </span>
+            ) : null}
+            {hasNewVersion && (
+              <span className='px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'>
+                New Version
+              </span>
+            )}
+          </div>
 
           <div className='flex flex-wrap items-center gap-2.5 pt-1'>
             {isReferralUnlocked && maxAttempts && (

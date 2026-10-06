@@ -19,6 +19,8 @@ export interface DashboardTestItem {
   description?: string | null;
   currentVersionNumber?: number | null;
   versionName?: string | null;
+  latestAttemptVersionNumber?: number | null;
+  hasNewVersion?: boolean;
 }
 
 export interface DashboardActiveTest {
@@ -93,6 +95,8 @@ export const dashboardService = {
         description: t.description || null,
         currentVersionNumber: t.currentVersionNumber ?? t.versionNumber ?? null,
         versionName: t.versionName ?? null,
+        latestAttemptVersionNumber: t.latestAttemptVersionNumber ?? null,
+        hasNewVersion: Boolean(t.hasNewVersion),
       }));
 
       const activeTests: DashboardActiveTest[] = (data.activeAttempts || []).map((a: any) => ({
@@ -187,6 +191,9 @@ export const dashboardService = {
         maxAttempts: t.maxAttempts ?? t.allowedAttempts ?? 10,
         attemptCount: t.attemptCount ?? 0,
         canReattempt: t.canReattempt ?? true,
+        currentVersionNumber: t.currentVersionNumber ?? t.versionNumber ?? null,
+        latestAttemptVersionNumber: t.latestAttemptVersionNumber ?? null,
+        hasNewVersion: Boolean(t.hasNewVersion),
       }));
     }
     return response;

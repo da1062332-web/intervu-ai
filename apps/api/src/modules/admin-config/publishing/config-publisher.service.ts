@@ -18,6 +18,7 @@ import { TestPoolManagerService } from "../../assembly/services/test-pool-manage
 
 import * as crypto from "crypto";
 import { CandidateDashboardRepository } from "../../candidate/repositories/candidate-dashboard.repository";
+import { PublicTestsService } from "../../candidate/services/public-tests.service";
 
 export interface PublishResult {
   configId: string;
@@ -378,11 +379,12 @@ export class ConfigPublisherService {
       { timeout: 120000, maxWait: 60000 },
     );
 
-    // ─── Step 6: Evict Caches (Candidate Dashboard + Redis) ───────────────────
+    // ─── Step 6: Evict Caches (Candidate Dashboard + Catalog + Redis) ────────
     await this.cacheService.invalidateBlueprint?.(configId);
     await this.cacheService.delete?.("dashboard:examConfigs:available:v10");
     await this.cacheService.delete?.("dashboard:examConfigs:available:v2");
     CandidateDashboardRepository.invalidateGlobalExamConfigsCache();
+    PublicTestsService.invalidateCache();
 
     // ─── Step 6: Dynamic Pre-Generated Pool Rebuild ──────────────────────────
     if (this.testPoolManager) {
