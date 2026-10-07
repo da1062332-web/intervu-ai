@@ -1,5 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { vi } from "vitest";
 import { SubscriptionService } from "../services/subscription.service";
 import { EntitlementService } from "../services/entitlement.service";
 import { UsageQuotaService } from "../services/usage-quota.service";
@@ -10,6 +11,8 @@ import { EligibilityService } from "../../lifecycle/eligibility.service";
 import { UserRepository } from "../../users/repositories/user.repository";
 import { TestConfigRepository } from "../../tests/repositories/test-config.repository";
 import { TestInstanceRepository } from "../../tests/test-instance/test-instance.repository";
+
+const jest = vi;
 
 describe("Quota-Driven Subscription & Entitlement Lifecycle", () => {
   let subscriptionService: SubscriptionService;
@@ -103,6 +106,26 @@ describe("Quota-Driven Subscription & Entitlement Lifecycle", () => {
           }
         }
         return Promise.resolve(null);
+      }),
+      upsert: jest.fn(({ where, create, update }) => {
+        const key = `${where.userId_periodKey.userId}_${where.userId_periodKey.periodKey}`;
+        let quota = mockDb.usageQuotas.get(key);
+        if (quota) {
+          if (update.roundsUsed?.increment) {
+            quota.roundsUsed += update.roundsUsed.increment;
+          }
+          quota.updatedAt = new Date();
+        } else {
+          quota = {
+            id: `q_${Date.now()}`,
+            ...create,
+            roundsUsed: create.roundsUsed || 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          mockDb.usageQuotas.set(key, quota);
+        }
+        return Promise.resolve(quota);
       }),
     },
     userQuotaOverride: {
@@ -354,6 +377,7 @@ describe("Quota-Driven Subscription & Entitlement Lifecycle", () => {
     ]);
 
     // Check entitlements after attempt: reward is now fully consumed
+    entitlementService.invalidateCache(userId);
     const entAfter = await entitlementService.getUserEntitlements(userId);
     expect(entAfter.hasActivePlan).toBe(false);
     expect(entAfter.status).toBe("INCOMPLETE");
