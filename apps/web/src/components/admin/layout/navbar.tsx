@@ -25,6 +25,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/brand-logo';
+import { SubscriptionPlanBadge } from '@/components/billing/subscription-plan-badge';
 
 export function Navbar() {
   const router = useRouter();
@@ -148,6 +149,9 @@ export function Navbar() {
 
         {/* Divider */}
         <div className='mx-1.5 h-6 w-px bg-border' aria-hidden='true' />
+
+        {/* Subscription Plan Badge for Candidates */}
+        {isCandidate && <SubscriptionPlanBadge />}
 
         {/* User dropdown */}
         <DropdownMenu>

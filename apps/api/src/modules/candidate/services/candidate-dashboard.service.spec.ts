@@ -1,10 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { vi } from "vitest";
 import { CandidateDashboardService } from "./candidate-dashboard.service";
 import { CandidateDashboardRepository } from "../repositories/candidate-dashboard.repository";
 import { EntitlementService } from "../../billing/services/entitlement.service";
-
-const jest = vi;
 
 describe("CandidateDashboardService", () => {
   let service: CandidateDashboardService;

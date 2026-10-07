@@ -1,6 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { vi } from "vitest";
 import { SubscriptionService } from "../services/subscription.service";
 import { EntitlementService } from "../services/entitlement.service";
 import { UsageQuotaService } from "../services/usage-quota.service";
@@ -11,8 +10,6 @@ import { EligibilityService } from "../../lifecycle/eligibility.service";
 import { UserRepository } from "../../users/repositories/user.repository";
 import { TestConfigRepository } from "../../tests/repositories/test-config.repository";
 import { TestInstanceRepository } from "../../tests/test-instance/test-instance.repository";
-
-const jest = vi;
 
 describe("Quota-Driven Subscription & Entitlement Lifecycle", () => {
   let subscriptionService: SubscriptionService;
