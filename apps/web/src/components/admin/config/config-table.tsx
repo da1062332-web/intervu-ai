@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import { Eye, Edit2, Archive } from 'lucide-react';
+import { Eye, Edit2, Archive, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, ColumnDef } from '@/components/ui/data-table';
@@ -16,6 +16,8 @@ export interface ExamConfig {
   totalQuestions: number;
   isActive: boolean;
   status?: string;
+  currentVersionNumber?: number | null;
+  activeVersionId?: string | null;
   createdAt?: string;
 }
 
@@ -42,7 +44,16 @@ export function ConfigTable({ configs, isLoading }: ConfigTableProps) {
     {
       id: 'name',
       header: 'Config Name',
-      cell: (row) => <span className='font-medium'>{row.name}</span>,
+      cell: (row) => (
+        <div className='flex items-center gap-2'>
+          <span className='font-medium'>{row.name}</span>
+          {row.currentVersionNumber && (
+            <Badge variant='secondary' className='text-[10px] font-mono px-1.5 py-0'>
+              V{row.currentVersionNumber}
+            </Badge>
+          )}
+        </div>
+      ),
     },
     {
       id: 'code',
@@ -71,29 +82,31 @@ export function ConfigTable({ configs, isLoading }: ConfigTableProps) {
       id: 'status',
       header: 'Status',
       cell: (row) => (
-        <Badge
-          variant={
-            row.status === 'ARCHIVED'
-              ? 'destructive'
+        <div className='flex items-center gap-1.5'>
+          <Badge
+            variant={
+              row.status === 'ARCHIVED'
+                ? 'destructive'
+                : row.status === 'VALIDATED'
+                  ? 'outline'
+                  : row.status === 'PUBLISHED'
+                    ? 'default'
+                    : !row.isActive
+                      ? 'secondary'
+                      : 'default'
+            }
+          >
+            {row.status === 'ARCHIVED'
+              ? 'Archived'
               : row.status === 'VALIDATED'
-                ? 'outline'
+                ? 'Validated'
                 : row.status === 'PUBLISHED'
-                  ? 'default'
-                  : !row.isActive
-                    ? 'secondary'
-                    : 'default'
-          }
-        >
-          {row.status === 'ARCHIVED'
-            ? 'Archived'
-            : row.status === 'VALIDATED'
-              ? 'Validated'
-              : row.status === 'PUBLISHED'
-                ? 'Published'
-                : row.isActive
-                  ? 'Active'
-                  : 'Draft'}
-        </Badge>
+                  ? 'Published'
+                  : row.isActive
+                    ? 'Active'
+                    : 'Draft'}
+          </Badge>
+        </div>
       ),
     },
     {
@@ -108,6 +121,11 @@ export function ConfigTable({ configs, isLoading }: ConfigTableProps) {
       className: 'text-right',
       cell: (row) => (
         <div className='flex items-center justify-end gap-2'>
+          <Button variant='ghost' size='icon' aria-label='Version History' title='Version History' asChild>
+            <Link href={`/admin/configurations/${row.id}/versions`}>
+              <History className='w-4 h-4 text-muted-foreground' />
+            </Link>
+          </Button>
           <Button variant='ghost' size='icon' aria-label='View' asChild>
             <Link href={`/admin/configurations/${row.id}`}>
               <Eye className='w-4 h-4' />

@@ -70,6 +70,8 @@ describe("ExamConfigService", () => {
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       repository.findByCode.mockResolvedValueOnce(null);
@@ -101,6 +103,8 @@ describe("ExamConfigService", () => {
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       repository.findByCode.mockResolvedValueOnce(existingConfig);
@@ -131,6 +135,8 @@ describe("ExamConfigService", () => {
           createdBy: "admin-1",
           createdAt: new Date(),
           updatedAt: new Date(),
+          currentVersionNumber: null,
+          activeVersionId: null,
         },
       ];
 
@@ -163,6 +169,8 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       repository.findById.mockResolvedValueOnce(activeConfig);
@@ -198,6 +206,8 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       repository.findById.mockResolvedValueOnce(inactiveConfig);
@@ -232,6 +242,8 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       const updatedConfig: ExamConfig = {
@@ -275,6 +287,8 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       repository.findById.mockResolvedValueOnce(archivedConfig);
@@ -300,6 +314,8 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       const otherConfig: ExamConfig = {
@@ -317,6 +333,8 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       repository.findById.mockResolvedValueOnce(existingConfig);
@@ -345,6 +363,8 @@ describe("ExamConfigService", () => {
         createdBy: "admin-1",
         createdAt: new Date(),
         updatedAt: new Date(),
+        currentVersionNumber: null,
+        activeVersionId: null,
       };
 
       const archivedConfig: ExamConfig = {

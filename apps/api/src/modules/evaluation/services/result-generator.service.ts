@@ -39,10 +39,20 @@ export class ResultGeneratorService {
     const attemptId = executionResult.testId || executionResult.executionId;
     this.logger.info("Generating candidate assessment results", { attemptId });
 
-    // 1. Single consolidated DB fetch — test instance + sections + questions in one query
+    // 1. Single consolidated DB fetch — test instance + sections + questions + published version
     const testInstance = await this.prisma.testInstance.findUnique({
       where: { id: attemptId },
       include: {
+        publishedVersion: {
+          include: {
+            versionQuestions: true,
+          },
+        },
+        examConfig: {
+          include: {
+            ruleFlags: true,
+          },
+        },
         sections: {
           orderBy: { orderIndex: "asc" },
           include: {
@@ -58,15 +68,40 @@ export class ResultGeneratorService {
       throw new NotFoundException(`Test instance ${attemptId} not found`);
     }
 
-    // 2. Collect all unique questionIds to batch-fetch metadata (instructions, questionStatement)
-    const questionIds = new Set<string>();
-    for (const section of testInstance.sections) {
-      for (const q of section.questions) {
-        if (q.questionId) questionIds.add(q.questionId);
+    const versionQuestionsMap = new Map<string, any>();
+    if (testInstance.publishedVersion?.versionQuestions) {
+      for (const vq of testInstance.publishedVersion.versionQuestions) {
+        versionQuestionsMap.set(vq.originalQuestionId, vq);
       }
     }
 
-    // 3. Batch fetch question metadata (instructions, questionStatement, answer, options) in one query
+    // Determine scoring rules from published version snapshot or examConfig
+    const scoringRules = testInstance.publishedVersion?.scoringRulesSnapshot as any;
+    const negativeMarkingEnabled =
+      scoringRules?.negativeMarkingEnabled ??
+      testInstance.examConfig?.ruleFlags?.negativeMarkingEnabled ??
+      false;
+
+    // 2. Collect questionIds that truly lack snapshot answer keys (legacy fallback only)
+    const missingSnapshotQuestionIds = new Set<string>();
+    for (const section of testInstance.sections) {
+      for (const q of section.questions) {
+        const snap = (q.questionSnapshot || {}) as any;
+        const vq = versionQuestionsMap.get(q.questionId);
+        const hasAnswer =
+          snap.answer ||
+          snap.correctAnswer ||
+          snap.correctOption ||
+          snap.metadata?.answer ||
+          snap.mcqData?.correctAnswer ||
+          vq?.correctAnswerJson;
+        if (!hasAnswer && q.questionId) {
+          missingSnapshotQuestionIds.add(q.questionId);
+        }
+      }
+    }
+
+    // 3. Fallback query ONLY for missing legacy question keys
     const dbQuestionsMap = new Map<
       string,
       {
@@ -79,9 +114,9 @@ export class ResultGeneratorService {
         options: any;
       }
     >();
-    if (questionIds.size > 0) {
+    if (missingSnapshotQuestionIds.size > 0) {
       const dbQuestions = await this.prisma.question.findMany({
-        where: { id: { in: Array.from(questionIds) } },
+        where: { id: { in: Array.from(missingSnapshotQuestionIds) } },
         select: {
           id: true,
           instructions: true,
@@ -138,12 +173,15 @@ export class ResultGeneratorService {
     const parsedSections = testInstance.sections.map((section) => {
       const sectionQuestions = section.questions.map((q) => {
         const snap = (q.questionSnapshot || {}) as any;
+        const vq = versionQuestionsMap.get(q.questionId);
         const questionMeta = dbQuestionsMap.get(q.questionId) as any;
         const answer =
           snap.answer ||
           snap.correctAnswer ||
+          snap.correctOption ||
           snap.metadata?.answer ||
           snap.mcqData?.correctAnswer ||
+          (vq?.correctAnswerJson ? ((vq.correctAnswerJson as any).correctOption || (vq.correctAnswerJson as any).answer) : null) ||
           snap.expectedAnswer ||
           questionMeta?.answer ||
           questionMeta?.correctAnswer ||
@@ -154,6 +192,7 @@ export class ResultGeneratorService {
           snap.options ||
           snap.mcqData?.options ||
           snap.metadata?.options ||
+          (vq?.optionsJson ? (Array.isArray(vq.optionsJson) ? vq.optionsJson : (vq.optionsJson as any).options) : null) ||
           questionMeta?.options ||
           questionMeta?.mcqData?.options ||
           questionMeta?.metadata?.options ||
@@ -161,11 +200,13 @@ export class ResultGeneratorService {
         const questionType = (
           snap.questionType ||
           snap.type ||
+          vq?.questionType ||
           "MCQ"
         ).toUpperCase();
         const difficulty =
           snap.difficulty ||
           snap.difficultyLevel ||
+          vq?.difficulty ||
           questionMeta?.difficulty ||
           "MEDIUM";
 
@@ -296,6 +337,10 @@ export class ResultGeneratorService {
     const objectiveEvalResults = this.evaluator.evaluateAnswers(
       submissionAnswers,
       objectiveQuestionsList,
+      {
+        negativeMarkingEnabled,
+        defaultNegativeMarks: 0.25,
+      },
     );
 
     // Coding runs in parallel (Promise.all inside CodingEvaluatorService)

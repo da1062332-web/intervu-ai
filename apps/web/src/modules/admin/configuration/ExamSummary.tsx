@@ -10,6 +10,7 @@ interface ExamSummaryProps {
   totalQuestions: number;
   status?: string;
   code?: string;
+  versionNumber?: number | null;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -31,6 +32,7 @@ export function ExamSummary({
   totalQuestions,
   status,
   code,
+  versionNumber,
 }: ExamSummaryProps) {
   const statusStyle = status ? (STATUS_STYLES[status] ?? STATUS_STYLES.DRAFT) : STATUS_STYLES.DRAFT;
 
@@ -42,7 +44,14 @@ export function ExamSummary({
             <FileText className='w-5 h-5 text-indigo-600 dark:text-indigo-400' />
           </div>
           <div>
-            <h3 className='font-semibold text-base leading-tight'>{name}</h3>
+            <div className='flex items-center gap-2 flex-wrap'>
+              <h3 className='font-semibold text-base leading-tight'>{name}</h3>
+              {versionNumber != null && (
+                <span className='inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'>
+                  V{versionNumber}
+                </span>
+              )}
+            </div>
             {code && <p className='text-xs text-muted-foreground font-mono mt-0.5'>{code}</p>}
           </div>
         </div>

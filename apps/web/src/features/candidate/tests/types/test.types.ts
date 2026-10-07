@@ -29,4 +29,7 @@ export interface TestConfig {
   attemptCount?: number;
   maxAttempts?: number;
   canReattempt?: boolean;
+  currentVersionNumber?: number | null;
+  latestAttemptVersionNumber?: number | null;
+  hasNewVersion?: boolean;
 }

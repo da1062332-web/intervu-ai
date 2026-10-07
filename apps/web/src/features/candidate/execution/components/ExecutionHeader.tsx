@@ -30,12 +30,21 @@ export function ExecutionHeader() {
   return (
     <header className='sticky top-0 z-50 w-full bg-[#26773e] border-b border-[#1c5a2e] shadow-sm select-none'>
       <div className='flex items-center justify-between h-14 w-full px-4 md:px-6 gap-3'>
-        {/* Left - Assessment Title & Section */}
+        {/* Left - Assessment Title & Section & Version */}
         <div className='flex items-center gap-3 overflow-hidden min-w-0 flex-1'>
           <h1 className='text-base sm:text-lg lg:text-xl font-bold text-white tracking-wide truncate font-sans'>
             {testInstance.assessmentName || 'Assessment'}
             {currentSection ? ` : ${currentSection.title}` : ''}
           </h1>
+          {testInstance.isLegacy || testInstance.versionName === 'Legacy (Unversioned)' ? (
+            <span className='px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/20 text-white border border-white/30 shrink-0'>
+              Legacy
+            </span>
+          ) : testInstance.versionNumber ? (
+            <span className='px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/20 text-white border border-white/30 shrink-0'>
+              V{testInstance.versionNumber}
+            </span>
+          ) : null}
         </div>
 
         {/* Center/Right - Connectivity Status on Green Bar */}

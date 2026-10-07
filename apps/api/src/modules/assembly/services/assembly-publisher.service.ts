@@ -8,6 +8,7 @@ import { BlueprintBuilderService } from "./blueprint-builder.service";
 import { PublishReadinessService } from "./publish-readiness.service";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { TestPoolManagerService } from "./test-pool-manager.service";
+import { ConfigPublisherService } from "../../admin-config/publishing/config-publisher.service";
 
 @Injectable()
 export class AssemblyPublisherService {
@@ -22,6 +23,9 @@ export class AssemblyPublisherService {
     @Optional()
     @Inject(forwardRef(() => TestPoolManagerService))
     private readonly poolManager?: TestPoolManagerService,
+    @Optional()
+    @Inject(forwardRef(() => ConfigPublisherService))
+    private readonly configPublisher?: ConfigPublisherService,
   ) {}
 
   async publishAssembly(assemblyId: string, userId: string = "system-user") {
@@ -129,19 +133,36 @@ export class AssemblyPublisherService {
       publishedAssembly = { ...assembly, status: "PUBLISHED" };
     }
 
-    // Sync parent ExamConfig status to PUBLISHED in database
+    // Sync parent ExamConfig status and create ExamPublishedVersion in database
     const targetConfigId = assembly.configId || assembly.testConfigId;
     if (targetConfigId) {
-      try {
-        await this.prisma.examConfig.update({
-          where: { id: targetConfigId },
-          data: { status: "PUBLISHED", isActive: true },
-        });
-      } catch (err) {
-        console.warn(
-          `Skipped syncing ExamConfig ${targetConfigId} status:`,
-          err,
-        );
+      if (this.configPublisher) {
+        try {
+          await this.configPublisher.publish(targetConfigId, userId);
+        } catch (pubErr) {
+          console.warn(
+            `[AssemblyPublisher] ConfigPublisherService publish notice for ${targetConfigId}:`,
+            pubErr,
+          );
+          try {
+            await this.prisma.examConfig.update({
+              where: { id: targetConfigId },
+              data: { status: "PUBLISHED", isActive: true },
+            });
+          } catch (_) {}
+        }
+      } else {
+        try {
+          await this.prisma.examConfig.update({
+            where: { id: targetConfigId },
+            data: { status: "PUBLISHED", isActive: true },
+          });
+        } catch (err) {
+          console.warn(
+            `Skipped syncing ExamConfig ${targetConfigId} status:`,
+            err,
+          );
+        }
       }
 
       // Automatically purge stale instances and rebuild pool for updated config in background

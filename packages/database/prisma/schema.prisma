@@ -267,11 +267,16 @@ model TestInstance {
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt
   examConfigId        String?
+  publishedVersionId  String?                  @map("published_version_id")
+  versionNumber       Int?                     @map("version_number")
+  versionName         String?                  @map("version_name")
+  isLegacy            Boolean                  @default(false) @map("is_legacy")
   candidateAnswers    CandidateAnswer[]
   evaluationResult    EvaluationResult?
   executionState      ExecutionState?
   submissions         Submission[]
   examConfig          ExamConfig?              @relation(fields: [examConfigId], references: [id])
+  publishedVersion    ExamPublishedVersion?    @relation(fields: [publishedVersionId], references: [id])
   testConfig          TestConfig?              @relation(fields: [testConfigId], references: [id])
   user                User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions           TestInstanceQuestion[]
@@ -292,6 +297,7 @@ model TestInstance {
   @@index([status])
   @@index([testConfigId])
   @@index([examConfigId])
+  @@index([publishedVersionId])
   @@index([createdAt])
   @@index([userId, status])
   @@index([userId, examConfigId])
@@ -597,6 +603,9 @@ model ExamConfig {
   questionUsages         ExamConfigQuestionUsage[]
   hiringEvaluationConfig HiringEvaluationConfig?
   pregeneratedTests      PregeneratedTestInstance[]
+  currentVersionNumber   Int?                      @map("current_version_number")
+  activeVersionId        String?                   @map("active_version_id")
+  publishedVersions      ExamPublishedVersion[]
 
   @@index([createdAt])
   @@index([role])
@@ -605,20 +614,23 @@ model ExamConfig {
 }
 
 model PregeneratedTestInstance {
-  id                String      @id @default(cuid())
-  configId          String      @map("config_id")
-  status            String      @default("READY") // READY, CLAIMED, EXPIRED
-  configVersionHash String?     @map("config_version_hash")
-  sectionsJson      Json        @map("sections_json")
-  claimedBy         String?     @map("claimed_by")
-  claimedAt         DateTime?   @map("claimed_at")
-  createdAt         DateTime    @default(now()) @map("created_at")
-  updatedAt         DateTime    @updatedAt @map("updated_at")
+  id                 String                @id @default(cuid())
+  configId           String                @map("config_id")
+  publishedVersionId String?               @map("published_version_id")
+  status             String                @default("READY") // READY, CLAIMED, EXPIRED
+  configVersionHash  String?               @map("config_version_hash")
+  sectionsJson       Json                  @map("sections_json")
+  claimedBy          String?               @map("claimed_by")
+  claimedAt          DateTime?             @map("claimed_at")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
 
-  examConfig        ExamConfig  @relation(fields: [configId], references: [id], onDelete: Cascade)
+  examConfig         ExamConfig            @relation(fields: [configId], references: [id], onDelete: Cascade)
+  publishedVersion   ExamPublishedVersion? @relation(fields: [publishedVersionId], references: [id])
 
   @@index([configId, status])
   @@index([configId, status, createdAt])
+  @@index([publishedVersionId])
   @@map("pregenerated_test_instances")
 }
 
@@ -666,6 +678,79 @@ model ExamConfigVersion {
 
   @@unique([examConfigId, versionNumber])
   @@index([examConfigId])
+}
+
+model ExamPublishedVersion {
+  id                   String                 @id @default(cuid())
+  examConfigId         String                 @map("exam_config_id")
+  versionNumber        Int                    @map("version_number")
+  versionName          String                 @map("version_name")
+  status               PublishedVersionStatus @default(ACTIVE)
+  versionHash          String                 @map("version_hash")
+  publishedBy          String?                @map("published_by")
+  publishedAt          DateTime               @default(now()) @map("published_at")
+  changelogSummary     String?                @map("changelog_summary")
+  configSnapshot       Json                   @map("config_snapshot")
+  scoringRulesSnapshot Json                   @map("scoring_rules_snapshot")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+
+  examConfig           ExamConfig             @relation(fields: [examConfigId], references: [id], onDelete: Cascade)
+  versionSections      ExamVersionSection[]
+  versionQuestions     ExamVersionQuestion[]
+  testInstances        TestInstance[]
+  pregeneratedTests    PregeneratedTestInstance[]
+
+  @@unique([examConfigId, versionNumber])
+  @@index([examConfigId, status])
+  @@index([versionHash])
+  @@map("exam_published_versions")
+}
+
+model ExamVersionSection {
+  id                     String               @id @default(cuid())
+  publishedVersionId     String               @map("published_version_id")
+  sectionCode            String               @map("section_code")
+  sectionName            String               @map("section_name")
+  sectionOrder           Int                  @map("section_order")
+  sectionDurationMinutes Int                  @map("section_duration_minutes")
+  questionCount          Int                  @map("question_count")
+  isRequired             Boolean              @default(true) @map("is_required")
+  topicDistributionJson  Json                 @map("topic_distribution_json")
+  createdAt              DateTime             @default(now()) @map("created_at")
+
+  publishedVersion       ExamPublishedVersion @relation(fields: [publishedVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([publishedVersionId, sectionCode])
+  @@index([publishedVersionId])
+  @@index([sectionOrder])
+  @@map("exam_version_sections")
+}
+
+model ExamVersionQuestion {
+  id                   String               @id @default(cuid())
+  publishedVersionId   String               @map("published_version_id")
+  sectionCode          String               @map("section_code")
+  originalQuestionId   String               @map("original_question_id")
+  questionStem         String               @map("question_stem") @db.Text
+  questionType         String               @map("question_type")
+  difficulty           DifficultyLevel      @default(MEDIUM)
+  optionsJson          Json                 @map("options_json")
+  correctAnswerJson    Json                 @map("correct_answer_json")
+  explanation          String?              @db.Text
+  marks                Float                @default(1.0)
+  negativeMarks        Float                @default(0.0) @map("negative_marks")
+  mediaAttachmentsJson Json?                @map("media_attachments_json")
+  codingDataJson       Json?                @map("coding_data_json")
+  metadataJson         Json?                @map("metadata_json")
+  createdAt            DateTime             @default(now()) @map("created_at")
+
+  publishedVersion     ExamPublishedVersion @relation(fields: [publishedVersionId], references: [id], onDelete: Cascade)
+
+  @@index([publishedVersionId])
+  @@index([publishedVersionId, sectionCode])
+  @@index([originalQuestionId])
+  @@map("exam_version_questions")
 }
 
 model RuleFlags {
@@ -1687,6 +1772,12 @@ enum ConfigStatus {
   ARCHIVED
   VALIDATED
   PUBLISHED
+}
+
+enum PublishedVersionStatus {
+  ACTIVE
+  SUPERSEDED
+  ARCHIVED
 }
 
 enum EnrollmentStatus {

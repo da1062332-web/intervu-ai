@@ -252,6 +252,64 @@ export class ConfigVersionService {
     };
   }
 
+  /**
+   * List all immutable published versions for a config in descending order.
+   */
+  async getPublishedVersions(configId: string) {
+    const config = await this.prisma.examConfig.findUnique({
+      where: { id: configId },
+    });
+    if (!config) {
+      throw new NotFoundException(
+        `Exam configuration with ID "${configId}" not found`,
+      );
+    }
+
+    return this.prisma.examPublishedVersion.findMany({
+      where: { examConfigId: configId },
+      orderBy: { versionNumber: "desc" },
+      include: {
+        versionSections: {
+          orderBy: { sectionOrder: "asc" },
+        },
+        _count: {
+          select: {
+            versionQuestions: true,
+            testInstances: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Get full details of a specific published version.
+   */
+  async getPublishedVersionDetails(configId: string, versionId: string) {
+    const version = await this.prisma.examPublishedVersion.findUnique({
+      where: { id: versionId },
+      include: {
+        versionSections: {
+          orderBy: { sectionOrder: "asc" },
+        },
+        versionQuestions: true,
+        _count: {
+          select: {
+            testInstances: true,
+          },
+        },
+      },
+    });
+
+    if (!version || version.examConfigId !== configId) {
+      throw new NotFoundException(
+        `Published version "${versionId}" not found for config "${configId}"`,
+      );
+    }
+
+    return version;
+  }
+
   private mapToEntry(version: {
     id: string;
     examConfigId: string;

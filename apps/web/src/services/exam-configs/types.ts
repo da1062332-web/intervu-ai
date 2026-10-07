@@ -9,6 +9,8 @@ export interface ExamConfig {
   isArchived?: boolean;
   status?: 'DRAFT' | 'VALIDATED' | 'ACTIVE' | 'PUBLISHED' | 'ARCHIVED';
   sandboxUi?: string;
+  currentVersionNumber?: number | null;
+  activeVersionId?: string | null;
   createdAt: string;
   updatedAt?: string;
 }
@@ -67,10 +69,40 @@ export interface ConfigVersionEntry {
   createdAt: string;
 }
 
+export interface ExamPublishedVersion {
+  id: string;
+  examConfigId: string;
+  versionNumber: number;
+  versionName: string;
+  status: 'ACTIVE' | 'SUPERSEDED' | 'ARCHIVED';
+  versionHash: string;
+  publishedBy?: string | null;
+  publishedAt: string;
+  changelogSummary?: string | null;
+  configSnapshot: Record<string, any>;
+  scoringRulesSnapshot: Record<string, any>;
+  versionSections?: Array<{
+    id: string;
+    sectionCode: string;
+    sectionName: string;
+    sectionOrder: number;
+    sectionDurationMinutes: number;
+    questionCount: number;
+    isRequired: boolean;
+    topicDistributionJson: any;
+  }>;
+  _count?: {
+    versionQuestions: number;
+    testInstances: number;
+  };
+}
+
 export interface PublishResult {
   configId: string;
   status: string;
   version: string;
+  versionNumber?: number;
+  publishedVersionId?: string;
   publishedAt: string;
   validation: ConfigValidationResult;
 }

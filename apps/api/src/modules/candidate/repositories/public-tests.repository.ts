@@ -108,12 +108,12 @@ export class PublicTestsRepository {
       explicitCodes.length > 0
         ? {
             OR: [
-              { status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
+              { status: { in: ["PUBLISHED", "ACTIVE"] } },
               { id: { in: explicitCodes } },
               { code: { in: explicitCodes } },
             ],
           }
-        : { status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } };
+        : { status: { in: ["PUBLISHED", "ACTIVE"] } };
 
     const examWhere: Prisma.ExamConfigWhereInput = {
       ...baseStatusFilter,
@@ -141,7 +141,16 @@ export class PublicTestsRepository {
         sections: { select: { name: true, questionCount: true } },
         difficultyDistribution: true,
         ruleFlags: true,
-        testInstances: { where: { userId }, select: { id: true } },
+        testInstances: {
+          where: { userId },
+          select: {
+            id: true,
+            publishedVersionId: true,
+            versionNumber: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 

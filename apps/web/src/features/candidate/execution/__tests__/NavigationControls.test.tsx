@@ -38,7 +38,7 @@ describe('NavigationControls', () => {
     });
 
     render(<NavigationControls onSubmitClick={mockOnSubmit} />);
-    const nextButton = screen.getByText(/Next/i);
+    const nextButton = screen.getByRole('button', { name: /Save & Next/i });
     fireEvent.click(nextButton);
     expect(mockGoNext).toHaveBeenCalled();
   });

@@ -91,7 +91,23 @@ export function TestCard({ test }: TestCardProps) {
             <Building2 className='size-3.5 text-primary/80 shrink-0' />
             <span className='truncate max-w-[160px]'>{test.company || 'Platform Assessment'}</span>
           </div>
-          <div className='flex items-center gap-1.5 shrink-0'>
+          <div className='flex items-center gap-1.5 shrink-0 flex-wrap justify-end'>
+            {test.currentVersionNumber != null && (
+              <Badge
+                variant='outline'
+                className='text-[10px] font-mono font-bold px-2 py-0.5 border border-border/60 bg-muted/60 text-foreground'
+              >
+                V{test.currentVersionNumber}
+              </Badge>
+            )}
+            {test.hasNewVersion && (
+              <Badge
+                variant='outline'
+                className='text-[10px] font-semibold px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+              >
+                New Version
+              </Badge>
+            )}
             <Badge
               variant='outline'
               className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 ${difficultyColors[test.difficulty] || 'bg-muted text-muted-foreground'}`}

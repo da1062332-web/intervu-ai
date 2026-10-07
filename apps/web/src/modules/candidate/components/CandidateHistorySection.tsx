@@ -43,6 +43,10 @@ interface AttemptItem {
   maxAttempts?: number;
   remainingAttempts?: number;
   canReAttempt?: boolean;
+  publishedVersionId?: string | null;
+  versionNumber?: number | null;
+  versionName?: string | null;
+  isLegacy?: boolean;
 }
 
 interface CandidateHistorySectionProps {
@@ -246,9 +250,20 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
 
                 <div className='min-w-0 flex-1 space-y-2'>
                   <div className='flex items-center justify-between gap-3'>
-                    <h4 className='font-bold text-sm sm:text-base text-foreground truncate tracking-tight'>
-                      {row.assessmentName}
-                    </h4>
+                    <div className='flex items-center gap-2 truncate'>
+                      <h4 className='font-bold text-sm sm:text-base text-foreground truncate tracking-tight'>
+                        {row.assessmentName}
+                      </h4>
+                      {row.isLegacy || row.versionName === 'Legacy (Unversioned)' ? (
+                        <span className='px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted/70 text-muted-foreground border border-border/50 shrink-0'>
+                          Legacy
+                        </span>
+                      ) : row.versionNumber ? (
+                        <span className='px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground border border-border/60 shrink-0'>
+                          V{row.versionNumber}
+                        </span>
+                      ) : null}
+                    </div>
                     {row.score !== null ? (
                       <span className='font-black text-xs sm:text-sm bg-indigo-50 dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 px-2.5 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900/50 shrink-0'>
                         {row.score}%
@@ -306,7 +321,18 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
         </div>
       ),
       cell: (row) => (
-        <span className='font-bold text-sm text-foreground'>{row.assessmentName}</span>
+        <div className='flex items-center gap-2'>
+          <span className='font-bold text-sm text-foreground'>{row.assessmentName}</span>
+          {row.isLegacy || row.versionName === 'Legacy (Unversioned)' ? (
+            <span className='px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted/70 text-muted-foreground border border-border/50'>
+              Legacy
+            </span>
+          ) : row.versionNumber ? (
+            <span className='px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground border border-border/60'>
+              V{row.versionNumber}
+            </span>
+          ) : null}
+        </div>
       ),
     },
     {

@@ -47,3 +47,5 @@ test-results/
 
 .prisma-mirror
 .tmp
+scratch/
+packages/database/scratch/

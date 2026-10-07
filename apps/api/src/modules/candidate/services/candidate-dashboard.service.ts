@@ -19,6 +19,8 @@ export class CandidateDashboardService {
     ]);
     const attemptsByConfig: Record<string, number> =
       (data as any).attemptsByConfig || {};
+    const latestAttemptVersionByConfig: Record<string, number | null> =
+      (data as any).latestAttemptVersionByConfig || {};
 
     const hasActivePlan = Boolean(entitlements?.hasActivePlan);
     const features = (entitlements?.features as any) || {};
@@ -73,6 +75,10 @@ export class CandidateDashboardService {
         name: t.examConfig?.name || t.testConfig?.displayName || "Unknown Test",
         startedAt: t.createdAt.toISOString(),
         timeRemainingSeconds: remaining,
+        publishedVersionId: t.publishedVersionId ?? null,
+        versionNumber: t.versionNumber ?? null,
+        versionName: t.versionName ?? null,
+        isLegacy: t.isLegacy ?? false,
       };
     });
 
@@ -88,6 +94,10 @@ export class CandidateDashboardService {
           0,
       ),
       submittedAt: t.updatedAt?.toISOString() || null,
+      publishedVersionId: t.publishedVersionId ?? null,
+      versionNumber: t.versionNumber ?? null,
+      versionName: t.versionName ?? null,
+      isLegacy: t.isLegacy ?? false,
     }));
 
     if (typeof historyLimit === "number" && historyLimit > 0) {
@@ -120,6 +130,15 @@ export class CandidateDashboardService {
           (a: any) => a.examConfigId === configId || a.testConfigId === configId,
         );
 
+        const currentVersionNumber = e.examConfig?.currentVersionNumber ?? null;
+        const latestAttemptVersionNumber = latestAttemptVersionByConfig[configId] ?? null;
+        const hasNewVersion = Boolean(
+          attemptCount > 0 &&
+          currentVersionNumber &&
+          latestAttemptVersionNumber &&
+          currentVersionNumber > latestAttemptVersionNumber,
+        );
+
         return {
           configId,
           name: e.examConfig?.name || e.testConfig?.displayName || "Unknown Test",
@@ -136,6 +155,9 @@ export class CandidateDashboardService {
           canReattempt,
           isLocked: false,
           hasActiveAttempt,
+          currentVersionNumber,
+          latestAttemptVersionNumber,
+          hasNewVersion,
         };
       });
 
@@ -220,6 +242,15 @@ export class CandidateDashboardService {
         const canReattempt =
           isVip || (maxAttempts != null ? attemptCount < maxAttempts : true);
 
+        const currentVersionNumber = t.currentVersionNumber ?? null;
+        const latestAttemptVersionNumber = latestAttemptVersionByConfig[t.id] ?? null;
+        const hasNewVersion = Boolean(
+          attemptCount > 0 &&
+          currentVersionNumber &&
+          latestAttemptVersionNumber &&
+          currentVersionNumber > latestAttemptVersionNumber,
+        );
+
         return {
           configId: t.id,
           name: t.isExam ? t.name : t.displayName,
@@ -234,6 +265,9 @@ export class CandidateDashboardService {
           canReattempt,
           isLocked: !canReattempt,
           hasActiveAttempt: false,
+          currentVersionNumber,
+          latestAttemptVersionNumber,
+          hasNewVersion,
         };
       });
 

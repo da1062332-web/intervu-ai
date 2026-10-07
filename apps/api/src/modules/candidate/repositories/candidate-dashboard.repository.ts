@@ -17,6 +17,11 @@ export class CandidateDashboardRepository {
     CandidateDashboardRepository.dashboardMemCache.delete(userId);
   }
 
+  static invalidateGlobalExamConfigsCache() {
+    CandidateDashboardRepository.examConfigsMemCache = null;
+    CandidateDashboardRepository.dashboardMemCache.clear();
+  }
+
   async getDashboardData(userId: string) {
     const now = Date.now();
     const cached = CandidateDashboardRepository.dashboardMemCache.get(userId);
@@ -62,7 +67,7 @@ export class CandidateDashboardRepository {
             status: { in: ["IN_PROGRESS", "CREATED"] },
             expiresAt: { gt: now },
             examConfig: {
-              status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
+              status: { in: ["PUBLISHED", "ACTIVE"] },
               isActive: true,
               isArchived: false,
             },
@@ -73,9 +78,12 @@ export class CandidateDashboardRepository {
             },
             examConfig: {
               select: {
+                id: true,
                 name: true,
                 durationMinutes: true,
                 totalQuestions: true,
+                currentVersionNumber: true,
+                activeVersionId: true,
               },
             },
           },
@@ -99,6 +107,8 @@ export class CandidateDashboardRepository {
                 name: true,
                 durationMinutes: true,
                 totalQuestions: true,
+                currentVersionNumber: true,
+                activeVersionId: true,
               },
             },
             evaluationResult: {
@@ -117,7 +127,7 @@ export class CandidateDashboardRepository {
           where: {
             candidateId: userId,
             examConfig: {
-              status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] },
+              status: { in: ["PUBLISHED", "ACTIVE"] },
               isActive: true,
               isArchived: false,
             },
@@ -138,6 +148,8 @@ export class CandidateDashboardRepository {
                 name: true,
                 durationMinutes: true,
                 totalQuestions: true,
+                currentVersionNumber: true,
+                activeVersionId: true,
                 sections: { select: { name: true } },
                 ruleFlags: { select: { id: true, maxAttempts: true } },
               },
@@ -151,7 +163,15 @@ export class CandidateDashboardRepository {
 
         this.prisma.testInstance.findMany({
           where: { userId },
-          select: { examConfigId: true, testConfigId: true },
+          select: {
+            examConfigId: true,
+            testConfigId: true,
+            versionNumber: true,
+            publishedVersionId: true,
+            isLegacy: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
         }),
 
         this.prisma.userQuotaOverride.findMany({
@@ -187,6 +207,8 @@ export class CandidateDashboardRepository {
           extraExamConfigs = await this.prisma.examConfig.findMany({
             where: {
               isArchived: false,
+              isActive: true,
+              status: { in: ["PUBLISHED", "ACTIVE"] },
               OR: [
                 { id: { in: missingCodes } },
                 { code: { in: missingCodes } },
@@ -198,6 +220,8 @@ export class CandidateDashboardRepository {
               name: true,
               durationMinutes: true,
               totalQuestions: true,
+              currentVersionNumber: true,
+              activeVersionId: true,
               sections: {
                 select: {
                   name: true,
@@ -214,8 +238,10 @@ export class CandidateDashboardRepository {
 
       const combinedExamConfigs = [...examConfigs, ...extraExamConfigs];
 
-      // Build per-config attempt counts for the current user
+      // Build per-config attempt counts and latest attempted version for the current user
       const attemptsByConfig = new Map<string, number>();
+      const latestAttemptVersionByConfig = new Map<string, number | null>();
+
       allUserInstances.forEach((t: any) => {
         const configId = t.examConfigId || t.testConfigId;
         if (configId) {
@@ -223,6 +249,10 @@ export class CandidateDashboardRepository {
             configId,
             (attemptsByConfig.get(configId) || 0) + 1,
           );
+          if (!latestAttemptVersionByConfig.has(configId)) {
+            // Since allUserInstances is ordered by createdAt DESC, first occurrence is the latest
+            latestAttemptVersionByConfig.set(configId, t.versionNumber ?? null);
+          }
         }
       });
 
@@ -240,6 +270,7 @@ export class CandidateDashboardRepository {
         enrollments, // all enrollments, not filtered
         upcomingTests,
         attemptsByConfig: Object.fromEntries(attemptsByConfig),
+        latestAttemptVersionByConfig: Object.fromEntries(latestAttemptVersionByConfig),
       };
     } catch (error) {
       console.error(
@@ -273,7 +304,7 @@ export class CandidateDashboardRepository {
 
     if (!data) {
       data = await this.prisma.examConfig.findMany({
-        where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE", "VALIDATED"] } },
+        where: { isArchived: false, isActive: true, status: { in: ["PUBLISHED", "ACTIVE"] } },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -281,6 +312,8 @@ export class CandidateDashboardRepository {
           name: true,
           durationMinutes: true,
           totalQuestions: true,
+          currentVersionNumber: true,
+          activeVersionId: true,
           sections: {
             select: {
               name: true,

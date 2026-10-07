@@ -37,6 +37,7 @@ export {
   SubmissionStatus,
   RecommendationPriority,
   CodingPatternStatus,
+  PublishedVersionStatus,
 } from "@prisma/client";
 
 export type HiringStrategyType =
@@ -88,4 +89,7 @@ export type {
   Concept,
   CodingPattern,
   CodingOracle,
+  ExamPublishedVersion,
+  ExamVersionSection,
+  ExamVersionQuestion,
 } from "@prisma/client";

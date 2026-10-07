@@ -2,6 +2,9 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  Optional,
+  forwardRef,
 } from "@nestjs/common";
 import { AssemblyVersionRepository } from "../repositories/assembly-version.repository";
 import { AssemblyPersistenceService } from "./assembly-persistence.service";
@@ -10,6 +13,7 @@ import { AssembledTestRepository } from "../repositories/assembled-test.reposito
 import { Prisma } from "@prisma/client";
 import { AllocatedSectionDto } from "@intervu/shared";
 import { AssessmentVersionValidatorService } from "./assessment-version-validator.service";
+import { ConfigVersionService } from "../../admin-config/versioning/config-version.service";
 
 @Injectable()
 export class AssemblyVersionService {
@@ -19,6 +23,9 @@ export class AssemblyVersionService {
     private readonly persistenceService: AssemblyPersistenceService,
     private readonly assembledTestRepo: AssembledTestRepository,
     private readonly validatorService: AssessmentVersionValidatorService,
+    @Optional()
+    @Inject(forwardRef(() => ConfigVersionService))
+    private readonly configVersionService?: ConfigVersionService,
   ) {}
 
   async createVersion(assemblyId: string, userId: string = "system-user") {
@@ -75,6 +82,29 @@ export class AssemblyVersionService {
         version: nextVersion,
         versionId: versionRecord.id,
       });
+
+      // 5. Reset assembly status to DRAFT so this new version snapshot can be published
+      try {
+        await this.assembledTestRepo.updateStatus(
+          assemblyId,
+          "DRAFT" as any,
+        );
+      } catch (statusErr) {
+        console.warn(`[AssemblyVersion] Could not update status to DRAFT:`, statusErr);
+      }
+
+      // 6. Sync snapshot to parent ExamConfigVersion table if linked to an exam config
+      const targetConfigId = assembly.configId || assembly.testConfigId;
+      if (targetConfigId && this.configVersionService) {
+        try {
+          await this.configVersionService.createVersionFromId(targetConfigId);
+        } catch (configVersionErr) {
+          console.warn(
+            `[AssemblyVersion] Could not create parent ExamConfigVersion for ${targetConfigId}:`,
+            configVersionErr,
+          );
+        }
+      }
     } catch (error) {
       console.error(`Version creation failed for ${assemblyId}:`, error);
       // Never fake success here: a caller relying on a fabricated version

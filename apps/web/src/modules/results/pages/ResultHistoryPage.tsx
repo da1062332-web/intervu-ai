@@ -250,6 +250,19 @@ export const ResultHistoryPage = () => {
                             result.examName ||
                             'Corporate Assessment'}
                         </h3>
+                        {result.isLegacy || result.versionName === 'Legacy (Unversioned)' ? (
+                          <Badge variant='outline' className='text-[10px] text-muted-foreground border-border/60'>
+                            Legacy (Unversioned)
+                          </Badge>
+                        ) : result.versionNumber ? (
+                          <Badge variant='secondary' className='text-[10px] font-mono font-bold'>
+                            V{result.versionNumber}
+                          </Badge>
+                        ) : result.versionName ? (
+                          <Badge variant='secondary' className='text-[10px] font-semibold'>
+                            {result.versionName}
+                          </Badge>
+                        ) : null}
                         {result.qualification && (
                           <Badge
                             className={`text-[10px] uppercase font-bold tracking-wider rounded-lg px-2 py-0.5 ${

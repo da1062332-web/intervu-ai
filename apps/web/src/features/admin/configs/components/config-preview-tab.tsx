@@ -53,7 +53,18 @@ export function ConfigPreviewTab({ configId }: ConfigPreviewTabProps) {
           <div className='p-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-sm'>
             <div className='space-y-1'>
               <p className='text-muted-foreground font-medium'>Config Name</p>
-              <p className='font-semibold text-base'>{config.name}</p>
+              <div className='flex items-center gap-2 flex-wrap'>
+                <p className='font-semibold text-base'>{config.name}</p>
+                {config.currentVersionNumber != null ? (
+                  <span className='inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800'>
+                    V{config.currentVersionNumber}
+                  </span>
+                ) : (
+                  <span className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'>
+                    Draft
+                  </span>
+                )}
+              </div>
             </div>
             <div className='space-y-1'>
               <p className='text-muted-foreground font-medium'>Role</p>

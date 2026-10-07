@@ -39,6 +39,15 @@ export class DashboardTestItemDto {
 
   @ApiProperty({ example: false })
   isLocked!: boolean;
+
+  @ApiPropertyOptional({ example: 2, nullable: true })
+  currentVersionNumber?: number | null;
+
+  @ApiPropertyOptional({ example: 1, nullable: true })
+  latestAttemptVersionNumber?: number | null;
+
+  @ApiPropertyOptional({ example: false })
+  hasNewVersion?: boolean;
 }
 
 export class DashboardActiveAttemptDto {
@@ -56,6 +65,18 @@ export class DashboardActiveAttemptDto {
 
   @ApiProperty({ example: 3240 })
   timeRemainingSeconds!: number;
+
+  @ApiPropertyOptional({ example: "cmuw96jjs00auzqnsfaaof191", nullable: true })
+  publishedVersionId?: string | null;
+
+  @ApiPropertyOptional({ example: 1, nullable: true })
+  versionNumber?: number | null;
+
+  @ApiPropertyOptional({ example: "TCS NQT Assessment — V1", nullable: true })
+  versionName?: string | null;
+
+  @ApiPropertyOptional({ example: false })
+  isLegacy?: boolean;
 }
 
 export class DashboardCompletedTestDto {
@@ -73,6 +94,18 @@ export class DashboardCompletedTestDto {
 
   @ApiProperty({ example: "2026-06-08T05:30:00.000Z", nullable: true })
   submittedAt!: string | null;
+
+  @ApiPropertyOptional({ example: "cmuw96jjs00auzqnsfaaof191", nullable: true })
+  publishedVersionId?: string | null;
+
+  @ApiPropertyOptional({ example: 1, nullable: true })
+  versionNumber?: number | null;
+
+  @ApiPropertyOptional({ example: "TCS NQT Assessment — V1", nullable: true })
+  versionName?: string | null;
+
+  @ApiPropertyOptional({ example: false })
+  isLegacy?: boolean;
 }
 
 export class CandidateDashboardResponseDto {

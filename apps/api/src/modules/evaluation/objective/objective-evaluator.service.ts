@@ -98,7 +98,7 @@ export class ObjectiveEvaluatorService {
 
   /**
    * Evaluates individual candidate answers against correct answers.
-   * Scoring: 1 mark for correct, 0 for incorrect or skipped. No negative marking.
+   * Scoring: full marks for correct, 0 for skipped, negative marking deduction if enabled and attempted.
    */
   evaluateAnswers(
     answers: AnswerDto[],
@@ -107,8 +107,14 @@ export class ObjectiveEvaluatorService {
       answer: string;
       questionType: string;
       options?: any[];
+      marks?: number;
+      negativeMarks?: number;
       metadata?: Record<string, unknown>;
     }>,
+    scoringOptions?: {
+      negativeMarkingEnabled?: boolean;
+      defaultNegativeMarks?: number;
+    },
   ): QuestionEvaluationResult[] {
     const results: QuestionEvaluationResult[] = [];
     const answersMap = new Map(answers.map((a) => [a.questionId, a]));
@@ -118,6 +124,7 @@ export class ObjectiveEvaluatorService {
 
       let candidateAnswer = "";
       let timeSpentSeconds = 0;
+      let hasAttempted = false;
 
       if (candidateAnsObj) {
         timeSpentSeconds = candidateAnsObj.timeSpentSeconds || 0;
@@ -126,10 +133,13 @@ export class ObjectiveEvaluatorService {
           candidateAnsObj.selectedOptionIds.length > 0
         ) {
           candidateAnswer = JSON.stringify(candidateAnsObj.selectedOptionIds);
-        } else if (candidateAnsObj.selectedOptionId) {
+          hasAttempted = true;
+        } else if (candidateAnsObj.selectedOptionId && candidateAnsObj.selectedOptionId.trim() !== "") {
           candidateAnswer = candidateAnsObj.selectedOptionId;
-        } else if (candidateAnsObj.textResponse) {
+          hasAttempted = true;
+        } else if (candidateAnsObj.textResponse && candidateAnsObj.textResponse.trim() !== "") {
           candidateAnswer = candidateAnsObj.textResponse;
+          hasAttempted = true;
         }
       }
 
@@ -143,9 +153,17 @@ export class ObjectiveEvaluatorService {
         question.options,
       );
 
-      // No negative marking — score is always 0 or 1
-      const score = isCorrect ? 1 : 0;
-      const maxMarks = 1;
+      const maxMarks = question.marks ?? 1;
+      let score = 0;
+
+      if (isCorrect) {
+        score = maxMarks;
+      } else if (hasAttempted && scoringOptions?.negativeMarkingEnabled) {
+        const penalty = question.negativeMarks ?? scoringOptions.defaultNegativeMarks ?? 0.25;
+        score = -Math.abs(penalty);
+      } else {
+        score = 0;
+      }
 
       results.push({
         questionId: question.id,

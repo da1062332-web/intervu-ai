@@ -688,9 +688,11 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   },
 
   goNext: () => {
-    const { currentQuestionIndex, questions, jumpToQuestion } = get();
+    const { currentQuestionIndex, questions, jumpToQuestion, testInstance, currentSectionIndex, requestNextSection } = get();
     if (currentQuestionIndex < questions.length - 1) {
       jumpToQuestion(currentQuestionIndex + 1);
+    } else if (testInstance && testInstance.sections && currentSectionIndex + 1 < testInstance.sections.length) {
+      requestNextSection();
     }
   },
 

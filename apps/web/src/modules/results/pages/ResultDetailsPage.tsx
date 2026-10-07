@@ -5,6 +5,7 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useResultDetails } from '../hooks/results.hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ResultStatusTracker } from '../components/ResultStatusTracker';
 import { toast } from 'sonner';
 import { ArrowLeft, Download, Share2, CheckCircle2, Target, XCircle } from 'lucide-react';
@@ -299,9 +300,24 @@ export const ResultDetailsPage = () => {
                 {initial}
               </div>
               <div>
-                <h1 className='text-2xl font-extrabold text-foreground tracking-tight'>
-                  {result.assessmentName}
-                </h1>
+                <div className='flex items-center gap-2.5 flex-wrap'>
+                  <h1 className='text-2xl font-extrabold text-foreground tracking-tight'>
+                    {result.assessmentName}
+                  </h1>
+                  {result.isLegacy || result.versionName === 'Legacy (Unversioned)' ? (
+                    <Badge variant='outline' className='text-[10px] text-muted-foreground border-border/60'>
+                      Legacy (Unversioned)
+                    </Badge>
+                  ) : result.versionNumber ? (
+                    <Badge variant='secondary' className='text-[10px] font-mono font-bold px-2 py-0.5'>
+                      V{result.versionNumber}
+                    </Badge>
+                  ) : result.versionName ? (
+                    <Badge variant='secondary' className='text-[10px] font-semibold px-2 py-0.5'>
+                      {result.versionName}
+                    </Badge>
+                  ) : null}
+                </div>
                 <p className='text-xs text-muted-foreground font-medium mt-1 mb-1'>
                   {formattedDate} ·{' '}
                   <span className='font-semibold text-foreground'>

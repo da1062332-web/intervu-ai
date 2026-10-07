@@ -13,6 +13,10 @@ const inFlightPublicTests = new Map<string, Promise<any>>();
 
 @Injectable()
 export class PublicTestsService {
+  static invalidateCache() {
+    publicTestsMemCache.clear();
+  }
+
   constructor(
     private readonly publicTestsRepository: PublicTestsRepository,
     private readonly entitlementService: EntitlementService,
@@ -166,6 +170,17 @@ export class PublicTestsService {
         const attemptCount = t.testInstances ? t.testInstances.length : 0;
         const canReattempt = isVip || (maxAttempts ? attemptCount < maxAttempts : true);
 
+        const currentVersionNumber = t.currentVersionNumber ?? null;
+        const userInstances = t.testInstances || [];
+        const latestAttemptVersionNumber =
+          userInstances.length > 0 ? (userInstances[0]?.versionNumber ?? null) : null;
+        const hasNewVersion = Boolean(
+          attemptCount > 0 &&
+          currentVersionNumber &&
+          latestAttemptVersionNumber &&
+          currentVersionNumber > latestAttemptVersionNumber,
+        );
+
         return {
           configId: t.id,
           name: t.isExam ? t.name : t.displayName,
@@ -180,6 +195,9 @@ export class PublicTestsService {
           attemptCount,
           canReattempt,
           isLocked: false,
+          currentVersionNumber,
+          latestAttemptVersionNumber,
+          hasNewVersion,
         };
       }),
       pagination: {

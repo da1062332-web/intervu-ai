@@ -110,6 +110,8 @@ export function AvailableAssessmentSection({
       attemptCount: t.attemptCount,
       maxAttempts: t.maxAttempts,
       canReattempt: t.canReattempt,
+      currentVersionNumber: t.currentVersionNumber,
+      hasNewVersion: t.hasNewVersion,
     };
   });
 
@@ -157,7 +159,17 @@ export function AvailableAssessmentSection({
                   >
                     <IconComponent className='size-5' />
                   </div>
-                  <div className='flex items-center gap-1.5'>
+                  <div className='flex items-center gap-1.5 flex-wrap justify-end'>
+                    {test.currentVersionNumber && (
+                      <span className='px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground border border-border/60'>
+                        V{test.currentVersionNumber}
+                      </span>
+                    )}
+                    {test.hasNewVersion && (
+                      <span className='px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'>
+                        New Version
+                      </span>
+                    )}
                     {!hasActivePlan && (
                       <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1'>
                         <Lock className='size-3' /> Quota Exhausted
