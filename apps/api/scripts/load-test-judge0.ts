@@ -1,6 +1,7 @@
 /**
  * Load test for the Judge0 execution server, using the same code path the API
- * uses for a candidate "Run" (CodeHarnessService + JudgeService.submitBatch).
+ * uses for a candidate "Run" (TestCaseRunnerService: one execution per Run for
+ * the Java/Python drivers).
  *
  * It sends real work to the Judge0 server in JUDGE0_URL, so run it only at a
  * time you chose, never during an exam. Requires --confirm.
@@ -20,6 +21,7 @@
 import "dotenv/config";
 import { CodeHarnessService } from "../src/modules/coding/services/code-harness.service";
 import { JudgeService } from "../src/modules/coding/services/judge.service";
+import { TestCaseRunnerService } from "../src/modules/coding/services/test-case-runner.service";
 
 const SOLUTIONS: Record<string, string> = {
   java: `class Solution {
@@ -80,9 +82,8 @@ async function main() {
   // Keep per-batch info logs out of the report.
   process.env.LOG_LEVEL = process.env.LOG_LEVEL || "error";
 
-  const harness = new CodeHarnessService();
   const judge = new JudgeService();
-  const program = harness.prepare(SOLUTIONS[lang], lang);
+  const runner = new TestCaseRunnerService(judge, new CodeHarnessService());
   const tests = TEST_CASES.slice(0, casesPerRun);
 
   console.log(
@@ -98,12 +99,10 @@ async function main() {
 
   async function simulateRun(): Promise<void> {
     const t0 = Date.now();
-    const results = await judge.submitBatch(
-      tests.map((t) => ({
-        sourceCode: program.sourceCode,
-        language: lang,
-        stdin: harness.buildStdin(t.input, program.stdinMode),
-      })),
+    const results = await runner.run(
+      SOLUTIONS[lang],
+      lang,
+      tests.map((t) => ({ input: t.input })),
       { timeoutMs },
     );
     latencies.push(Date.now() - t0);
@@ -143,7 +142,7 @@ async function main() {
   console.log(`  Runs:              ${runs}  (ok ${outcomes.ok}, wrong ${outcomes.wrong}, timeout ${outcomes.timeout}, error ${outcomes.error})`);
   console.log(`  Success rate:      ${((outcomes.ok / runs) * 100).toFixed(1)}%`);
   console.log(`  Wall time:         ${wallSeconds.toFixed(1)} s`);
-  console.log(`  Throughput:        ${((runs * casesPerRun) / wallSeconds).toFixed(2)} submissions/s, ${(runs / wallSeconds).toFixed(2)} Runs/s`);
+  console.log(`  Throughput:        ${(runs / wallSeconds).toFixed(2)} Runs/s (${((runs * casesPerRun) / wallSeconds).toFixed(2)} test cases/s)`);
   console.log(`  Run latency (ms):  p50 ${percentile(sorted, 50)}, p95 ${percentile(sorted, 95)}, max ${sorted[sorted.length - 1] ?? 0}`);
   if (errorSamples.size > 0) {
     console.log("  Error samples:");

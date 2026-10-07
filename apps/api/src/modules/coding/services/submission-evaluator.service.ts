@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { JudgeService } from "./judge.service";
 import { OracleRegistry } from "../oracles/oracle.registry";
-import { CodeHarnessService } from "./code-harness.service";
+import { TestCaseRunnerService } from "./test-case-runner.service";
 import {
   SubmitCodeDto,
   SubmitCodeResponseDto,
@@ -32,9 +31,8 @@ export class SubmissionEvaluatorService {
   private readonly logger = new Logger(SubmissionEvaluatorService.name);
 
   constructor(
-    private readonly judgeService: JudgeService,
     private readonly oracleRegistry: OracleRegistry,
-    private readonly codeHarness: CodeHarnessService,
+    private readonly testCaseRunner: TestCaseRunnerService,
   ) {}
 
   /**
@@ -107,10 +105,6 @@ export class SubmissionEvaluatorService {
       testCases.push({ category: "stress", input: t.input, expectedOutput: t.expectedOutput });
     }
 
-    // 3. Prepare Code for Execution
-    const program = this.codeHarness.prepare(dto.code, dto.language);
-    const sourceCodeToSubmit = program.sourceCode;
-
     // Category counters
     const categoryStats = {
       public: { total: 0, passed: 0, failed: 0 },
@@ -129,8 +123,9 @@ export class SubmissionEvaluatorService {
     let globalRuntimeError = false;
     let firstErrorMessage: string | undefined;
 
-    // 4. Compute expected outputs via Oracle where not explicitly provided,
-    //    then execute the whole suite as one Judge0 batch
+    // 3. Compute expected outputs via Oracle where not explicitly provided,
+    //    then execute the whole suite in one go (one execution for
+    //    Java/Python drivers, one Judge0 batch otherwise)
     const expectedOutputs = testCases.map((tc) => {
       let expectedOutput = tc.expectedOutput;
       if ((expectedOutput === undefined || expectedOutput === null) && oracle) {
@@ -143,11 +138,11 @@ export class SubmissionEvaluatorService {
       return expectedOutput;
     });
 
-    const batchResults = await this.judgeService.submitBatch(
+    const batchResults = await this.testCaseRunner.run(
+      dto.code,
+      dto.language,
       testCases.map((tc, i) => ({
-        sourceCode: sourceCodeToSubmit,
-        language: dto.language,
-        stdin: this.codeHarness.buildStdin(tc.input, program.stdinMode),
+        input: tc.input,
         expectedOutput: this.formatExpectedOutput(expectedOutputs[i]),
       })),
       { timeoutMs: SUBMIT_JUDGE_TIMEOUT_MS },
@@ -252,7 +247,7 @@ export class SubmissionEvaluatorService {
       }
     }
 
-    // 5. Determine Overall Final Verdict
+    // 4. Determine Overall Final Verdict
     let verdict: CodingVerdict = "ACCEPTED";
     if (globalCompilationError) {
       verdict = "COMPILE_ERROR";
@@ -268,7 +263,7 @@ export class SubmissionEvaluatorService {
       verdict = "ACCEPTED";
     }
 
-    // 6. Score Calculation (Deterministic 0 - 100%)
+    // 5. Score Calculation (Deterministic 0 - 100%)
     const score = testCases.length > 0 ? Math.round((passedCount / testCases.length) * 100) : 0;
 
     return {

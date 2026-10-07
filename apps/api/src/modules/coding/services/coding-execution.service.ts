@@ -5,7 +5,6 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { JudgeService } from "./judge.service";
 import { OracleRegistry } from "../oracles/oracle.registry";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { UserRole } from "@prisma/client";
@@ -19,7 +18,7 @@ import { SubmissionEvaluatorService } from "./submission-evaluator.service";
 import { SubmitCodeDto, SubmitCodeResponseDto } from "../dto/submit-code.dto";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { CodingContextResolverService } from "./coding-context-resolver.service";
-import { CodeHarnessService } from "./code-harness.service";
+import { TestCaseRunnerService } from "./test-case-runner.service";
 
 // Judge0 budget for a Run; the HTTP request waits 45s for the queued job
 // (RUN_TIMEOUT_MS in coding-execution.controller.ts).
@@ -32,11 +31,10 @@ export class CodingExecutionService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly judgeService: JudgeService,
     private readonly oracleRegistry: OracleRegistry,
     private readonly evaluatorService: SubmissionEvaluatorService,
     private readonly contextResolver: CodingContextResolverService,
-    private readonly codeHarness: CodeHarnessService,
+    private readonly testCaseRunner: TestCaseRunnerService,
   ) {}
 
   private acquireLock(lockKey: string): void {
@@ -84,15 +82,11 @@ export class CodingExecutionService {
       ? this.oracleRegistry.getOracle(oracleKey)
       : null;
 
-    // 5. Wrap the candidate code into a runnable program (Java Main class, Python driver)
-    const program = this.codeHarness.prepare(dto.code, dto.language);
-    const sourceCodeToSubmit = program.sourceCode;
-
     const results: PublicTestResultDto[] = [];
     let passedCount = 0;
 
-    // 6. Resolve expected outputs, then run every public test case as one
-    //    Judge0 batch (in parallel, no per-test resubmission)
+    // 5. Resolve expected outputs, then run every public test case in one
+    //    go (one execution for Java/Python drivers, one batch otherwise)
     const preparedTests: { testInput: any; expectedOutput: any }[] = rawPublicTests.map((testCase: any) => {
       let expectedOutput = testCase.expectedOutput;
       if (
@@ -112,11 +106,11 @@ export class CodingExecutionService {
       return { testInput: testCase.input, expectedOutput };
     });
 
-    const batchResults = await this.judgeService.submitBatch(
+    const batchResults = await this.testCaseRunner.run(
+      dto.code,
+      dto.language,
       preparedTests.map(({ testInput, expectedOutput }) => ({
-        sourceCode: sourceCodeToSubmit,
-        language: dto.language,
-        stdin: this.codeHarness.buildStdin(testInput, program.stdinMode),
+        input: testInput,
         expectedOutput: this.formatExpectedOutput(expectedOutput),
       })),
       { timeoutMs: RUN_JUDGE_TIMEOUT_MS },

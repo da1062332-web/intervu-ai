@@ -20,6 +20,7 @@ export interface JudgeSubmissionOptions {
   stdin?: string;
   expectedOutput?: string;
   cpuTimeLimit?: number; // seconds
+  wallTimeLimit?: number; // seconds; Judge0 default when omitted
   memoryLimit?: number; // KB
   compilerOptions?: string;
 }
@@ -496,6 +497,7 @@ export class JudgeService {
         ? this.encodeBase64(options.expectedOutput)
         : undefined,
       cpu_time_limit: options.cpuTimeLimit ?? 5,
+      wall_time_limit: options.wallTimeLimit,
       memory_limit: options.memoryLimit ?? 2048000,
       compiler_options: options.compilerOptions,
     };

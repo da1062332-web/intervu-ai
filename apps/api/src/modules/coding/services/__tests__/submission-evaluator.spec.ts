@@ -1,6 +1,6 @@
 import { SubmissionEvaluatorService } from "../submission-evaluator.service";
 import { JudgeService } from "../judge.service";
-import { CodeHarnessService } from "../code-harness.service";
+import { TestCaseRunnerService } from "../test-case-runner.service";
 import { OracleRegistry } from "../../oracles/oracle.registry";
 import { BasicGradeCalculatorOracle } from "../../oracles/basic-grade-calculator.oracle";
 import { SubmitCodeDto } from "../../dto/submit-code.dto";
@@ -33,7 +33,20 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
     const gradeOracle = new BasicGradeCalculatorOracle();
     oracleRegistry = new OracleRegistry([gradeOracle]);
 
-    evaluatorService = new SubmissionEvaluatorService(mockJudgeService, oracleRegistry, new CodeHarnessService());
+    evaluatorService = new SubmissionEvaluatorService(oracleRegistry, {
+      // Per-test-case stand-in for TestCaseRunnerService: each case goes
+      // through submitBatch -> submitAndPoll, which the tests stub per case.
+      run: (code: string, language: string, cases: any[], options: any) =>
+        (mockJudgeService as any).submitBatch(
+          cases.map((c) => ({
+            sourceCode: code,
+            language,
+            stdin: JSON.stringify(c.input),
+            expectedOutput: c.expectedOutput,
+          })),
+          options,
+        ),
+    } as unknown as TestCaseRunnerService);
   });
 
   it("should return ACCEPTED and 100% score when all test suites pass", async () => {

@@ -15,6 +15,17 @@ export interface PreparedProgram {
   stdinMode: StdinMode;
 }
 
+/** One test case's outcome as reported by a multi-case driver. */
+export interface MultiCaseOutput {
+  status: "ok" | "error" | "tle" | "mle" | "skipped";
+  /** The formatted return value, or the captured prints for void functions. */
+  output: string;
+  /** Everything the candidate printed during this case. */
+  printed: string;
+  error: string;
+  timeMs: number;
+}
+
 type HarnessLanguage = "java" | "python" | "other";
 
 /**
@@ -46,6 +57,44 @@ export class CodeHarnessService {
       return JSON.stringify(this.toJsonValue(input) ?? null);
     }
     return this.formatLegacyStdin(input);
+  }
+
+  /**
+   * Stdin for running every test case in one execution. Only valid for
+   * programs prepared in "json" mode (the generated drivers understand it).
+   * The nonce marks the driver's result lines; it travels in stdin, which the
+   * driver consumes before calling candidate code.
+   */
+  buildMultiCaseStdin(inputs: any[], nonce: string, caseTimeoutMs: number): string {
+    return JSON.stringify({
+      __iv_multi__: true,
+      nonce,
+      caseTimeoutMs,
+      cases: inputs.map((input) => this.toJsonValue(input) ?? null),
+    });
+  }
+
+  /** One entry per test case; null where the program died before reporting it. */
+  parseMultiCaseOutput(stdout: string, nonce: string, count: number): (MultiCaseOutput | null)[] {
+    const outputs: (MultiCaseOutput | null)[] = new Array(count).fill(null);
+    for (const line of (stdout || "").split("\n")) {
+      if (!line.startsWith(nonce)) continue;
+      try {
+        const entry = JSON.parse(line.slice(nonce.length));
+        const index = Number(entry?.i);
+        if (!Number.isInteger(index) || index < 0 || index >= count) continue;
+        outputs[index] = {
+          status: entry.s,
+          output: String(entry.o ?? ""),
+          printed: String(entry.p ?? ""),
+          error: String(entry.e ?? ""),
+          timeMs: Number(entry.ms) || 0,
+        };
+      } catch {
+        // ignore malformed lines
+      }
+    }
+    return outputs;
   }
 
   private detectLanguage(language: string | number): HarnessLanguage {
@@ -101,34 +150,93 @@ if __name__ == "__main__":
     except Exception:
         _iv_val = int(_iv_raw) if _iv_raw.lstrip("-").isdigit() else _iv_raw
 
-    _iv_fn = globals().get("${funcName}")
-    if _iv_fn is None and "Solution" in globals():
-        _iv_fn = getattr(globals()["Solution"](), "${funcName}")
+    def _iv_get_fn():
+        fn = globals().get("${funcName}")
+        if fn is None and "Solution" in globals():
+            fn = getattr(globals()["Solution"](), "${funcName}")
+        return fn
 
-    try:
-        _iv_params = list(_iv_inspect.signature(_iv_fn).parameters.values())
-    except (TypeError, ValueError):
-        _iv_params = []
-    _iv_names = [p.name for p in _iv_params]
-    _iv_arity = len(_iv_params)
+    def _iv_call(fn, val):
+        try:
+            params = list(_iv_inspect.signature(fn).parameters.values())
+        except (TypeError, ValueError):
+            params = []
+        names = [p.name for p in params]
+        arity = len(params)
+        if val is None and arity == 0:
+            return fn()
+        if isinstance(val, dict) and val and all(k in names for k in val):
+            return fn(**val)
+        if isinstance(val, dict) and len(val) == arity:
+            return fn(*val.values())
+        if isinstance(val, list) and arity > 1 and len(val) == arity:
+            return fn(*val)
+        return fn(val)
 
-    if _iv_val is None and _iv_arity == 0:
-        _iv_res = _iv_fn()
-    elif isinstance(_iv_val, dict) and _iv_val and all(k in _iv_names for k in _iv_val):
-        _iv_res = _iv_fn(**_iv_val)
-    elif isinstance(_iv_val, dict) and len(_iv_val) == _iv_arity:
-        _iv_res = _iv_fn(*_iv_val.values())
-    elif isinstance(_iv_val, list) and _iv_arity > 1 and len(_iv_val) == _iv_arity:
-        _iv_res = _iv_fn(*_iv_val)
+    def _iv_fmt(res):
+        if isinstance(res, bool):
+            return str(res).lower()
+        if isinstance(res, (dict, list, tuple)):
+            return _iv_json.dumps(res, separators=(",", ":"))
+        return None if res is None else str(res)
+
+    if isinstance(_iv_val, dict) and _iv_val.get("__iv_multi__") is True:
+        # Every test case of a Run/Submit in one process: one line per case,
+        # <nonce>{json}, with candidate prints captured and a per-case CPU limit.
+        import io as _iv_io, time as _iv_time, signal as _iv_signal, traceback as _iv_tb
+
+        class _IvTimeout(BaseException):
+            pass
+
+        _iv_armed = [False]
+
+        def _iv_on_timeout(signum, frame):
+            if _iv_armed[0]:
+                raise _IvTimeout()
+
+        _iv_signal.signal(_iv_signal.SIGPROF, _iv_on_timeout)
+        _iv_nonce = str(_iv_val["nonce"])
+        _iv_cases = _iv_val["cases"]
+        _iv_limit = _iv_val["caseTimeoutMs"] / 1000.0
+        _iv_out = _iv_sys.stdout
+
+        def _iv_emit(i, status, output, printed, error, ms):
+            _iv_out.write(_iv_nonce + _iv_json.dumps({"i": i, "s": status, "o": output, "p": printed, "e": error, "ms": ms}) + "\\n")
+            _iv_out.flush()
+
+        for _iv_i, _iv_case in enumerate(_iv_cases):
+            _iv_buf = _iv_io.StringIO()
+            _iv_status, _iv_res, _iv_err = "ok", None, ""
+            _iv_start = _iv_time.perf_counter()
+            _iv_sys.stdout = _iv_buf
+            try:
+                _iv_signal.setitimer(_iv_signal.ITIMER_PROF, _iv_limit)
+                _iv_armed[0] = True
+                _iv_res = _iv_call(_iv_get_fn(), _iv_case)
+                _iv_armed[0] = False
+                _iv_res = _iv_fmt(_iv_res)
+            except _IvTimeout:
+                _iv_status = "tle"
+            except MemoryError:
+                _iv_status = "mle"
+            except BaseException:
+                _iv_status = "error"
+                _iv_err = _iv_tb.format_exc(limit=-5)
+            finally:
+                _iv_armed[0] = False
+                _iv_signal.setitimer(_iv_signal.ITIMER_PROF, 0)
+                _iv_sys.stdout = _iv_out
+            _iv_printed = _iv_buf.getvalue()
+            _iv_ms = int((_iv_time.perf_counter() - _iv_start) * 1000)
+            _iv_emit(_iv_i, _iv_status, _iv_res if _iv_res is not None else _iv_printed, _iv_printed, _iv_err, _iv_ms)
+            if _iv_status == "tle":
+                for _iv_j in range(_iv_i + 1, len(_iv_cases)):
+                    _iv_emit(_iv_j, "skipped", "", "", "", 0)
+                break
     else:
-        _iv_res = _iv_fn(_iv_val)
-
-    if isinstance(_iv_res, bool):
-        print(str(_iv_res).lower())
-    elif isinstance(_iv_res, (dict, list, tuple)):
-        print(_iv_json.dumps(_iv_res, separators=(",", ":")))
-    elif _iv_res is not None:
-        print(_iv_res)
+        _iv_res = _iv_fmt(_iv_call(_iv_get_fn(), _iv_val))
+        if _iv_res is not None:
+            print(_iv_res)
 `;
   }
 
@@ -203,7 +311,19 @@ public class Main {
             input = raw;
         }
 
-        Class<?> cls = Class.forName(IV_TARGET_CLASS);
+        if (input instanceof Map && Boolean.TRUE.equals(((Map) input).get("__iv_multi__"))) {
+            ivRunMulti((Map<String, Object>) input);
+            return;
+        }
+
+        String output = ivInvoke(Class.forName(IV_TARGET_CLASS), input);
+        if (output != null) System.out.println(output);
+        System.out.flush();
+    }
+
+    // Calls the candidate's method once; returns the formatted result, or null
+    // for void methods and null results.
+    static String ivInvoke(Class<?> cls, Object input) throws Throwable {
         java.lang.reflect.Method method = ivPickMethod(cls, input);
         method.setAccessible(true);
         Object target = null;
@@ -212,7 +332,6 @@ public class Main {
             ctor.setAccessible(true);
             target = ctor.newInstance();
         }
-
         Object[] callArgs = ivArgs(input, method);
         Object result;
         try {
@@ -220,10 +339,86 @@ public class Main {
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }
-        if (method.getReturnType() != void.class && result != null) {
-            System.out.println(ivFormat(result, true));
+        if (method.getReturnType() == void.class || result == null) return null;
+        return ivFormat(result, true);
+    }
+
+    // Runs every test case of a Run/Submit in one JVM, so the code compiles
+    // once. Each case reports one line: <nonce>{json}. Candidate prints are
+    // captured per case, and each case gets its own CPU-time limit.
+    static void ivRunMulti(Map<String, Object> spec) throws Exception {
+        final String nonce = String.valueOf(spec.get("nonce"));
+        final List<Object> cases = (List<Object>) spec.get("cases");
+        final long caseCpuNanos = ((Number) spec.get("caseTimeoutMs")).longValue() * 1000000L;
+        final java.io.PrintStream realOut = System.out;
+        final Class<?> cls = Class.forName(IV_TARGET_CLASS);
+        final java.lang.management.ThreadMXBean mx = java.lang.management.ManagementFactory.getThreadMXBean();
+        for (int i = 0; i < cases.size(); i++) {
+            final Object input = cases.get(i);
+            final String[] result = new String[1];
+            final Throwable[] failure = new Throwable[1];
+            java.io.ByteArrayOutputStream printed = new java.io.ByteArrayOutputStream();
+            Thread worker = new Thread(() -> {
+                try {
+                    result[0] = ivInvoke(cls, input);
+                } catch (Throwable t) {
+                    failure[0] = t;
+                }
+            });
+            worker.setDaemon(true);
+            System.setOut(new java.io.PrintStream(printed, true, "UTF-8"));
+            long start = System.nanoTime();
+            worker.start();
+            boolean timedOut = false;
+            while (worker.isAlive()) {
+                worker.join(20);
+                long cpu = mx.isThreadCpuTimeSupported() ? mx.getThreadCpuTime(worker.getId()) : System.nanoTime() - start;
+                if (worker.isAlive() && cpu > caseCpuNanos) {
+                    timedOut = true;
+                    break;
+                }
+            }
+            System.out.flush();
+            System.setOut(realOut);
+            long ms = (System.nanoTime() - start) / 1000000L;
+            String printedText = printed.toString("UTF-8");
+            String status = "ok";
+            String error = "";
+            if (timedOut) {
+                status = "tle";
+            } else if (failure[0] != null) {
+                status = failure[0] instanceof OutOfMemoryError ? "mle" : "error";
+                error = ivDescribe(failure[0]);
+            }
+            ivEmit(realOut, nonce, i, status, result[0] != null ? result[0] : printedText, printedText, error, ms);
+            if (timedOut) {
+                // The runaway thread cannot be stopped; skip the rest and end the JVM.
+                for (int j = i + 1; j < cases.size(); j++) ivEmit(realOut, nonce, j, "skipped", "", "", "", 0);
+                Runtime.getRuntime().halt(0);
+            }
         }
-        System.out.flush();
+        realOut.flush();
+        // halt, not exit: ends any threads the candidate left running.
+        Runtime.getRuntime().halt(0);
+    }
+
+    static void ivEmit(java.io.PrintStream out, String nonce, int i, String status, String output, String printed, String error, long ms) {
+        out.println(nonce + "{\\"i\\":" + i + ",\\"s\\":" + ivQuote(status) + ",\\"o\\":" + ivQuote(output)
+            + ",\\"p\\":" + ivQuote(printed) + ",\\"e\\":" + ivQuote(error) + ",\\"ms\\":" + ms + "}");
+        out.flush();
+    }
+
+    // Exception plus the first frames from candidate code (not the driver/JDK).
+    static String ivDescribe(Throwable t) {
+        StringBuilder b = new StringBuilder(t.toString());
+        int shown = 0;
+        for (StackTraceElement e : t.getStackTrace()) {
+            String c = e.getClassName();
+            if (c.equals("Main") || c.startsWith("Main$") || c.startsWith("java.") || c.startsWith("jdk.") || c.startsWith("sun.")) continue;
+            b.append("\\n\\tat ").append(e);
+            if (++shown == 5) break;
+        }
+        return b.toString();
     }
 
     static java.lang.reflect.Method ivPickMethod(Class<?> cls, Object input) {
@@ -479,7 +674,9 @@ public class Main {
                 case '\\n': b.append("\\\\n"); break;
                 case '\\r': b.append("\\\\r"); break;
                 case '\\t': b.append("\\\\t"); break;
-                default: b.append(c);
+                default:
+                    if (c < 0x20) b.append(String.format("\\\\u%04x", (int) c));
+                    else b.append(c);
             }
         }
         return b.append('"').toString();
