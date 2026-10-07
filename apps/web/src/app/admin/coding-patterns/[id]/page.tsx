@@ -54,6 +54,79 @@ const STEPS = [
   { id: 5, name: 'Publish' },
 ];
 
+interface StarterType {
+  java: string;
+  javaDefault: string;
+  python: string;
+}
+
+interface StarterParam {
+  name: string;
+  type: StarterType;
+}
+
+const OBJECT_STARTER_TYPE: StarterType = { java: 'Object', javaDefault: 'null', python: 'object' };
+
+// Maps a sample test value to concrete starter-code types. The API's Java
+// driver converts JSON test input into these parameter types by reflection.
+function inferStarterType(value: unknown): StarterType {
+  if (typeof value === 'boolean') return { java: 'boolean', javaDefault: 'false', python: 'bool' };
+  if (typeof value === 'string') return { java: 'String', javaDefault: '""', python: 'str' };
+  if (typeof value === 'number') {
+    if (!Number.isInteger(value)) return { java: 'double', javaDefault: '0.0', python: 'float' };
+    if (Math.abs(value) > 2147483647) return { java: 'long', javaDefault: '0L', python: 'int' };
+    return { java: 'int', javaDefault: '0', python: 'int' };
+  }
+  if (Array.isArray(value)) {
+    const sample = value.find((v) => v !== null && v !== undefined);
+    if (sample === undefined) return { java: 'int[]', javaDefault: 'new int[0]', python: 'list[int]' };
+    const element =
+      typeof sample === 'number' && value.some((v) => typeof v === 'number' && !Number.isInteger(v))
+        ? inferStarterType(0.5)
+        : inferStarterType(sample);
+    if (element.java === 'Object' || element.java.startsWith('Map')) {
+      return { java: 'List<Map<String, Object>>', javaDefault: 'new ArrayList<>()', python: 'list[dict]' };
+    }
+    const base = element.java.replace(/\[\]/g, '');
+    const dims = '[]'.repeat((element.java.match(/\[\]/g) || []).length + 1);
+    return { java: `${element.java}[]`, javaDefault: `new ${base}[0]${dims.slice(2)}`, python: `list[${element.python}]` };
+  }
+  if (value && typeof value === 'object') {
+    return { java: 'Map<String, Object>', javaDefault: 'new HashMap<>()', python: 'dict' };
+  }
+  return OBJECT_STARTER_TYPE;
+}
+
+function schemaStarterType(type: unknown): StarterType {
+  switch (String(type || '').toLowerCase()) {
+    case 'integer':
+      return inferStarterType(0);
+    case 'number':
+      return inferStarterType(0.5);
+    case 'boolean':
+      return inferStarterType(true);
+    case 'string':
+      return inferStarterType('');
+    case 'array':
+      return inferStarterType([]);
+    default:
+      return OBJECT_STARTER_TYPE;
+  }
+}
+
+// Same unwrapping the API's compareOutputs() applies to expected outputs.
+function unwrapExpectedOutput(expected: unknown): unknown {
+  if (expected && typeof expected === 'object' && !Array.isArray(expected)) {
+    const obj = expected as Record<string, unknown>;
+    const keys = Object.keys(obj);
+    if (keys.length === 1) return obj[keys[0]];
+    for (const key of ['result', 'indices', 'index', 'count', 'ans', 'answer']) {
+      if (key in obj) return obj[key];
+    }
+  }
+  return expected;
+}
+
 export default function CodingPatternBuilderPage() {
   const params = useParams();
   const router = useRouter();
@@ -142,23 +215,36 @@ export default function CodingPatternBuilderPage() {
   };
 
   const autoGenerateStarterCode = () => {
-    let args = 'inputData';
-    let javaArgs = 'Object inputData';
-    let cppArgs = 'auto inputData';
+    // Prefer a real sample input (the function's actual arguments) from the
+    // preview; fall back to the parameter schema when no preview has run yet.
+    let params: StarterParam[] = [{ name: 'inputData', type: inferStarterType(null) }];
+    let returnType = inferStarterType(null);
 
-    try {
-      const parsedSchema = JSON.parse(formData.parameterSchema || '{}');
-      const keys = Object.keys(parsedSchema);
-      if (keys.length > 0) {
-        args = keys.join(', ');
-        javaArgs = keys.map((k) => `Object ${k}`).join(', ');
-        cppArgs = keys.map((k) => `auto ${k}`).join(', ');
+    const sampleInput = previewResult?.publicTests?.[0]?.input ?? previewResult?.generatedInput;
+    const sampleOutput = previewResult?.publicTests?.[0]?.expectedOutput ?? previewResult?.expectedOutput;
+    if (sampleInput && typeof sampleInput === 'object' && !Array.isArray(sampleInput)) {
+      const entries = Object.entries(sampleInput as Record<string, unknown>);
+      if (entries.length > 0) {
+        params = entries.map(([name, value]) => ({ name, type: inferStarterType(value) }));
       }
-    } catch {}
+      returnType = inferStarterType(unwrapExpectedOutput(sampleOutput));
+    } else {
+      try {
+        const parsedSchema = JSON.parse(formData.parameterSchema || '{}') as Record<string, any>;
+        const entries = Object.entries(parsedSchema);
+        if (entries.length > 0) {
+          params = entries.map(([name, def]) => ({ name, type: schemaStarterType(def?.type) }));
+        }
+      } catch {}
+    }
+
+    const pythonArgs = params.map((p) => `${p.name}: ${p.type.python}`).join(', ');
+    const javaArgs = params.map((p) => `${p.type.java} ${p.name}`).join(', ');
+    const cppArgs = params.map((p) => `auto ${p.name}`).join(', ');
 
     const defaultCode = {
-      python: `def solve(${args}):\n    pass\n`,
-      java: `class Solution {\n    public Object solve(${javaArgs}) {\n        return null;\n    }\n}\n`,
+      python: `def solve(${pythonArgs}) -> ${returnType.python}:\n    pass\n`,
+      java: `class Solution {\n    public ${returnType.java} solve(${javaArgs}) {\n        return ${returnType.javaDefault};\n    }\n}\n`,
       cpp: `auto solve(${cppArgs}) {\n    return 0;\n}\n`,
     };
 

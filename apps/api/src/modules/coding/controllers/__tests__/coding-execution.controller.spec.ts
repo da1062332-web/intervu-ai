@@ -3,6 +3,7 @@ import { CodingExecutionController } from "../coding-execution.controller";
 import { CodingExecutionService } from "../../services/coding-execution.service";
 import { CodeExecutionQueueService } from "../../services/code-execution-queue.service";
 import { JudgeService } from "../../services/judge.service";
+import { CodeHarnessService } from "../../services/code-harness.service";
 import { PrismaService } from "../../../../prisma/prisma.service";
 import { OracleRegistry } from "../../oracles/oracle.registry";
 import { UserRole } from "@prisma/client";
@@ -108,6 +109,7 @@ describe("CodingExecutionController & CodingExecutionService", () => {
         { provide: OracleRegistry, useValue: mockOracleRegistry },
         { provide: CodingContextResolverService, useValue: mockContextResolver },
         { provide: SubmissionEvaluatorService, useValue: mockEvaluator },
+        CodeHarnessService,
       ],
     }).compile();
 

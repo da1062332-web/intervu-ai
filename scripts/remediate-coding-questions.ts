@@ -10,6 +10,40 @@ function sanitizeFunctionName(title: string): string {
     .join("");
 }
 
+// Java type for a sample test value. The API's Java driver converts JSON test
+// input into the declared parameter types, so starters must not use Object.
+function javaTypeOf(value: any): { type: string; zero: string } {
+  if (typeof value === "boolean") return { type: "boolean", zero: "false" };
+  if (typeof value === "string") return { type: "String", zero: '""' };
+  if (typeof value === "number") {
+    if (!Number.isInteger(value)) return { type: "double", zero: "0.0" };
+    return Math.abs(value) > 2147483647 ? { type: "long", zero: "0L" } : { type: "int", zero: "0" };
+  }
+  if (Array.isArray(value)) {
+    const sample = value.find(v => v !== null && v !== undefined);
+    if (sample === undefined) return { type: "int[]", zero: "new int[0]" };
+    const hasFraction = value.some(v => typeof v === "number" && !Number.isInteger(v));
+    const element = hasFraction ? javaTypeOf(0.5) : javaTypeOf(sample);
+    if (element.type === "Object" || element.type.startsWith("Map")) {
+      return { type: "List<Map<String, Object>>", zero: "new ArrayList<>()" };
+    }
+    const base = element.type.replace(/\[\]/g, "");
+    const extraDims = "[]".repeat((element.type.match(/\[\]/g) || []).length);
+    return { type: `${element.type}[]`, zero: `new ${base}[0]${extraDims}` };
+  }
+  if (value && typeof value === "object") return { type: "Map<String, Object>", zero: "new HashMap<>()" };
+  return { type: "Object", zero: "null" };
+}
+
+function unwrapResult(expected: any): any {
+  if (expected && typeof expected === "object" && !Array.isArray(expected)) {
+    const keys = Object.keys(expected);
+    if (keys.length === 1) return expected[keys[0]];
+    if ("result" in expected) return expected.result;
+  }
+  return expected;
+}
+
 function parseExamplesFromText(text: string): Array<{ input: any; expectedOutput: any; explanation?: string }> {
   const examples: Array<{ input: any; expectedOutput: any; explanation?: string }> = [];
 
@@ -199,13 +233,15 @@ async function remediateCodingQuestions() {
     const pythonParams = paramKeys.join(", ");
     const jsParams = paramKeys.join(", ");
     const cppParams = paramKeys.map(k => `auto ${k}`).join(", ");
-    const javaParams = paramKeys.map(k => `Object ${k}`).join(", ");
+    const sampleInput = publicTests[0]?.input ?? {};
+    const javaParams = paramKeys.map(k => `${javaTypeOf(sampleInput?.[k]).type} ${k}`).join(", ");
+    const javaReturn = javaTypeOf(unwrapResult(publicTests[0]?.expectedOutput));
 
     const starterCode = {
       python: `def ${fnName}(${pythonParams}):\n    # Implement your solution here\n    pass\n`,
       javascript: `function ${fnName}(${jsParams}) {\n    // Implement your solution here\n    return null;\n}\n`,
       typescript: `function ${fnName}(${jsParams}: any): any {\n    // Implement your solution here\n    return null;\n}\n`,
-      java: `class Solution {\n    public Object ${fnName}(${javaParams}) {\n        // Implement your solution here\n        return null;\n    }\n}\n`,
+      java: `class Solution {\n    public ${javaReturn.type} ${fnName}(${javaParams}) {\n        // Implement your solution here\n        return ${javaReturn.zero};\n    }\n}\n`,
       cpp: `#include <iostream>\n#include <vector>\n#include <string>\n\nusing namespace std;\n\nclass Solution {\npublic:\n    auto ${fnName}(${cppParams}) {\n        // Implement your solution here\n        return 0;\n    }\n};\n`
     };
 

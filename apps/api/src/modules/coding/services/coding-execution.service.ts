@@ -19,6 +19,7 @@ import { SubmissionEvaluatorService } from "./submission-evaluator.service";
 import { SubmitCodeDto, SubmitCodeResponseDto } from "../dto/submit-code.dto";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { CodingContextResolverService } from "./coding-context-resolver.service";
+import { CodeHarnessService } from "./code-harness.service";
 
 @Injectable()
 export class CodingExecutionService {
@@ -31,6 +32,7 @@ export class CodingExecutionService {
     private readonly oracleRegistry: OracleRegistry,
     private readonly evaluatorService: SubmissionEvaluatorService,
     private readonly contextResolver: CodingContextResolverService,
+    private readonly codeHarness: CodeHarnessService,
   ) {}
 
   private acquireLock(lockKey: string): void {
@@ -78,65 +80,9 @@ export class CodingExecutionService {
       ? this.oracleRegistry.getOracle(oracleKey)
       : null;
 
-    // 5. Code Sanitization for Language Execution Engine Compatibility (e.g. Java class name, Python driver)
-    let sourceCodeToSubmit = dto.code;
-    const langLower = String(dto.language).toLowerCase();
-    const isJava = langLower.includes("java") || langLower === "62";
-    const isPython = langLower.includes("python") || langLower === "71" || langLower === "py";
-
-    if (isJava) {
-      // Replace "public class Solution" with "public class Main" so Judge0 javac compiles Main.java without error
-      sourceCodeToSubmit = sourceCodeToSubmit.replace(
-        /public\s+class\s+([A-Za-z0-9_]+)/g,
-        (match, className) => (className !== "Main" ? "public class Main" : match),
-      );
-    } else if (isPython) {
-      if (!sourceCodeToSubmit.includes("__future__")) {
-        sourceCodeToSubmit = "from __future__ import annotations\n" + sourceCodeToSubmit;
-      }
-      const hasMain = sourceCodeToSubmit.includes("__main__") || sourceCodeToSubmit.includes("sys.stdin");
-      if (!hasMain) {
-        let funcName = "solution";
-        const match = sourceCodeToSubmit.match(/def\s+([A-Za-z0-9_]+)\s*\(/);
-        if (match && match[1]) {
-          funcName = match[1];
-        }
-
-        sourceCodeToSubmit += `\n\nif __name__ == '__main__':
-    import sys, json
-    _raw = sys.stdin.read().strip()
-    if _raw:
-        try:
-            _val = json.loads(_raw)
-        except Exception:
-            _val = int(_raw) if _raw.lstrip('-').isdigit() else _raw
-        
-        _res = None
-        if isinstance(_val, dict):
-            try:
-                _res = ${funcName}(**_val)
-            except TypeError:
-                try:
-                    _res = ${funcName}(_val)
-                except Exception:
-                    _res = ${funcName}(*list(_val.values()))
-        elif isinstance(_val, (list, tuple)):
-            try:
-                _res = ${funcName}(*_val)
-            except TypeError:
-                _res = ${funcName}(_val)
-        else:
-            _res = ${funcName}(_val)
-
-        if isinstance(_res, bool):
-            print(str(_res).lower())
-        elif isinstance(_res, (dict, list)):
-            print(json.dumps(_res))
-        elif _res is not None:
-            print(_res)
-`;
-      }
-    }
+    // 5. Wrap the candidate code into a runnable program (Java Main class, Python driver)
+    const program = this.codeHarness.prepare(dto.code, dto.language);
+    const sourceCodeToSubmit = program.sourceCode;
 
     const results: PublicTestResultDto[] = [];
     let passedCount = 0;
@@ -164,7 +110,7 @@ export class CodingExecutionService {
       }
 
       // Format stdin string
-      const stdinString = this.formatStdin(testInput);
+      const stdinString = this.codeHarness.buildStdin(testInput, program.stdinMode);
       const expectedOutputString = this.formatExpectedOutput(expectedOutput);
 
       // Submit to Judge0
@@ -270,80 +216,6 @@ export class CodingExecutionService {
     } finally {
       this.releaseLock(lockKey);
     }
-  }
-
-  private convertObjectToStdin(input: any): string {
-    if (input === null || input === undefined) return "";
-    if (typeof input === "string") return input.trim();
-    if (typeof input === "number" || typeof input === "boolean") return String(input);
-
-    if (Array.isArray(input)) {
-      if (input.length === 0) return "0";
-      if (typeof input[0] === "object" && input[0] !== null) {
-        const lines: string[] = [String(input.length)];
-        for (const item of input) {
-          lines.push(Object.values(item).join(" "));
-        }
-        return lines.join("\n");
-      }
-      return input.join(" ");
-    }
-
-    if (typeof input === "object") {
-      if (typeof input.stdin === "string") {
-        return input.stdin.trim();
-      }
-
-      const lines: string[] = [];
-      for (const key of Object.keys(input)) {
-        const val = input[key];
-        if (val === null || val === undefined) continue;
-
-        if (Array.isArray(val)) {
-          if (val.length === 0) {
-            lines.push("0");
-          } else if (typeof val[0] === "object" && val[0] !== null) {
-            lines.push(String(val.length));
-            for (const item of val) {
-              lines.push(Object.values(item).join(" "));
-            }
-          } else {
-            lines.push(val.join(" "));
-          }
-        } else if (typeof val === "object") {
-          lines.push(Object.values(val).join(" "));
-        } else {
-          lines.push(String(val));
-        }
-      }
-      return lines.join("\n");
-    }
-
-    return String(input).trim();
-  }
-
-  private formatStdin(input: any): string {
-    if (input === null || input === undefined) return "";
-    if (typeof input === "string") {
-      const trimmed = input.trim();
-      if (
-        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-        (trimmed.startsWith("[") && trimmed.endsWith("]"))
-      ) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          return this.convertObjectToStdin(parsed);
-        } catch {
-          return trimmed;
-        }
-      }
-      return trimmed;
-    }
-    if (typeof input === "number" || typeof input === "boolean") return String(input);
-    if (typeof input === "object") {
-      return this.convertObjectToStdin(input);
-    }
-    return String(input).trim();
   }
 
   private formatExpectedOutput(expected: any): string {

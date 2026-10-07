@@ -1,5 +1,6 @@
 import { SubmissionEvaluatorService } from "../submission-evaluator.service";
 import { JudgeService } from "../judge.service";
+import { CodeHarnessService } from "../code-harness.service";
 import { OracleRegistry } from "../../oracles/oracle.registry";
 import { BasicGradeCalculatorOracle } from "../../oracles/basic-grade-calculator.oracle";
 import { SubmitCodeDto } from "../../dto/submit-code.dto";
@@ -20,7 +21,7 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
     const gradeOracle = new BasicGradeCalculatorOracle();
     oracleRegistry = new OracleRegistry([gradeOracle]);
 
-    evaluatorService = new SubmissionEvaluatorService(mockJudgeService, oracleRegistry);
+    evaluatorService = new SubmissionEvaluatorService(mockJudgeService, oracleRegistry, new CodeHarnessService());
   });
 
   it("should return ACCEPTED and 100% score when all test suites pass", async () => {
