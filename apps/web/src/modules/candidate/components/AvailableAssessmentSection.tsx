@@ -200,11 +200,9 @@ export function AvailableAssessmentSection({
                     <Clock className='size-3.5 text-muted-foreground/80' />
                     <span>{test.durationMinutes}m</span>
                   </span>
-                  {(test as any).maxAttempts !== undefined && (
-                    <span className='flex items-center gap-1 text-xs font-medium text-muted-foreground border-l border-border/50 pl-4'>
-                      Attempts: {(test as any).attemptCount}/{(test as any).maxAttempts}
-                    </span>
-                  )}
+                  <span className='flex items-center gap-1 text-xs font-medium text-muted-foreground border-l border-border/50 pl-4'>
+                    Attempts: {(test as any).attemptCount || 0}/{(test as any).maxAttempts != null ? (test as any).maxAttempts : '∞'}
+                  </span>
                 </div>
                 {!hasActivePlan ? (
                   <span className='text-xs font-bold text-indigo-600 flex items-center gap-1'>

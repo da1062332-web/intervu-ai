@@ -251,11 +251,8 @@ export class EligibilityService {
     }
 
 
-    let effectiveMaxAttempts: number =
-      (config as any)?.ruleFlags?.maxAttempts ??
-      (config as any)?.maxAttempts ??
-      (config as any)?.allowedAttempts ??
-      10;
+    // Resolve effectiveMaxAttempts exclusively from candidate entitlements (Packages & Coupons)
+    let effectiveMaxAttempts: number | null = null;
 
     if (this.entitlementService) {
       try {
@@ -269,7 +266,13 @@ export class EligibilityService {
             if (Array.isArray(allowedAssessmentsVal.assessments)) {
               allowedList = allowedAssessmentsVal.assessments;
             }
-            if (typeof allowedAssessmentsVal.attemptsPerExam === "number") {
+            if (allowedAssessmentsVal.attemptsByExam && typeof allowedAssessmentsVal.attemptsByExam === "object") {
+              effectiveMaxAttempts =
+                allowedAssessmentsVal.attemptsByExam[targetConfigId] ??
+                (config.code && allowedAssessmentsVal.attemptsByExam[config.code]) ??
+                (config.name && allowedAssessmentsVal.attemptsByExam[config.name]) ??
+                (typeof allowedAssessmentsVal.attemptsPerExam === "number" ? allowedAssessmentsVal.attemptsPerExam : null);
+            } else if (typeof allowedAssessmentsVal.attemptsPerExam === "number") {
               effectiveMaxAttempts = allowedAssessmentsVal.attemptsPerExam;
             }
           } else if (Array.isArray(allowedAssessmentsVal)) {
@@ -306,7 +309,7 @@ export class EligibilityService {
       targetConfigId,
     );
 
-    if (previousAttempts >= effectiveMaxAttempts) {
+    if (effectiveMaxAttempts !== null && previousAttempts >= effectiveMaxAttempts) {
       return {
         eligible: false,
         errorCode: "ATTEMPT_LIMIT_REACHED",

@@ -13,7 +13,7 @@ export function BrandLogo({ className, logoClassName, textClassName, showText = 
     <div className={cn("flex items-center gap-2", className)} {...props}>
       <Logo className={cn("w-8 h-8 shrink-0", logoClassName)} />
       {showText && (
-        <span className={cn("font-extrabold tracking-wide font-sans text-xl", textClassName)}>
+        <span className={cn("font-extrabold tracking-wide font-sans text-xl text-foreground", textClassName)}>
           Skillitri<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#9333EA]">X</span>
         </span>
       )}

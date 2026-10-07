@@ -141,9 +141,7 @@ export class AttemptHistoryService {
           ? "COMPLETED"
           : t.status;
 
-      const maxAttempts =
-        attemptsPerExamOverride ??
-        ((t.examConfig?.ruleFlags?.maxAttempts as number) || (t.examConfig as any)?.maxAttempts || (t.testConfig as any)?.maxAttempts || 10);
+      const maxAttempts = attemptsPerExamOverride ?? null;
 
       const attemptCount = (userInstances || []).filter(
         (inst: any) =>
@@ -151,8 +149,8 @@ export class AttemptHistoryService {
           (t.testConfigId && inst.testConfigId === t.testConfigId),
       ).length;
 
-      const remainingAttempts = Math.max(0, maxAttempts - attemptCount);
-      const canReAttempt = remainingAttempts > 0;
+      const remainingAttempts = maxAttempts !== null ? Math.max(0, maxAttempts - attemptCount) : null;
+      const canReAttempt = maxAttempts !== null ? (remainingAttempts !== null && remainingAttempts > 0) : true;
 
       return {
         instanceId: t.id,

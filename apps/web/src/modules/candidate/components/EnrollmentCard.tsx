@@ -3,17 +3,28 @@
 import { useEnrollment } from '../hooks/useEnrollment';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { AlertCircle, CheckCircle2, Clock, PlayCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, PlayCircle, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { useSubscriptionStore } from '@/store/subscription.store';
 
 interface EnrollmentCardProps {
   testId: string;
   testName: string;
   company: string;
   status: string; // e.g., 'AVAILABLE', 'ENROLLED', 'IN_PROGRESS', 'COMPLETED'
+  isQuotaExhausted?: boolean;
+  onUpgrade?: () => void;
 }
 
-export function EnrollmentCard({ testId, testName, company, status }: EnrollmentCardProps) {
+export function EnrollmentCard({
+  testId,
+  testName,
+  company,
+  status,
+  isQuotaExhausted = false,
+  onUpgrade,
+}: EnrollmentCardProps) {
+  const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
   const { mutate: enroll, isPending } = useEnrollment();
 
   const handleEnroll = () => {
@@ -74,35 +85,47 @@ export function EnrollmentCard({ testId, testName, company, status }: Enrollment
         </div>
       </CardHeader>
       <CardFooter className='pt-2'>
-        {status === 'AVAILABLE' && (
-          <Button className='w-full' onClick={handleEnroll} disabled={isPending}>
-            {isPending ? 'Enrolling...' : 'Enroll Now'}
+        {isQuotaExhausted && status !== 'STARTED' && (status === 'ENROLLED' || status === 'RE_EXAM') ? (
+          <Button
+            className='w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold flex items-center justify-center gap-2 shadow-sm'
+            onClick={onUpgrade || openPricingModal}
+          >
+            <Sparkles className='size-4' />
+            <span>Upgrade Plan to Start</span>
           </Button>
-        )}
-        {status === 'ENROLLED' && (
-          <Button className='w-full' asChild>
-            <Link href={`/candidate/tests/${testId}/instructions`}>
-              Start Assessment
-              <PlayCircle className='ml-2 size-4' />
-            </Link>
-          </Button>
-        )}
-        {status === 'STARTED' && (
-          <Button className='w-full bg-blue-600 hover:bg-blue-700 text-white' asChild>
-            <Link href={`/candidate/tests/${testId}/launch?resume=true`}>
-              Resume Assessment
-              <PlayCircle className='ml-2 size-4' />
-            </Link>
-          </Button>
-        )}
-        {/* Removed disabled 'Already Submitted' button per user request */}
-        {status === 'RE_EXAM' && (
-          <Button className='w-full' asChild>
-            <Link href={`/candidate/tests/${testId}/instructions`}>
-              Start Re-Exam
-              <PlayCircle className='ml-2 size-4' />
-            </Link>
-          </Button>
+        ) : (
+          <>
+            {status === 'AVAILABLE' && (
+              <Button className='w-full' onClick={handleEnroll} disabled={isPending}>
+                {isPending ? 'Enrolling...' : 'Enroll Now'}
+              </Button>
+            )}
+            {status === 'ENROLLED' && (
+              <Button className='w-full' asChild>
+                <Link href={`/candidate/tests/${testId}/instructions`}>
+                  Start Assessment
+                  <PlayCircle className='ml-2 size-4' />
+                </Link>
+              </Button>
+            )}
+            {status === 'STARTED' && (
+              <Button className='w-full bg-blue-600 hover:bg-blue-700 text-white' asChild>
+                <Link href={`/candidate/tests/${testId}/launch?resume=true`}>
+                  Resume Assessment
+                  <PlayCircle className='ml-2 size-4' />
+                </Link>
+              </Button>
+            )}
+            {/* Removed disabled 'Already Submitted' button per user request */}
+            {status === 'RE_EXAM' && (
+              <Button className='w-full' asChild>
+                <Link href={`/candidate/tests/${testId}/instructions`}>
+                  Start Re-Exam
+                  <PlayCircle className='ml-2 size-4' />
+                </Link>
+              </Button>
+            )}
+          </>
         )}
       </CardFooter>
     </Card>

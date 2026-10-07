@@ -25,8 +25,8 @@ interface AttemptItem {
   examConfigId?: string;
   testConfigId?: string;
   attemptCount?: number;
-  maxAttempts?: number;
-  remainingAttempts?: number;
+  maxAttempts?: number | null;
+  remainingAttempts?: number | null;
   canReAttempt?: boolean;
 }
 
@@ -51,7 +51,7 @@ const ActionsCell = ({ attempt }: { attempt: AttemptItem }) => {
   const canReAttempt =
     attempt.canReAttempt !== false &&
     (attempt as any).canReattempt !== false &&
-    (attempt.remainingAttempts === undefined || attempt.remainingAttempts > 0);
+    (attempt.remainingAttempts === undefined || attempt.remainingAttempts === null || attempt.remainingAttempts > 0);
 
   return (
     <div className='flex items-center justify-end gap-2 whitespace-nowrap shrink-0'>

@@ -11,7 +11,7 @@ export interface DashboardTestItem {
   sections: string[];
   status: string;
   attemptCount: number;
-  maxAttempts: number;
+  maxAttempts: number | null;
   canReattempt: boolean;
   hasActiveAttempt: boolean;
   questionCount: number;
@@ -87,7 +87,7 @@ export const dashboardService = {
         sections: t.sections || [],
         status: t.enrollmentStatus || 'AVAILABLE',
         attemptCount: data.attemptsByConfig?.[t.id || t.configId] ?? t.attemptCount ?? 0,
-        maxAttempts: t.maxAttempts ?? t.allowedAttempts ?? 10,
+        maxAttempts: t.maxAttempts ?? null,
         canReattempt: t.canReattempt ?? true,
         hasActiveAttempt: t.hasActiveAttempt ?? false,
         questionCount: t.totalQuestions ?? t.questionCount ?? 0,
@@ -188,7 +188,7 @@ export const dashboardService = {
         questionCount: t.totalQuestions ?? t.questionCount ?? 0,
         sections: t.sections || [],
         difficulty: t.difficulty || 'Medium',
-        maxAttempts: t.maxAttempts ?? t.allowedAttempts ?? 10,
+        maxAttempts: t.maxAttempts ?? null,
         attemptCount: t.attemptCount ?? 0,
         canReattempt: t.canReattempt ?? true,
         currentVersionNumber: t.currentVersionNumber ?? t.versionNumber ?? null,

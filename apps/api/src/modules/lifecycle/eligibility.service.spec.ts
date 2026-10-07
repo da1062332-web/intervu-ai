@@ -1,10 +1,13 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { vi } from "vitest";
 import { EligibilityService } from "./eligibility.service";
 import { UserRepository } from "../users/repositories/user.repository";
 import { TestConfigRepository } from "../tests/repositories/test-config.repository";
 import { TestInstanceRepository } from "../tests/test-instance/test-instance.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { EntitlementService } from "../billing/services/entitlement.service";
+
+const jest = vi;
 
 describe("EligibilityService - FIX-02 Attempt Limit Enforcement", () => {
   let service: EligibilityService;
@@ -93,7 +96,10 @@ describe("EligibilityService - FIX-02 Attempt Limit Enforcement", () => {
       getUserEntitlements: jest.fn().mockResolvedValue({
         hasActivePlan: true,
         features: {
-          allowedAssessments: ["all"],
+          allowedAssessments: {
+            assessments: ["all"],
+            attemptsPerExam: 3,
+          },
         },
       }),
     };
@@ -162,7 +168,7 @@ describe("EligibilityService - FIX-02 Attempt Limit Enforcement", () => {
     });
   });
 
-  describe("3-6. Attempt Limit Boundary Enforcement", () => {
+  describe("3-6. Attempt Limit Boundary Enforcement from Entitlements", () => {
     it("case 3: non-exhausted (used = 0, max = 3) -> eligible", async () => {
       mockTestInstanceRepo.countAttempts.mockResolvedValue(0);
 
@@ -208,8 +214,23 @@ describe("EligibilityService - FIX-02 Attempt Limit Enforcement", () => {
     });
   });
 
-  describe("7. Plan / Override Attempt Limit Enforcement", () => {
-    it("should honor attemptsPerExam from subscription features override", async () => {
+  describe("7. All-Access / Unlimited Per-Exam Plan Enforcement", () => {
+    it("should allow unlimited per-exam retakes when plan has no attemptsPerExam restriction", async () => {
+      mockEntitlementService.getUserEntitlements.mockResolvedValue({
+        hasActivePlan: true,
+        features: {
+          allowedAssessments: ["all"],
+        },
+      });
+
+      // Even with 10 attempts used, user is still eligible for the assessment (governed by monthly quota)
+      mockTestInstanceRepo.countAttempts.mockResolvedValue(10);
+      const res = await service.validateEligibility("user_1", mockExamConfig.id);
+      expect(res.eligible).toBe(true);
+      expect(res.errorCode).toBeUndefined();
+    });
+
+    it("should honor attemptsPerExam override from coupon or custom package", async () => {
       mockEntitlementService.getUserEntitlements.mockResolvedValue({
         hasActivePlan: true,
         features: {

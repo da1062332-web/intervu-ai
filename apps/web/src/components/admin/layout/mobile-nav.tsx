@@ -128,7 +128,7 @@ export function MobileNav() {
         <SheetHeader className='h-16 flex-row items-center border-b border-border px-5'>
           <SheetTitle asChild>
             <Link href={dashboardHref} className='flex items-center gap-2 mb-6 ml-2' onClick={() => setMobileNavOpen(false)}>
-              <BrandLogo logoClassName='w-8 h-8' textClassName='text-slate-900 text-xl' />
+              <BrandLogo logoClassName='w-8 h-8' textClassName='text-foreground text-xl' />
             </Link>
           </SheetTitle>
         </SheetHeader>

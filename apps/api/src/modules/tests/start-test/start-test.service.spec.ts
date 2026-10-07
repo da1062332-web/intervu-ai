@@ -1,4 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { vi } from "vitest";
 import { StartTestService } from "./start-test.service";
 import { EligibilityService } from "../../lifecycle/eligibility.service";
 import { TestConfigRepository } from "../repositories/test-config.repository";
@@ -14,6 +15,8 @@ import { TestInstanceStatus } from "@prisma/client";
 import { PrismaService } from "@/prisma/prisma.service";
 import { FinalShufflerService } from "./final-shuffler.service";
 import { AssemblyService } from "../../assembly/services/test-assembly.service";
+
+const jest = vi;
 
 describe("StartTestService", () => {
   let service: StartTestService;

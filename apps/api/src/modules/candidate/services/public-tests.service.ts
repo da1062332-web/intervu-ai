@@ -163,12 +163,9 @@ export class PublicTestsService {
         const maxAttempts =
           isVip
             ? null
-            : (attemptsPerExamOverride ??
-              ((t.ruleFlags && typeof t.ruleFlags === "object" && "maxAttempts" in t.ruleFlags)
-                ? Number((t.ruleFlags as any).maxAttempts)
-                : (t.allowedAttempts ?? t.maxAttempts ?? 10)));
+            : (attemptsPerExamOverride ?? null);
         const attemptCount = t.testInstances ? t.testInstances.length : 0;
-        const canReattempt = isVip || (maxAttempts ? attemptCount < maxAttempts : true);
+        const canReattempt = isVip || (maxAttempts != null ? attemptCount < maxAttempts : true);
 
         const currentVersionNumber = t.currentVersionNumber ?? null;
         const userInstances = t.testInstances || [];

@@ -27,7 +27,7 @@ export interface TestConfig {
   questionCount?: number;
   sections: TestSection[];
   attemptCount?: number;
-  maxAttempts?: number;
+  maxAttempts?: number | null;
   canReattempt?: boolean;
   currentVersionNumber?: number | null;
   latestAttemptVersionNumber?: number | null;

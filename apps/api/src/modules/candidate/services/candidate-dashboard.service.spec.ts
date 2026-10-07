@@ -94,11 +94,16 @@ describe("CandidateDashboardService", () => {
     expect(result.recommendedTests[0].name).toBe("Recommended");
   });
 
-  it("should calculate canReattempt: true when usedAttempts < maxAttempts", async () => {
+  it("should calculate canReattempt: true when usedAttempts < maxAttempts from plan entitlement", async () => {
     (service as any).entitlementService.getUserEntitlements.mockResolvedValue({
       plan: "STANDARD",
       hasActivePlan: true,
-      features: { allowedAssessments: ["all"] },
+      features: {
+        allowedAssessments: {
+          assessments: ["all"],
+          attemptsPerExam: 3,
+        },
+      },
     });
 
     jest.spyOn(repository, "getDashboardData").mockResolvedValue({
@@ -114,7 +119,6 @@ describe("CandidateDashboardService", () => {
           totalDurationSeconds: 1800,
           totalQuestions: 5,
           sections: [],
-          ruleFlags: { maxAttempts: 3 },
         } as any,
       ],
     });
@@ -122,15 +126,21 @@ describe("CandidateDashboardService", () => {
     const result = await service.getDashboardData("user1");
     expect(result.recommendedTests).toHaveLength(1);
     expect(result.recommendedTests[0].attemptCount).toBe(1);
+    expect(result.recommendedTests[0].maxAttempts).toBe(3);
     expect(result.recommendedTests[0].canReattempt).toBe(true);
     expect(result.recommendedTests[0].isLocked).toBe(false);
   });
 
-  it("should calculate canReattempt: false and isLocked: true when usedAttempts >= maxAttempts", async () => {
+  it("should calculate canReattempt: false and isLocked: true when usedAttempts >= maxAttempts from plan entitlement", async () => {
     (service as any).entitlementService.getUserEntitlements.mockResolvedValue({
       plan: "STANDARD",
       hasActivePlan: true,
-      features: { allowedAssessments: ["all"] },
+      features: {
+        allowedAssessments: {
+          assessments: ["all"],
+          attemptsPerExam: 3,
+        },
+      },
     });
 
     jest.spyOn(repository, "getDashboardData").mockResolvedValue({
@@ -146,7 +156,6 @@ describe("CandidateDashboardService", () => {
           totalDurationSeconds: 1800,
           totalQuestions: 5,
           sections: [],
-          ruleFlags: { maxAttempts: 3 },
         } as any,
       ],
     });
@@ -154,7 +163,42 @@ describe("CandidateDashboardService", () => {
     const result = await service.getDashboardData("user1");
     expect(result.recommendedTests).toHaveLength(1);
     expect(result.recommendedTests[0].attemptCount).toBe(3);
+    expect(result.recommendedTests[0].maxAttempts).toBe(3);
     expect(result.recommendedTests[0].canReattempt).toBe(false);
     expect(result.recommendedTests[0].isLocked).toBe(true);
+  });
+
+  it("should allow unlimited per-exam attempts (maxAttempts: null) for all-access plans with no attemptsPerExam cap", async () => {
+    (service as any).entitlementService.getUserEntitlements.mockResolvedValue({
+      plan: "PRO_ALL_ACCESS",
+      hasActivePlan: true,
+      features: {
+        allowedAssessments: ["all"],
+      },
+    });
+
+    jest.spyOn(repository, "getDashboardData").mockResolvedValue({
+      attemptsByConfig: { test3: 10 },
+      activeAttempts: [],
+      completedTests: [],
+      enrollments: [],
+      upcomingTests: [
+        {
+          id: "test3",
+          displayName: "Recommended",
+          companyName: "Acme",
+          totalDurationSeconds: 1800,
+          totalQuestions: 5,
+          sections: [],
+        } as any,
+      ],
+    });
+
+    const result = await service.getDashboardData("user1");
+    expect(result.recommendedTests).toHaveLength(1);
+    expect(result.recommendedTests[0].attemptCount).toBe(10);
+    expect(result.recommendedTests[0].maxAttempts).toBeNull();
+    expect(result.recommendedTests[0].canReattempt).toBe(true);
+    expect(result.recommendedTests[0].isLocked).toBe(false);
   });
 });

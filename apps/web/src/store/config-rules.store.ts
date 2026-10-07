@@ -13,7 +13,6 @@ interface RuleFlagsState {
   shuffleQuestionsEnabled: boolean;
   shuffleOptionsEnabled: boolean;
   allowSectionNavigation: boolean;
-  maxAttempts?: number;
   candidateNoRepeatEnabled?: boolean;
   runtimeGenerationOnDeficit?: boolean;
   poolEnabled?: boolean;
