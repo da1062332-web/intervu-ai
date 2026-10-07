@@ -78,8 +78,10 @@ export class CodeExecutionQueueService implements OnModuleInit, OnModuleDestroy 
       );
     }
 
+    // BullMQ rejects custom job ids containing ":" ("Custom Id cannot
+    // contain :"), so the parts are joined with "_" instead.
     const job = await this.queueService.enqueueCodeExecution({
-      jobId: `code-exec:${mode}:${user.id}:${(dto as any)?.questionId || "unknown"}:${Date.now()}`,
+      jobId: `code-exec_${mode}_${user.id}_${(dto as any)?.questionId || "unknown"}_${Date.now()}`,
       timestamp: Date.now(),
       userId: user.id,
       payload: { mode, dto, user },

@@ -81,7 +81,10 @@ try {
   console.warn(
     "⚠️ Initial migrate deploy failed, attempting automatic recovery for stuck migrations..."
   );
-  const stuckMigrations = ["20260918120000_add_media_assets"];
+  const stuckMigrations = [
+    "20260918120000_add_media_assets",
+    "20260702093321_intervu_ai",
+  ];
   for (const mig of stuckMigrations) {
     try {
       console.log(`🔧 Attempting migrate resolve --rolled-back "${mig}"...`);

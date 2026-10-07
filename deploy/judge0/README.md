@@ -1,5 +1,8 @@
 # Judge0 on AWS EC2
 
+> Full guide (specification, Java metaspace patch, capacity model and cost plan):
+> [docs/infrastructure/judge0-aws-implementation-guide.md](../../docs/infrastructure/judge0-aws-implementation-guide.md).
+
 Production Judge0 for the Intervu API (Render, `singapore`). Replaces the local
 Docker + ngrok tunnel (`start-judge0-tunnel.bat`).
 
