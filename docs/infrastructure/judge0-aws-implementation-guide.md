@@ -131,7 +131,7 @@ Port **2358 must never be opened**. It is bound to `127.0.0.1` for on-box debugg
 | Secret on EC2 (`/opt/judge0/.env`) | Secret on Render (`intervu-api`) | Header | Effect |
 | :--- | :--- | :--- | :--- |
 | `AUTHN_TOKEN` | `JUDGE0_AUTH_TOKEN` | `X-Auth-Token` | Required on every request; missing or wrong returns **401** |
-| `AUTHZ_TOKEN` | `JUDGE0_AUTHZ_TOKEN` | `X-Auth-User` | Required for `DELETE /submissions/:token`; missing returns **403** |
+| `AUTHZ_TOKEN` | `JUDGE0_AUTHZ_TOKEN` | `X-Auth-User` | Required for `DELETE /submissions/:token` (the API deletes each submission after reading the result); missing or wrong returns **403** |
 | `POSTGRES_PASSWORD` | n/a | n/a | Internal DB password |
 
 Generate each with `openssl rand -hex 32` (256-bit). Never commit `.env`. TLS is Caddy's default policy (TLS 1.2 and 1.3) with certificates renewed automatically.
@@ -149,6 +149,7 @@ Generate each with `openssl rand -hex 32` (256-bit). Never commit `.env`. TLS is
 | `MAX_PROCESSES_AND_OR_THREADS` | `120` (max `240`) | Needed for JVM threads |
 | `MAX_FILE_SIZE` | `4096` KB | Max file a program may write |
 | `NUMBER_OF_RUNS` | `1` | One run per submission |
+| `ENABLE_SUBMISSION_DELETE` | `true` | Allows the API cleanup `DELETE`; Judge0 defaults to `false` and returns 400, leaving every submission (code and test data) in Postgres |
 
 The API overrides two of these per submission: `cpu_time_limit: 5` and `memory_limit: 2048000` (the 2 GB ceiling).
 
@@ -316,6 +317,13 @@ docker compose restart workers                 # recover stuck workers
 docker compose pull && docker compose up -d    # update images (version is pinned)
 curl -s -H "X-Auth-Token: <AUTHN_TOKEN>" http://localhost:2358/workers   # queue size and busy workers
 htop                                           # CPU saturation during an exam
+
+# Token fingerprints (never print the token itself); compare with the same
+# commands run against the Render values
+docker compose exec server printenv AUTHN_TOKEN | tr -d '\n' | wc -c
+docker compose exec server printenv AUTHN_TOKEN | tr -d '\n' | sha256sum | cut -c1-12
+docker compose exec server printenv AUTHZ_TOKEN | tr -d '\n' | wc -c
+docker compose exec server printenv AUTHZ_TOKEN | tr -d '\n' | sha256sum | cut -c1-12
 ```
 
 ### Exam-window lifecycle
@@ -364,7 +372,8 @@ Both need `docker compose up -d` to take effect, because `restart` keeps the old
 | Status 13 on every submission, cgroup message | Host booted on cgroup v2 | `stat -fc %T /sys/fs/cgroup`; re-run `bootstrap-ec2.sh` and reboot |
 | Java: "Could not allocate metaspace" | Patch missing (e.g. DB volume recreated) | Re-apply section 7 |
 | 401 from Judge0 | Token mismatch | Compare Render `JUDGE0_AUTH_TOKEN` with `AUTHN_TOKEN` in `.env` |
-| 403 on DELETE | `AUTHZ_TOKEN` / `JUDGE0_AUTHZ_TOKEN` missing or mismatched | Set both to the same value |
+| `DELETE /submissions/...` → 403, log says `:authorize_request` | `AUTHZ_TOKEN` not set in the container, or different from Render `JUDGE0_AUTHZ_TOKEN` | Compare the length and SHA-256 of `printenv AUTHZ_TOKEN` inside `server` with the Render value (token fingerprint commands under "Everyday commands" above); fix `.env`, then `docker compose up -d` (not `restart`) |
+| `DELETE /submissions/...` → 400 `delete not allowed` | `ENABLE_SUBMISSION_DELETE` not `true` | Set it in `judge0.conf`, then `docker compose up -d` |
 | 502 from Caddy | `server` container down | `docker compose logs server`; check `db` is up |
 | Certificate error | DNS not pointing at the Elastic IP, or port 80 closed | Fix DNS / security group, then `docker compose restart caddy` |
 | API logs "Code execution timed out" or connection attempts failing under load | Workers saturated; requests exceed the 15 s client timeout | Check `/workers` and `htop`; resize up (section 9) |
