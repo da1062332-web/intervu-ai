@@ -117,7 +117,7 @@ export function Navbar() {
         {/* Page title or Logo/Project Name for Candidate */}
         {isCandidate ? (
           <div className='flex items-center gap-1.5'>
-            <BrandLogo logoClassName='w-8 h-8' textClassName='text-slate-900 text-xl' />
+            <BrandLogo logoClassName='w-8 h-8' textClassName='text-foreground text-xl' />
           </div>
         ) : (
           <h1 className='text-lg font-heading font-semibold text-foreground leading-none ml-1'>
