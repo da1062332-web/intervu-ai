@@ -165,9 +165,14 @@ int main() {
       stdin: Buffer.from(t.stdin).toString('base64'),
     };
 
-    const res = await fetch('http://localhost:2358/submissions?base64_encoded=true&wait=true', {
+    const judgeUrl = (process.env.JUDGE0_URL || 'http://localhost:2358').replace(/\/+$/, '');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (process.env.JUDGE0_AUTH_TOKEN) {
+      headers['X-Auth-Token'] = process.env.JUDGE0_AUTH_TOKEN;
+    }
+    const res = await fetch(`${judgeUrl}/submissions?base64_encoded=true&wait=true`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload),
     });
 

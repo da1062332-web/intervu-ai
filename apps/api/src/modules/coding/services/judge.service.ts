@@ -81,6 +81,12 @@ export class JudgeService {
     if (authToken) {
       headers["X-Auth-Token"] = authToken;
     }
+    // Judge0 only allows DELETE /submissions/:token when AUTHZ_TOKEN is set
+    // and sent as X-Auth-User; without it, cleanup returns 403.
+    const authzToken = process.env.JUDGE0_AUTHZ_TOKEN;
+    if (authzToken) {
+      headers["X-Auth-User"] = authzToken;
+    }
     return headers;
   }
 
