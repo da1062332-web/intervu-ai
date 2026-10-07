@@ -344,6 +344,19 @@ aws ec2 start-instances --instance-ids <ID> --region ap-southeast-1
 
 Then set `N_WORKERS` in `judge0.conf` to the new vCPU count and run `docker compose restart server workers`. The whole resize takes about 5 minutes.
 
+### Logging
+
+Judge0 1.13.1 hard-codes `config.log_level = :debug` and only filters `password` from request logs. Out of the box, every submission therefore logged the full source code three times (request params, nested `submission` params, SQL insert), plus hidden test inputs and expected outputs. Java submissions also carry the ~13 KB driver the API generates.
+
+Two controls are in place:
+
+| Control | Where | Effect |
+| :--- | :--- | :--- |
+| Rails initializer | [log-filter.rb](../../deploy/judge0/log-filter.rb), mounted into `server` and `workers` as `config/initializers/zz_intervu_logging.rb` | `source_code`, `stdin`, `expected_output`, `stdout`, `stderr`, `compile_output` logged as `[FILTERED]`; level `INFO`, so no SQL lines |
+| Log rotation | `x-logging` anchor in [docker-compose.yml](../../deploy/judge0/docker-compose.yml) | Each container capped at 3 × 10 MB (~150 MB total) |
+
+Both need `docker compose up -d` to take effect, because `restart` keeps the old container configuration. Check disk use with `df -h /` and `sudo du -sh /var/lib/docker/containers/*/*-json.log`.
+
 ### Troubleshooting
 
 | Symptom | Likely cause | Action |
@@ -487,6 +500,7 @@ These come from reading the current code and config against the sizing above. Th
 | [deploy/judge0/docker-compose.yml](../../deploy/judge0/docker-compose.yml) | Five-service stack |
 | [deploy/judge0/judge0.conf](../../deploy/judge0/judge0.conf) | Worker count and sandbox limits |
 | [deploy/judge0/Caddyfile](../../deploy/judge0/Caddyfile) | TLS + reverse proxy |
+| [deploy/judge0/log-filter.rb](../../deploy/judge0/log-filter.rb) | Filters code/test data from Judge0 logs; INFO level |
 | [deploy/judge0/.env.example](../../deploy/judge0/.env.example) | Secrets template |
 | [deploy/judge0/bootstrap-ec2.sh](../../deploy/judge0/bootstrap-ec2.sh) | Docker install + cgroup v1 switch |
 | [deploy/judge0/README.md](../../deploy/judge0/README.md) | Short quick-start |

@@ -167,8 +167,20 @@ if __name__ == "__main__":
     );
     const preferredMethod = methodMatch?.[1] && methodMatch[1] !== "main" ? methodMatch[1] : "";
 
-    const sourceCode = `import java.util.*;\n${source}\n${this.javaDriver(targetClass, preferredMethod)}`;
+    const driver = this.compactJava(this.javaDriver(targetClass, preferredMethod));
+    const sourceCode = `import java.util.*;\n${source}\n${driver}`;
     return { sourceCode, stdinMode: "json" };
+  }
+
+  // The driver is sent (and stored by Judge0) with every test case, so drop
+  // indentation, blank lines and comment lines. Safe for Java: no text blocks
+  // or line-sensitive syntax in the driver.
+  private compactJava(source: string): string {
+    return source
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("//"))
+      .join("\n");
   }
 
   private javaDriver(targetClass: string, preferredMethod: string): string {

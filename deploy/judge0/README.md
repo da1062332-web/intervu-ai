@@ -105,6 +105,15 @@ Redeploy, run a coding question end to end, then retire the ngrok tunnel.
 - Stop the instance between exam windows to save cost. The Elastic IP and data
   persist, and containers come back on boot via `restart: always`.
 
+## Logging
+
+Judge0 1.13.1 logs at debug level and prints every request's full source code,
+stdin and expected output. `log-filter.rb` is mounted into `server` and
+`workers` as a Rails initializer: it filters those fields to `[FILTERED]` and
+drops the level to `INFO` (no SQL lines). Every container's log is also capped
+at 3 × 10 MB (`x-logging` in `docker-compose.yml`). Changes to either need
+`docker compose up -d`, since a restart does not recreate the containers.
+
 ## Operations
 
 ```bash
