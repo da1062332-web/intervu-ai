@@ -9,6 +9,10 @@ import {
   CategorySummary,
 } from "../dto/submit-code.dto";
 
+// Judge0 budget for a Submit; the HTTP request waits 120s for the queued job
+// (SUBMIT_TIMEOUT_MS in coding-execution.controller.ts).
+const SUBMIT_JUDGE_TIMEOUT_MS = 110_000;
+
 export interface InternalTestCase {
   category: "public" | "hidden" | "boundary" | "stress";
   input: any;
@@ -125,12 +129,9 @@ export class SubmissionEvaluatorService {
     let globalRuntimeError = false;
     let firstErrorMessage: string | undefined;
 
-    // 4. Execute test suite against Judge0
-    for (let i = 0; i < testCases.length; i++) {
-      const tc = testCases[i];
-      categoryStats[tc.category].total++;
-
-      // Compute expected output via Oracle if not explicitly provided
+    // 4. Compute expected outputs via Oracle where not explicitly provided,
+    //    then execute the whole suite as one Judge0 batch
+    const expectedOutputs = testCases.map((tc) => {
       let expectedOutput = tc.expectedOutput;
       if ((expectedOutput === undefined || expectedOutput === null) && oracle) {
         try {
@@ -139,30 +140,38 @@ export class SubmissionEvaluatorService {
           this.logger.warn(`Oracle expected output error for ${oracleKey}`, oracleErr);
         }
       }
+      return expectedOutput;
+    });
 
-      const stdinString = this.codeHarness.buildStdin(tc.input, program.stdinMode);
-      const expectedOutputString = this.formatExpectedOutput(expectedOutput);
+    const batchResults = await this.judgeService.submitBatch(
+      testCases.map((tc, i) => ({
+        sourceCode: sourceCodeToSubmit,
+        language: dto.language,
+        stdin: this.codeHarness.buildStdin(tc.input, program.stdinMode),
+        expectedOutput: this.formatExpectedOutput(expectedOutputs[i]),
+      })),
+      { timeoutMs: SUBMIT_JUDGE_TIMEOUT_MS },
+    );
 
-      let judgeResult: any;
-      try {
-        judgeResult = await this.judgeService.submitAndPoll({
-          sourceCode: sourceCodeToSubmit,
-          language: dto.language,
-          stdin: stdinString,
-          expectedOutput: expectedOutputString,
-        });
-      } catch (err: any) {
-        this.logger.error(`Judge0 execution failure on ${tc.category} test #${i + 1}`, err?.message || err);
+    for (let i = 0; i < testCases.length; i++) {
+      const tc = testCases[i];
+      categoryStats[tc.category].total++;
+      const expectedOutput = expectedOutputs[i];
+
+      const judgeResult = batchResults[i]?.result;
+      if (!judgeResult) {
+        const errorMessage = batchResults[i]?.error || "Execution engine failure";
+        this.logger.error(`Judge0 execution failure on ${tc.category} test #${i + 1}`, errorMessage);
         results.push({
           category: tc.category,
           status: "RUNTIME_ERROR",
           runtimeSeconds: 0,
           memoryKb: 0,
-          error: err?.message || "Execution engine failure",
+          error: errorMessage,
         });
         categoryStats[tc.category].failed++;
         globalRuntimeError = true;
-        if (!firstErrorMessage) firstErrorMessage = err?.message || "Execution engine failure";
+        if (!firstErrorMessage) firstErrorMessage = errorMessage;
         continue;
       }
 
@@ -225,7 +234,8 @@ export class SubmissionEvaluatorService {
       });
 
       if (status === "COMPILATION_ERROR") {
-        // Fast-fail: Code with compiler errors will never compile on subsequent tests
+        // Same code compiles the same way for every test case: count the first
+        // compiler error against all remaining tests
         for (let j = i + 1; j < testCases.length; j++) {
           const remainingTc = testCases[j];
           categoryStats[remainingTc.category].total++;

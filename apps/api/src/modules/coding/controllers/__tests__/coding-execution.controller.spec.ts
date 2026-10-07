@@ -53,11 +53,23 @@ describe("CodingExecutionController & CodingExecutionService", () => {
   };
 
   beforeEach(async () => {
-    const mockJudgeService = {
+    const mockJudgeService: any = {
       submitAndPoll: jest.fn(),
       mapLanguageToId: jest.fn().mockReturnValue(71),
       checkHealth: jest.fn().mockResolvedValue({ healthy: true }),
     };
+    // Tests stub one Judge0 result per test case via submitAndPoll; the
+    // service sends all test cases through submitBatch, which fans out to it.
+    mockJudgeService.submitBatch = jest.fn((items: any[]) =>
+      Promise.all(
+        items.map((item) =>
+          Promise.resolve(mockJudgeService.submitAndPoll(item)).then(
+            (result: any) => ({ result, error: null }),
+            (err: any) => ({ result: null, error: err?.message || String(err) }),
+          ),
+        ),
+      ),
+    );
 
     const mockPrismaService = {
       testInstance: {

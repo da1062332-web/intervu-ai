@@ -24,6 +24,26 @@ export interface JudgeSubmissionOptions {
   compilerOptions?: string;
 }
 
+/** One entry per submitted test case, in the order they were passed in. */
+export interface JudgeBatchItemResult {
+  result: NormalizedJudgeResult | null;
+  error: string | null;
+}
+
+export interface JudgeBatchOptions {
+  /** Overall budget for creating the batch and waiting for every result. */
+  timeoutMs?: number;
+}
+
+// Judge0 1.13.1 MAX_SUBMISSION_BATCH_SIZE default.
+const MAX_BATCH_SIZE = 20;
+const DEFAULT_BATCH_TIMEOUT_MS = 40_000;
+const BATCH_POLL_DELAYS_MS = [300, 500, 750, 1000, 1500];
+const BATCH_RESULT_FIELDS = "token,status,stdout,stderr,compile_output,message,time,memory";
+const EXECUTION_TIMEOUT_MESSAGE = "Code execution timed out while waiting for Judge0 worker evaluation.";
+
+class RetryableBatchError extends Error {}
+
 const LANGUAGE_MAP: Record<string, number> = {
   python: 71,
   py: 71,
@@ -263,6 +283,222 @@ export class JudgeService {
     // Auto-clean submission artifacts from Judge0 memory/storage
     this.deleteSubmission(token).catch(() => null);
     return normalized;
+  }
+
+  /**
+   * Runs several test cases as one Judge0 batch without `wait=true`, so the
+   * code runs in Judge0's worker processes instead of holding one of its few
+   * web threads, and all test cases of a Run/Submit execute in parallel.
+   *
+   * Creation is retried only when Judge0 provably did not accept the batch
+   * (network error before a response, 502/503). Once accepted it is never
+   * re-sent: a slow result is waited on, not re-executed. Results that are
+   * still pending when `timeoutMs` runs out come back as per-item errors.
+   */
+  async submitBatch(
+    items: JudgeSubmissionOptions[],
+    options: JudgeBatchOptions = {},
+  ): Promise<JudgeBatchItemResult[]> {
+    if (items.length === 0) return [];
+
+    const deadline = Date.now() + (options.timeoutMs ?? DEFAULT_BATCH_TIMEOUT_MS);
+    const results: JudgeBatchItemResult[] = new Array(items.length);
+
+    const chunks: number[][] = [];
+    for (let start = 0; start < items.length; start += MAX_BATCH_SIZE) {
+      chunks.push(
+        Array.from({ length: Math.min(MAX_BATCH_SIZE, items.length - start) }, (_, k) => start + k),
+      );
+    }
+
+    await Promise.all(
+      chunks.map(async (indices) => {
+        const chunkResults = await this.runBatchChunk(
+          indices.map((i) => items[i]),
+          deadline,
+        );
+        indices.forEach((itemIndex, k) => {
+          results[itemIndex] = chunkResults[k];
+        });
+      }),
+    );
+
+    return results;
+  }
+
+  private async runBatchChunk(
+    items: JudgeSubmissionOptions[],
+    deadline: number,
+  ): Promise<JudgeBatchItemResult[]> {
+    const judge0Url = this.getJudge0Url();
+
+    let created: any[];
+    try {
+      created = await this.createBatch(judge0Url, items, deadline);
+    } catch (err: any) {
+      const message = err?.message || "Judge0 execution engine error";
+      return items.map(() => ({ result: null, error: message }));
+    }
+
+    const tokens: (string | null)[] = items.map((_, k) =>
+      typeof created?.[k]?.token === "string" ? created[k].token : null,
+    );
+    const results: (JudgeBatchItemResult | null)[] = items.map((_, k) =>
+      tokens[k]
+        ? null
+        : {
+            result: null,
+            error: `Judge0 rejected the submission: ${JSON.stringify(created?.[k] ?? {})}`,
+          },
+    );
+
+    const pendingTokens = (): string[] =>
+      tokens.filter((t, k): t is string => Boolean(t) && results[k] === null);
+
+    let pollIndex = 0;
+    while (pendingTokens().length > 0 && Date.now() < deadline) {
+      const delay =
+        process.env.NODE_ENV === "test"
+          ? 10
+          : BATCH_POLL_DELAYS_MS[Math.min(pollIndex, BATCH_POLL_DELAYS_MS.length - 1)];
+      await new Promise((resolve) => setTimeout(resolve, Math.min(delay, Math.max(0, deadline - Date.now()))));
+      pollIndex++;
+
+      const pending = pendingTokens();
+      try {
+        const res = await fetch(
+          `${judge0Url}/submissions/batch?tokens=${pending.join(",")}&base64_encoded=true&fields=${BATCH_RESULT_FIELDS}`,
+          {
+            headers: this.getJudge0Headers(),
+            signal: AbortSignal.timeout(10000),
+          },
+        );
+        if (!res.ok) {
+          this.logger.warn("Judge0 batch poll HTTP error", { status: res.status });
+          continue;
+        }
+        const body: any = await res.json();
+        const polled: any[] = Array.isArray(body?.submissions) ? body.submissions : [];
+        for (const sub of polled) {
+          const statusId = sub?.status?.id;
+          if (!sub?.token || statusId === undefined || statusId === 1 || statusId === 2) continue;
+          const k = tokens.indexOf(sub.token);
+          if (k >= 0 && results[k] === null) {
+            results[k] = { result: this.normalizeResult(sub.token, sub), error: null };
+          }
+        }
+      } catch (pollErr: any) {
+        this.logger.warn("Judge0 batch poll failed", { error: pollErr?.message || String(pollErr) });
+      }
+    }
+
+    const finished = results.map((r) => r ?? { result: null, error: EXECUTION_TIMEOUT_MESSAGE });
+
+    this.logger.info("Judge0 batch evaluated", {
+      size: items.length,
+      statuses: finished.map((r) => r.result?.statusId ?? "error"),
+      timedOut: results.filter((r) => r === null).length,
+    });
+
+    // Auto-clean submission artifacts from Judge0 storage. Still-running
+    // submissions cannot be deleted (Judge0 answers 400) and are left behind.
+    for (const token of tokens) {
+      if (token) this.deleteSubmission(token).catch(() => null);
+    }
+
+    return finished;
+  }
+
+  private async createBatch(
+    judge0Url: string,
+    items: JudgeSubmissionOptions[],
+    deadline: number,
+  ): Promise<any[]> {
+    const body = JSON.stringify({ submissions: items.map((item) => this.buildPayload(item)) });
+    const maxAttempts = 3;
+
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const remainingMs = deadline - Date.now();
+        if (remainingMs <= 0) {
+          throw new GatewayTimeoutException(EXECUTION_TIMEOUT_MESSAGE);
+        }
+        const res = await fetch(`${judge0Url}/submissions/batch?base64_encoded=true`, {
+          method: "POST",
+          headers: this.getJudge0Headers(),
+          body,
+          signal: AbortSignal.timeout(Math.min(15000, remainingMs)),
+        });
+
+        if (res.ok) {
+          // Judge0 accepted the batch: from here nothing may be re-sent.
+          const created = await res.json().catch(() => null);
+          if (!Array.isArray(created)) {
+            throw new InternalServerErrorException("Judge0 returned an unexpected batch response.");
+          }
+          return created;
+        }
+
+        const errText = await res.text();
+        this.logger.warn(`Judge0 batch create HTTP error (Attempt ${attempt}/${maxAttempts})`, {
+          status: res.status,
+          response: errText.slice(0, 500),
+        });
+        // 502: Caddy could not reach Judge0; 503: Judge0 queue full. Neither
+        // created anything, so a retry cannot run the code twice.
+        if (res.status === 502 || res.status === 503) {
+          throw new RetryableBatchError(
+            res.status === 503
+              ? "The code execution engine is at capacity. Please try again in a few seconds."
+              : "Judge0 execution service is temporarily unavailable (502).",
+          );
+        }
+        throw new InternalServerErrorException(
+          `Judge0 execution service returned error: ${res.statusText} (${res.status})`,
+        );
+      } catch (err: any) {
+        const isAbort = err?.name === "TimeoutError" || err?.name === "AbortError";
+        const isRetryable =
+          err instanceof RetryableBatchError ||
+          (!isAbort && !(err instanceof InternalServerErrorException) && !(err instanceof GatewayTimeoutException));
+
+        if (!isRetryable || attempt >= maxAttempts) {
+          if (isAbort) {
+            // The request may have reached Judge0, so it is not re-sent.
+            throw new GatewayTimeoutException(EXECUTION_TIMEOUT_MESSAGE);
+          }
+          if (err instanceof RetryableBatchError) {
+            throw new InternalServerErrorException(err.message);
+          }
+          if (err instanceof InternalServerErrorException || err instanceof GatewayTimeoutException) {
+            throw err;
+          }
+          throw new InternalServerErrorException(
+            `Unable to connect to Judge0 execution service at ${judge0Url} after ${attempt} attempts. Please ensure Judge0 is running.`,
+          );
+        }
+
+        this.logger.warn(`Judge0 batch create attempt ${attempt}/${maxAttempts} failed; retrying`, {
+          url: judge0Url,
+          error: err?.message || String(err),
+        });
+        await new Promise((resolve) => setTimeout(resolve, process.env.NODE_ENV === "test" ? 1 : attempt * 500));
+      }
+    }
+  }
+
+  private buildPayload(options: JudgeSubmissionOptions) {
+    return {
+      source_code: this.encodeBase64(options.sourceCode),
+      language_id: this.mapLanguageToId(options.language),
+      stdin: this.encodeBase64(options.stdin || ""),
+      expected_output: options.expectedOutput
+        ? this.encodeBase64(options.expectedOutput)
+        : undefined,
+      cpu_time_limit: options.cpuTimeLimit ?? 5,
+      memory_limit: options.memoryLimit ?? 2048000,
+      compiler_options: options.compilerOptions,
+    };
   }
 
   async deleteSubmission(token: string): Promise<void> {

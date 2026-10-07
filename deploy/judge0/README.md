@@ -3,7 +3,8 @@
 > Full guide (specification, Java metaspace patch, capacity model and cost plan):
 > [docs/infrastructure/judge0-aws-implementation-guide.md](../../docs/infrastructure/judge0-aws-implementation-guide.md).
 
-Production Judge0 for the Intervu API (Render, `singapore`). Replaces the local
+Production Judge0 for the Intervu API (Render, `singapore`), running on EC2 in
+`ap-south-1` from `~/judge0` on the host. Replaces the local
 Docker + ngrok tunnel (`start-judge0-tunnel.bat`).
 
 ```
@@ -23,9 +24,9 @@ Amazon Linux 2023 is cgroup v2 only. Use **Ubuntu 22.04 on EC2**.
 
 | Setting | Value |
 | --- | --- |
-| Region | `ap-southeast-1` (Singapore), next to the Render API |
-| AMI | Ubuntu Server 22.04 LTS (x86_64) |
-| Type | `c6i.4xlarge` (16 vCPU / 32 GB) for live exams; `c6i.2xlarge` for staging |
+| Region | `ap-south-1` (Mumbai) today; `ap-southeast-1` would sit next to the Render API |
+| AMI | Ubuntu Server 24.04 LTS (x86_64); never run `do-release-upgrade` (it drops cgroup v1) |
+| Type | `m7i-flex.large` (2 vCPU) day to day; resize to a `c6i` size for exams (guide, section 9) |
 | Storage | 40 GB gp3 |
 | Elastic IP | Allocate and associate one, so the address survives restarts |
 
@@ -96,12 +97,14 @@ Redeploy, run a coding question end to end, then retire the ngrok tunnel.
 
 ## Sizing
 
-- `N_WORKERS` in `judge0.conf` is how many submissions run at once. Keep it near
-  the instance's vCPU count; more workers than cores makes wall-time limits flaky.
-- The API's queue concurrency (`CODE_EXECUTION_CONCURRENCY=20`) applies **per API
-  instance**. With 3 to 6 Render instances, up to 60 to 120 submissions can reach
-  Judge0 at once; the rest wait in Judge0's queue. If you see poll timeouts
-  during load, raise `N_WORKERS` on a bigger instance or lower API concurrency.
+- Judge0 sizes itself from the vCPU count at container start
+  (`RAILS_MAX_THREADS = nproc`, `COUNT = 2 × nproc` workers), so a resize needs
+  no config change. Judge0 1.13.1 has no `N_WORKERS` setting.
+- The API sends each Run/Submit as one batch (`POST /submissions/batch`) and
+  polls, so code runs in the `workers` container, not in web threads.
+- The current 2-vCPU instance handles about 50–80 concurrent candidates. Resize
+  before a large exam and run `apps/api/scripts/load-test-judge0.ts` on the new
+  size first.
 - Stop the instance between exam windows to save cost. The Elastic IP and data
   persist, and containers come back on boot via `restart: always`.
 

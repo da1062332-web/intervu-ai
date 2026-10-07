@@ -21,6 +21,10 @@ import { AppLogger } from "@intervu-ai/shared-logger";
 import { CodingContextResolverService } from "./coding-context-resolver.service";
 import { CodeHarnessService } from "./code-harness.service";
 
+// Judge0 budget for a Run; the HTTP request waits 45s for the queued job
+// (RUN_TIMEOUT_MS in coding-execution.controller.ts).
+const RUN_JUDGE_TIMEOUT_MS = 40_000;
+
 @Injectable()
 export class CodingExecutionService {
   private readonly logger = new AppLogger({ name: "CodingExecutionService" });
@@ -87,46 +91,48 @@ export class CodingExecutionService {
     const results: PublicTestResultDto[] = [];
     let passedCount = 0;
 
-    // 6. Execute each public test case
-    for (let i = 0; i < rawPublicTests.length; i++) {
-      const testCase = rawPublicTests[i];
-      const testInput = testCase.input;
-
-      // Determine expected output
+    // 6. Resolve expected outputs, then run every public test case as one
+    //    Judge0 batch (in parallel, no per-test resubmission)
+    const preparedTests: { testInput: any; expectedOutput: any }[] = rawPublicTests.map((testCase: any) => {
       let expectedOutput = testCase.expectedOutput;
       if (
         (expectedOutput === undefined || expectedOutput === null) &&
         oracle
       ) {
         try {
-          expectedOutput = oracle.generateExpectedOutput(testInput);
+          expectedOutput = oracle.generateExpectedOutput(testCase.input);
         } catch (oracleErr) {
           this.logger.warn("Oracle expected output generation error", {
             oracleKey,
-            testInput,
+            testInput: testCase.input,
             oracleErr,
           });
         }
       }
+      return { testInput: testCase.input, expectedOutput };
+    });
 
-      // Format stdin string
-      const stdinString = this.codeHarness.buildStdin(testInput, program.stdinMode);
-      const expectedOutputString = this.formatExpectedOutput(expectedOutput);
+    const batchResults = await this.judgeService.submitBatch(
+      preparedTests.map(({ testInput, expectedOutput }) => ({
+        sourceCode: sourceCodeToSubmit,
+        language: dto.language,
+        stdin: this.codeHarness.buildStdin(testInput, program.stdinMode),
+        expectedOutput: this.formatExpectedOutput(expectedOutput),
+      })),
+      { timeoutMs: RUN_JUDGE_TIMEOUT_MS },
+    );
 
-      // Submit to Judge0
-      let judgeResult;
-      try {
-        judgeResult = await this.judgeService.submitAndPoll({
-          sourceCode: sourceCodeToSubmit,
-          language: dto.language,
-          stdin: stdinString,
-          expectedOutput: expectedOutputString,
-        });
-      } catch (err: any) {
+    for (let i = 0; i < preparedTests.length; i++) {
+      const { testInput, expectedOutput } = preparedTests[i];
+      const batchItem = batchResults[i];
+      const judgeResult = batchItem?.result;
+
+      if (!judgeResult) {
+        const errorMessage = batchItem?.error || "Judge0 execution engine error";
         this.logger.error("Judge0 execution failure during public test run", {
           questionId: dto.questionId,
           testIndex: i + 1,
-          error: err?.message || String(err),
+          error: errorMessage,
         });
 
         results.push({
@@ -137,7 +143,7 @@ export class CodingExecutionService {
           actualOutput: null,
           runtimeSeconds: null,
           memoryKb: null,
-          error: err?.message || "Judge0 execution engine error",
+          error: errorMessage,
         });
         continue;
       }
@@ -186,7 +192,8 @@ export class CodingExecutionService {
       });
 
       if (status === "COMPILATION_ERROR") {
-        // Fast-fail: Avoid redundantly recompiling broken code across remaining test cases
+        // Same code compiles the same way for every test case: report the first
+        // compiler error for all remaining tests
         for (let j = i + 1; j < rawPublicTests.length; j++) {
           results.push({
             testIndex: j + 1,
