@@ -216,7 +216,6 @@ export class ConfigPublisherService {
           sectionTimingEnabled: config.ruleFlags?.sectionTimingEnabled ?? false,
           shuffleQuestionsEnabled: config.ruleFlags?.shuffleQuestionsEnabled ?? false,
           shuffleOptionsEnabled: config.ruleFlags?.shuffleOptionsEnabled ?? false,
-          maxAttempts: config.ruleFlags?.maxAttempts ?? 3,
         };
 
         const versionDataToHash = {

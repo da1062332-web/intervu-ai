@@ -36,8 +36,8 @@ export function TestDetailsPage({ testId }: TestDetailsPageProps) {
   const availableTest = dashboardData?.availableTests?.find((t) => t.id === testId);
   
   const completedCount = dashboardData?.completedAttempts?.filter((c) => c.testId === testId).length || 0;
-  const maxAttempts = availableTest?.maxAttempts ?? (test as any)?.ruleFlags?.maxAttempts ?? (test as any)?.rule?.maxAttempts ?? (test as any)?.maxAttempts ?? (test as any)?.allowedAttempts ?? 10;
-  const canReAttempt = availableTest?.canReattempt ?? (completedCount < maxAttempts);
+  const maxAttempts = availableTest?.maxAttempts ?? null;
+  const canReAttempt = availableTest?.canReattempt ?? (maxAttempts !== null ? completedCount < maxAttempts : true);
 
   const enrollmentStatus = isActive
     ? 'STARTED'

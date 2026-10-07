@@ -124,8 +124,9 @@ export class CandidateDashboardService {
             : (attemptsByConfigOverride[configId] ??
               (e.examConfig?.code && attemptsByConfigOverride[e.examConfig.code]) ??
               (e.examConfig?.name && attemptsByConfigOverride[e.examConfig.name]) ??
-              (e.examConfig?.ruleFlags?.maxAttempts ?? e.testConfig?.allowedAttempts ?? e.testConfig?.maxAttempts ?? e.examConfig?.maxAttempts ?? 10));
-        const canReattempt = isVip || (maxAttempts ? attemptCount < maxAttempts : true);
+              attemptsPerExamOverride ??
+              null);
+        const canReattempt = isVip || (maxAttempts != null ? attemptCount < maxAttempts : true);
         const hasActiveAttempt = data.activeAttempts.some(
           (a: any) => a.examConfigId === configId || a.testConfigId === configId,
         );
@@ -231,7 +232,8 @@ export class CandidateDashboardService {
             : (attemptsByConfigOverride[t.id] ??
               (t.code && attemptsByConfigOverride[t.code]) ??
               (t.name && attemptsByConfigOverride[t.name]) ??
-              (t.ruleFlags?.maxAttempts ?? t.allowedAttempts ?? t.maxAttempts ?? 10));
+              attemptsPerExamOverride ??
+              null);
 
         const attemptCount =
           attemptsByConfig[t.id] ??

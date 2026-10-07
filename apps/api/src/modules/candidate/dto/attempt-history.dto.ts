@@ -38,11 +38,11 @@ export class AttemptItemDto {
   @ApiPropertyOptional({ example: 1 })
   attemptCount?: number;
 
-  @ApiPropertyOptional({ example: 3 })
-  maxAttempts?: number;
+  @ApiPropertyOptional({ example: 3, nullable: true })
+  maxAttempts?: number | null;
 
-  @ApiPropertyOptional({ example: 2 })
-  remainingAttempts?: number;
+  @ApiPropertyOptional({ example: 2, nullable: true })
+  remainingAttempts?: number | null;
 
   @ApiPropertyOptional({ example: true })
   canReAttempt?: boolean;

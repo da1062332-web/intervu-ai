@@ -281,10 +281,9 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
                         ? `Completed on ${format(new Date(row.date), 'MMM d, yyyy')}`
                         : 'Evaluation in progress')}
                   </p>
-                  {row.maxAttempts !== undefined && row.attemptCount !== undefined && (
+                  {row.attemptCount !== undefined && (
                     <p className='text-[11px] text-muted-foreground font-medium mt-0.5'>
-                      Attempt {row.attemptCount} / {row.maxAttempts} • {row.remainingAttempts}{' '}
-                      remaining
+                      Attempt {row.attemptCount} {row.maxAttempts != null ? `/ ${row.maxAttempts} • ${row.remainingAttempts ?? 0} remaining` : ''}
                     </p>
                   )}
 
