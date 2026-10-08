@@ -2,15 +2,25 @@
 # Secrets live in .env (copy .env.example). Only Caddy is exposed publicly;
 # Judge0's port 2358 is bound to localhost for on-box debugging only.
 
+# Docker keeps container logs forever by default; cap each container at
+# 3 x 10 MB so log growth can never fill the disk during an exam.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   server:
     image: judge0/judge0:1.13.1
     volumes:
       - ./judge0.conf:/judge0.conf:ro
+      - ./log-filter.rb:/api/config/initializers/zz_intervu_logging.rb:ro
     ports:
       - '127.0.0.1:2358:2358'
     privileged: true
     restart: always
+    logging: *default-logging
     env_file: .env
     environment:
       - REDIS_HOST=redis
@@ -27,8 +37,10 @@ services:
     command: ['./scripts/workers']
     volumes:
       - ./judge0.conf:/judge0.conf:ro
+      - ./log-filter.rb:/api/config/initializers/zz_intervu_logging.rb:ro
     privileged: true
     restart: always
+    logging: *default-logging
     env_file: .env
     environment:
       - REDIS_HOST=redis
@@ -43,6 +55,7 @@ services:
   db:
     image: postgres:13.0
     restart: always
+    logging: *default-logging
     environment:
       - POSTGRES_USER=judge0
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -53,6 +66,7 @@ services:
   redis:
     image: redis:6.0
     restart: always
+    logging: *default-logging
     command: [
       "bash", "-c",
       "docker-entrypoint.sh --appendonly no --requirepass '' --maxmemory 1024mb --maxmemory-policy allkeys-lru"
@@ -64,6 +78,7 @@ services:
   caddy:
     image: caddy:2
     restart: always
+    logging: *default-logging
     ports:
       - '80:80'
       - '443:443'

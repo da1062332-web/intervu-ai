@@ -1,12 +1,16 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { JudgeService } from "./judge.service";
 import { OracleRegistry } from "../oracles/oracle.registry";
+import { TestCaseRunnerService } from "./test-case-runner.service";
 import {
   SubmitCodeDto,
   SubmitCodeResponseDto,
   CodingVerdict,
   CategorySummary,
 } from "../dto/submit-code.dto";
+
+// Judge0 budget for a Submit; the HTTP request waits 120s for the queued job
+// (SUBMIT_TIMEOUT_MS in coding-execution.controller.ts).
+const SUBMIT_JUDGE_TIMEOUT_MS = 110_000;
 
 export interface InternalTestCase {
   category: "public" | "hidden" | "boundary" | "stress";
@@ -27,8 +31,8 @@ export class SubmissionEvaluatorService {
   private readonly logger = new Logger(SubmissionEvaluatorService.name);
 
   constructor(
-    private readonly judgeService: JudgeService,
     private readonly oracleRegistry: OracleRegistry,
+    private readonly testCaseRunner: TestCaseRunnerService,
   ) {}
 
   /**
@@ -101,65 +105,6 @@ export class SubmissionEvaluatorService {
       testCases.push({ category: "stress", input: t.input, expectedOutput: t.expectedOutput });
     }
 
-    // 3. Prepare Code for Execution
-    let sourceCodeToSubmit = dto.code;
-    const langLower = String(dto.language).toLowerCase();
-    const isJava = langLower.includes("java") || langLower === "62";
-    const isPython = langLower.includes("python") || langLower === "71" || langLower === "py";
-
-    if (isJava) {
-      sourceCodeToSubmit = sourceCodeToSubmit.replace(
-        /public\s+class\s+([A-Za-z0-9_]+)/g,
-        (match, className) => (className !== "Main" ? "public class Main" : match),
-      );
-    } else if (isPython) {
-      if (!sourceCodeToSubmit.includes("__future__")) {
-        sourceCodeToSubmit = "from __future__ import annotations\n" + sourceCodeToSubmit;
-      }
-      const hasMain = sourceCodeToSubmit.includes("__main__") || sourceCodeToSubmit.includes("sys.stdin");
-      if (!hasMain) {
-        let funcName = "solution";
-        const match = sourceCodeToSubmit.match(/def\s+([A-Za-z0-9_]+)\s*\(/);
-        if (match && match[1]) {
-          funcName = match[1];
-        }
-
-        sourceCodeToSubmit += `\n\nif __name__ == '__main__':
-    import sys, json
-    _raw = sys.stdin.read().strip()
-    if _raw:
-        try:
-            _val = json.loads(_raw)
-        except Exception:
-            _val = int(_raw) if _raw.lstrip('-').isdigit() else _raw
-        
-        _res = None
-        if isinstance(_val, dict):
-            try:
-                _res = ${funcName}(**_val)
-            except TypeError:
-                try:
-                    _res = ${funcName}(_val)
-                except Exception:
-                    _res = ${funcName}(*list(_val.values()))
-        elif isinstance(_val, (list, tuple)):
-            try:
-                _res = ${funcName}(*_val)
-            except TypeError:
-                _res = ${funcName}(_val)
-        else:
-            _res = ${funcName}(_val)
-
-        if isinstance(_res, bool):
-            print(str(_res).lower())
-        elif isinstance(_res, (dict, list)):
-            print(json.dumps(_res))
-        elif _res is not None:
-            print(_res)
-`;
-      }
-    }
-
     // Category counters
     const categoryStats = {
       public: { total: 0, passed: 0, failed: 0 },
@@ -178,12 +123,10 @@ export class SubmissionEvaluatorService {
     let globalRuntimeError = false;
     let firstErrorMessage: string | undefined;
 
-    // 4. Execute test suite against Judge0
-    for (let i = 0; i < testCases.length; i++) {
-      const tc = testCases[i];
-      categoryStats[tc.category].total++;
-
-      // Compute expected output via Oracle if not explicitly provided
+    // 3. Compute expected outputs via Oracle where not explicitly provided,
+    //    then execute the whole suite in one go (one execution for
+    //    Java/Python drivers, one Judge0 batch otherwise)
+    const expectedOutputs = testCases.map((tc) => {
       let expectedOutput = tc.expectedOutput;
       if ((expectedOutput === undefined || expectedOutput === null) && oracle) {
         try {
@@ -192,30 +135,38 @@ export class SubmissionEvaluatorService {
           this.logger.warn(`Oracle expected output error for ${oracleKey}`, oracleErr);
         }
       }
+      return expectedOutput;
+    });
 
-      const stdinString = this.formatStdin(tc.input);
-      const expectedOutputString = this.formatExpectedOutput(expectedOutput);
+    const batchResults = await this.testCaseRunner.run(
+      dto.code,
+      dto.language,
+      testCases.map((tc, i) => ({
+        input: tc.input,
+        expectedOutput: this.formatExpectedOutput(expectedOutputs[i]),
+      })),
+      { timeoutMs: SUBMIT_JUDGE_TIMEOUT_MS },
+    );
 
-      let judgeResult: any;
-      try {
-        judgeResult = await this.judgeService.submitAndPoll({
-          sourceCode: sourceCodeToSubmit,
-          language: dto.language,
-          stdin: stdinString,
-          expectedOutput: expectedOutputString,
-        });
-      } catch (err: any) {
-        this.logger.error(`Judge0 execution failure on ${tc.category} test #${i + 1}`, err?.message || err);
+    for (let i = 0; i < testCases.length; i++) {
+      const tc = testCases[i];
+      categoryStats[tc.category].total++;
+      const expectedOutput = expectedOutputs[i];
+
+      const judgeResult = batchResults[i]?.result;
+      if (!judgeResult) {
+        const errorMessage = batchResults[i]?.error || "Execution engine failure";
+        this.logger.error(`Judge0 execution failure on ${tc.category} test #${i + 1}`, errorMessage);
         results.push({
           category: tc.category,
           status: "RUNTIME_ERROR",
           runtimeSeconds: 0,
           memoryKb: 0,
-          error: err?.message || "Execution engine failure",
+          error: errorMessage,
         });
         categoryStats[tc.category].failed++;
         globalRuntimeError = true;
-        if (!firstErrorMessage) firstErrorMessage = err?.message || "Execution engine failure";
+        if (!firstErrorMessage) firstErrorMessage = errorMessage;
         continue;
       }
 
@@ -278,7 +229,8 @@ export class SubmissionEvaluatorService {
       });
 
       if (status === "COMPILATION_ERROR") {
-        // Fast-fail: Code with compiler errors will never compile on subsequent tests
+        // Same code compiles the same way for every test case: count the first
+        // compiler error against all remaining tests
         for (let j = i + 1; j < testCases.length; j++) {
           const remainingTc = testCases[j];
           categoryStats[remainingTc.category].total++;
@@ -295,7 +247,7 @@ export class SubmissionEvaluatorService {
       }
     }
 
-    // 5. Determine Overall Final Verdict
+    // 4. Determine Overall Final Verdict
     let verdict: CodingVerdict = "ACCEPTED";
     if (globalCompilationError) {
       verdict = "COMPILE_ERROR";
@@ -311,7 +263,7 @@ export class SubmissionEvaluatorService {
       verdict = "ACCEPTED";
     }
 
-    // 6. Score Calculation (Deterministic 0 - 100%)
+    // 5. Score Calculation (Deterministic 0 - 100%)
     const score = testCases.length > 0 ? Math.round((passedCount / testCases.length) * 100) : 0;
 
     return {
@@ -326,85 +278,6 @@ export class SubmissionEvaluatorService {
       results,
       errorMessage: firstErrorMessage,
     };
-  }
-
-  private convertObjectToStdin(input: any): string {
-    if (input === null || input === undefined) return "";
-    if (typeof input === "string") return input.trim();
-    if (typeof input === "number" || typeof input === "boolean") return String(input);
-
-    if (Array.isArray(input)) {
-      if (input.length === 0) return "0";
-      // Array of objects (e.g. operations [{ op: "ADD", val: 5 }])
-      if (typeof input[0] === "object" && input[0] !== null) {
-        const lines: string[] = [String(input.length)];
-        for (const item of input) {
-          lines.push(Object.values(item).join(" "));
-        }
-        return lines.join("\n");
-      }
-      // Array of primitives (e.g. [1, 2, 3]) -> space-separated
-      return input.join(" ");
-    }
-
-    if (typeof input === "object") {
-      if (typeof input.stdin === "string") {
-        return input.stdin.trim();
-      }
-
-      const lines: string[] = [];
-      for (const key of Object.keys(input)) {
-        const val = input[key];
-        if (val === null || val === undefined) continue;
-
-        if (Array.isArray(val)) {
-          if (val.length === 0) {
-            lines.push("0");
-          } else if (typeof val[0] === "object" && val[0] !== null) {
-            // e.g. operations: [{ op: "ADD", val: 5 }, { op: "MULTIPLY", val: 2 }]
-            lines.push(String(val.length));
-            for (const item of val) {
-              lines.push(Object.values(item).join(" "));
-            }
-          } else {
-            // e.g. numbers: [2, 7, 11, 15] -> space separated
-            lines.push(val.join(" "));
-          }
-        } else if (typeof val === "object") {
-          lines.push(Object.values(val).join(" "));
-        } else {
-          lines.push(String(val));
-        }
-      }
-      return lines.join("\n");
-    }
-
-    return String(input).trim();
-  }
-
-  private formatStdin(input: any): string {
-    if (input === null || input === undefined) return "";
-    if (typeof input === "string") {
-      const trimmed = input.trim();
-      // If it is a stringified JSON object/array, parse it first and convert to plain text!
-      if (
-        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-        (trimmed.startsWith("[") && trimmed.endsWith("]"))
-      ) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          return this.convertObjectToStdin(parsed);
-        } catch {
-          return trimmed;
-        }
-      }
-      return trimmed;
-    }
-    if (typeof input === "number" || typeof input === "boolean") return String(input);
-    if (typeof input === "object") {
-      return this.convertObjectToStdin(input);
-    }
-    return String(input).trim();
   }
 
   private formatExpectedOutput(expected: any): string {

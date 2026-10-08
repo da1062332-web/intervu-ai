@@ -5,7 +5,6 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../../prisma/prisma.service";
-import { JudgeService } from "./judge.service";
 import { OracleRegistry } from "../oracles/oracle.registry";
 import { AuthUser } from "../../auth/interfaces/auth-user.interface";
 import { UserRole } from "@prisma/client";
@@ -19,6 +18,11 @@ import { SubmissionEvaluatorService } from "./submission-evaluator.service";
 import { SubmitCodeDto, SubmitCodeResponseDto } from "../dto/submit-code.dto";
 import { AppLogger } from "@intervu-ai/shared-logger";
 import { CodingContextResolverService } from "./coding-context-resolver.service";
+import { TestCaseRunnerService } from "./test-case-runner.service";
+
+// Judge0 budget for a Run; the HTTP request waits 45s for the queued job
+// (RUN_TIMEOUT_MS in coding-execution.controller.ts).
+const RUN_JUDGE_TIMEOUT_MS = 40_000;
 
 @Injectable()
 export class CodingExecutionService {
@@ -27,10 +31,10 @@ export class CodingExecutionService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly judgeService: JudgeService,
     private readonly oracleRegistry: OracleRegistry,
     private readonly evaluatorService: SubmissionEvaluatorService,
     private readonly contextResolver: CodingContextResolverService,
+    private readonly testCaseRunner: TestCaseRunnerService,
   ) {}
 
   private acquireLock(lockKey: string): void {
@@ -78,109 +82,51 @@ export class CodingExecutionService {
       ? this.oracleRegistry.getOracle(oracleKey)
       : null;
 
-    // 5. Code Sanitization for Language Execution Engine Compatibility (e.g. Java class name, Python driver)
-    let sourceCodeToSubmit = dto.code;
-    const langLower = String(dto.language).toLowerCase();
-    const isJava = langLower.includes("java") || langLower === "62";
-    const isPython = langLower.includes("python") || langLower === "71" || langLower === "py";
-
-    if (isJava) {
-      // Replace "public class Solution" with "public class Main" so Judge0 javac compiles Main.java without error
-      sourceCodeToSubmit = sourceCodeToSubmit.replace(
-        /public\s+class\s+([A-Za-z0-9_]+)/g,
-        (match, className) => (className !== "Main" ? "public class Main" : match),
-      );
-    } else if (isPython) {
-      if (!sourceCodeToSubmit.includes("__future__")) {
-        sourceCodeToSubmit = "from __future__ import annotations\n" + sourceCodeToSubmit;
-      }
-      const hasMain = sourceCodeToSubmit.includes("__main__") || sourceCodeToSubmit.includes("sys.stdin");
-      if (!hasMain) {
-        let funcName = "solution";
-        const match = sourceCodeToSubmit.match(/def\s+([A-Za-z0-9_]+)\s*\(/);
-        if (match && match[1]) {
-          funcName = match[1];
-        }
-
-        sourceCodeToSubmit += `\n\nif __name__ == '__main__':
-    import sys, json
-    _raw = sys.stdin.read().strip()
-    if _raw:
-        try:
-            _val = json.loads(_raw)
-        except Exception:
-            _val = int(_raw) if _raw.lstrip('-').isdigit() else _raw
-        
-        _res = None
-        if isinstance(_val, dict):
-            try:
-                _res = ${funcName}(**_val)
-            except TypeError:
-                try:
-                    _res = ${funcName}(_val)
-                except Exception:
-                    _res = ${funcName}(*list(_val.values()))
-        elif isinstance(_val, (list, tuple)):
-            try:
-                _res = ${funcName}(*_val)
-            except TypeError:
-                _res = ${funcName}(_val)
-        else:
-            _res = ${funcName}(_val)
-
-        if isinstance(_res, bool):
-            print(str(_res).lower())
-        elif isinstance(_res, (dict, list)):
-            print(json.dumps(_res))
-        elif _res is not None:
-            print(_res)
-`;
-      }
-    }
-
     const results: PublicTestResultDto[] = [];
     let passedCount = 0;
 
-    // 6. Execute each public test case
-    for (let i = 0; i < rawPublicTests.length; i++) {
-      const testCase = rawPublicTests[i];
-      const testInput = testCase.input;
-
-      // Determine expected output
+    // 5. Resolve expected outputs, then run every public test case in one
+    //    go (one execution for Java/Python drivers, one batch otherwise)
+    const preparedTests: { testInput: any; expectedOutput: any }[] = rawPublicTests.map((testCase: any) => {
       let expectedOutput = testCase.expectedOutput;
       if (
         (expectedOutput === undefined || expectedOutput === null) &&
         oracle
       ) {
         try {
-          expectedOutput = oracle.generateExpectedOutput(testInput);
+          expectedOutput = oracle.generateExpectedOutput(testCase.input);
         } catch (oracleErr) {
           this.logger.warn("Oracle expected output generation error", {
             oracleKey,
-            testInput,
+            testInput: testCase.input,
             oracleErr,
           });
         }
       }
+      return { testInput: testCase.input, expectedOutput };
+    });
 
-      // Format stdin string
-      const stdinString = this.formatStdin(testInput);
-      const expectedOutputString = this.formatExpectedOutput(expectedOutput);
+    const batchResults = await this.testCaseRunner.run(
+      dto.code,
+      dto.language,
+      preparedTests.map(({ testInput, expectedOutput }) => ({
+        input: testInput,
+        expectedOutput: this.formatExpectedOutput(expectedOutput),
+      })),
+      { timeoutMs: RUN_JUDGE_TIMEOUT_MS },
+    );
 
-      // Submit to Judge0
-      let judgeResult;
-      try {
-        judgeResult = await this.judgeService.submitAndPoll({
-          sourceCode: sourceCodeToSubmit,
-          language: dto.language,
-          stdin: stdinString,
-          expectedOutput: expectedOutputString,
-        });
-      } catch (err: any) {
+    for (let i = 0; i < preparedTests.length; i++) {
+      const { testInput, expectedOutput } = preparedTests[i];
+      const batchItem = batchResults[i];
+      const judgeResult = batchItem?.result;
+
+      if (!judgeResult) {
+        const errorMessage = batchItem?.error || "Judge0 execution engine error";
         this.logger.error("Judge0 execution failure during public test run", {
           questionId: dto.questionId,
           testIndex: i + 1,
-          error: err?.message || String(err),
+          error: errorMessage,
         });
 
         results.push({
@@ -191,7 +137,7 @@ export class CodingExecutionService {
           actualOutput: null,
           runtimeSeconds: null,
           memoryKb: null,
-          error: err?.message || "Judge0 execution engine error",
+          error: errorMessage,
         });
         continue;
       }
@@ -240,7 +186,8 @@ export class CodingExecutionService {
       });
 
       if (status === "COMPILATION_ERROR") {
-        // Fast-fail: Avoid redundantly recompiling broken code across remaining test cases
+        // Same code compiles the same way for every test case: report the first
+        // compiler error for all remaining tests
         for (let j = i + 1; j < rawPublicTests.length; j++) {
           results.push({
             testIndex: j + 1,
@@ -270,80 +217,6 @@ export class CodingExecutionService {
     } finally {
       this.releaseLock(lockKey);
     }
-  }
-
-  private convertObjectToStdin(input: any): string {
-    if (input === null || input === undefined) return "";
-    if (typeof input === "string") return input.trim();
-    if (typeof input === "number" || typeof input === "boolean") return String(input);
-
-    if (Array.isArray(input)) {
-      if (input.length === 0) return "0";
-      if (typeof input[0] === "object" && input[0] !== null) {
-        const lines: string[] = [String(input.length)];
-        for (const item of input) {
-          lines.push(Object.values(item).join(" "));
-        }
-        return lines.join("\n");
-      }
-      return input.join(" ");
-    }
-
-    if (typeof input === "object") {
-      if (typeof input.stdin === "string") {
-        return input.stdin.trim();
-      }
-
-      const lines: string[] = [];
-      for (const key of Object.keys(input)) {
-        const val = input[key];
-        if (val === null || val === undefined) continue;
-
-        if (Array.isArray(val)) {
-          if (val.length === 0) {
-            lines.push("0");
-          } else if (typeof val[0] === "object" && val[0] !== null) {
-            lines.push(String(val.length));
-            for (const item of val) {
-              lines.push(Object.values(item).join(" "));
-            }
-          } else {
-            lines.push(val.join(" "));
-          }
-        } else if (typeof val === "object") {
-          lines.push(Object.values(val).join(" "));
-        } else {
-          lines.push(String(val));
-        }
-      }
-      return lines.join("\n");
-    }
-
-    return String(input).trim();
-  }
-
-  private formatStdin(input: any): string {
-    if (input === null || input === undefined) return "";
-    if (typeof input === "string") {
-      const trimmed = input.trim();
-      if (
-        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-        (trimmed.startsWith("[") && trimmed.endsWith("]"))
-      ) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          return this.convertObjectToStdin(parsed);
-        } catch {
-          return trimmed;
-        }
-      }
-      return trimmed;
-    }
-    if (typeof input === "number" || typeof input === "boolean") return String(input);
-    if (typeof input === "object") {
-      return this.convertObjectToStdin(input);
-    }
-    return String(input).trim();
   }
 
   private formatExpectedOutput(expected: any): string {

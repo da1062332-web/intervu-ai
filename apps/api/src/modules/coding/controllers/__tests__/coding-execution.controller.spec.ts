@@ -3,6 +3,7 @@ import { CodingExecutionController } from "../coding-execution.controller";
 import { CodingExecutionService } from "../../services/coding-execution.service";
 import { CodeExecutionQueueService } from "../../services/code-execution-queue.service";
 import { JudgeService } from "../../services/judge.service";
+import { TestCaseRunnerService } from "../../services/test-case-runner.service";
 import { PrismaService } from "../../../../prisma/prisma.service";
 import { OracleRegistry } from "../../oracles/oracle.registry";
 import { UserRole } from "@prisma/client";
@@ -52,11 +53,23 @@ describe("CodingExecutionController & CodingExecutionService", () => {
   };
 
   beforeEach(async () => {
-    const mockJudgeService = {
+    const mockJudgeService: any = {
       submitAndPoll: jest.fn(),
       mapLanguageToId: jest.fn().mockReturnValue(71),
       checkHealth: jest.fn().mockResolvedValue({ healthy: true }),
     };
+    // Tests stub one Judge0 result per test case via submitAndPoll; the
+    // service sends all test cases through submitBatch, which fans out to it.
+    mockJudgeService.submitBatch = jest.fn((items: any[]) =>
+      Promise.all(
+        items.map((item) =>
+          Promise.resolve(mockJudgeService.submitAndPoll(item)).then(
+            (result: any) => ({ result, error: null }),
+            (err: any) => ({ result: null, error: err?.message || String(err) }),
+          ),
+        ),
+      ),
+    );
 
     const mockPrismaService = {
       testInstance: {
@@ -108,6 +121,24 @@ describe("CodingExecutionController & CodingExecutionService", () => {
         { provide: OracleRegistry, useValue: mockOracleRegistry },
         { provide: CodingContextResolverService, useValue: mockContextResolver },
         { provide: SubmissionEvaluatorService, useValue: mockEvaluator },
+        {
+          provide: TestCaseRunnerService,
+          useValue: {
+            // Per-test-case stand-in: each case goes through submitBatch ->
+            // submitAndPoll, which the tests stub per case.
+            run: jest.fn((code: string, language: string, cases: any[], options: any) =>
+              mockJudgeService.submitBatch(
+                cases.map((c) => ({
+                  sourceCode: code,
+                  language,
+                  stdin: JSON.stringify(c.input),
+                  expectedOutput: c.expectedOutput,
+                })),
+                options,
+              ),
+            ),
+          },
+        },
       ],
     }).compile();
 

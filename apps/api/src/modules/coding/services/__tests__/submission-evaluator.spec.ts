@@ -1,5 +1,6 @@
 import { SubmissionEvaluatorService } from "../submission-evaluator.service";
 import { JudgeService } from "../judge.service";
+import { TestCaseRunnerService } from "../test-case-runner.service";
 import { OracleRegistry } from "../../oracles/oracle.registry";
 import { BasicGradeCalculatorOracle } from "../../oracles/basic-grade-calculator.oracle";
 import { SubmitCodeDto } from "../../dto/submit-code.dto";
@@ -16,11 +17,36 @@ describe("SubmissionEvaluatorService Unit Tests", () => {
       mapLanguageToId: jest.fn().mockReturnValue(71),
       checkHealth: jest.fn().mockResolvedValue({ healthy: true }),
     } as any;
+    // Tests stub one Judge0 result per test case via submitAndPoll; the
+    // evaluator sends the suite through submitBatch, which fans out to it.
+    (mockJudgeService as any).submitBatch = jest.fn((items: any[]) =>
+      Promise.all(
+        items.map((item) =>
+          mockJudgeService.submitAndPoll(item).then(
+            (result: any) => ({ result, error: null }),
+            (err: any) => ({ result: null, error: err?.message || String(err) }),
+          ),
+        ),
+      ),
+    );
 
     const gradeOracle = new BasicGradeCalculatorOracle();
     oracleRegistry = new OracleRegistry([gradeOracle]);
 
-    evaluatorService = new SubmissionEvaluatorService(mockJudgeService, oracleRegistry);
+    evaluatorService = new SubmissionEvaluatorService(oracleRegistry, {
+      // Per-test-case stand-in for TestCaseRunnerService: each case goes
+      // through submitBatch -> submitAndPoll, which the tests stub per case.
+      run: (code: string, language: string, cases: any[], options: any) =>
+        (mockJudgeService as any).submitBatch(
+          cases.map((c) => ({
+            sourceCode: code,
+            language,
+            stdin: JSON.stringify(c.input),
+            expectedOutput: c.expectedOutput,
+          })),
+          options,
+        ),
+    } as unknown as TestCaseRunnerService);
   });
 
   it("should return ACCEPTED and 100% score when all test suites pass", async () => {

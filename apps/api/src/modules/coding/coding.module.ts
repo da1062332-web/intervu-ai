@@ -32,6 +32,8 @@ import { AdminCodingSubmissionController } from "./controllers/admin-coding-subm
 import { CodingPatternSelectorService } from "./services/coding-pattern-selector.service";
 import { CodingStatementGeneratorService } from "./services/coding-statement-generator.service";
 import { JudgeService } from "./services/judge.service";
+import { CodeHarnessService } from "./services/code-harness.service";
+import { TestCaseRunnerService } from "./services/test-case-runner.service";
 import { CodingExecutionService } from "./services/coding-execution.service";
 import { CodingContextResolverService } from "./services/coding-context-resolver.service";
 import { SubmissionEvaluatorService } from "./services/submission-evaluator.service";
@@ -64,6 +66,8 @@ const standardOracleProviders = Object.values(StandardOracles).filter(
     SeededParameterGeneratorService,
     TestSuiteGeneratorService,
     JudgeService,
+    CodeHarnessService,
+    TestCaseRunnerService,
     SubmissionEvaluatorService,
     CodingContextResolverService,
     CodingExecutionService,
