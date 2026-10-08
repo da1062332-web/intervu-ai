@@ -158,7 +158,7 @@ export const QuestionPalette = memo(function QuestionPalette() {
           {/* Scrollable Question Grid */}
           <div className='relative flex flex-1 overflow-hidden mt-1'>
             <div className='flex-1 overflow-y-auto custom-scrollbar max-h-full py-1'>
-              <div className='grid grid-cols-5 gap-2 px-1 pb-2'>
+              <div className='grid grid-cols-5 gap-2 content-start auto-rows-max px-1 pb-2'>
                 {visiblePalette.length === 0 ? (
                   <div className='col-span-4 text-center py-6 text-xs text-gray-400 font-medium'>
                     Loading questions...

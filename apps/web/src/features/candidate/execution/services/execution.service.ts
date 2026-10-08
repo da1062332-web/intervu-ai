@@ -127,11 +127,15 @@ export const executionService = {
 
               const questionSvgCode =
                 snap.svgCode ||
+                snap.questionSvgCode ||
                 snap.questionMedia?.svgCode ||
                 snap.config?.questionMedia?.svgCode ||
                 snap.structure?.media?.svgCode ||
                 snap.mcqData?.questionMedia?.svgCode ||
+                snap.mcqData?.svgCode ||
                 snap.metadata?.questionMedia?.svgCode ||
+                snap.attachments?.questionSvg ||
+                snap.attachments?.stemSvg ||
                 null;
 
               const questionImage =
@@ -140,6 +144,8 @@ export const executionService = {
                 snap.questionMedia?.url ||
                 snap.mcqData?.questionMedia?.mediaUrl ||
                 snap.metadata?.questionMedia?.mediaUrl ||
+                snap.attachments?.stemImageUrl ||
+                snap.attachments?.questionImage ||
                 null;
 
               const questionMedia =

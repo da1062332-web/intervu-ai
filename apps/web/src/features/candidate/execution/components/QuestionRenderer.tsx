@@ -378,12 +378,14 @@ export function QuestionRenderer() {
                   </span>
                 )}
                 {optSvgCode && (
-                  <div className='my-1 p-2 bg-white rounded-md border border-slate-200 overflow-hidden shadow-2xs'>
-                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='max-h-48' />
+                  <div className='my-1 h-20 sm:h-24 w-full bg-white rounded-md border border-slate-200 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs'>
+                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='h-full max-h-full' />
                   </div>
                 )}
                 {!optSvgCode && optMediaUrl && (
-                  <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
+                  <div className='my-1 h-20 sm:h-24 w-full bg-white rounded-md border border-slate-200 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs'>
+                    <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-full' />
+                  </div>
                 )}
               </div>
             </label>
@@ -541,12 +543,14 @@ export function QuestionRenderer() {
                   </span>
                 )}
                 {optSvgCode && (
-                  <div className='my-1 p-2 bg-white rounded-md border border-slate-200 overflow-hidden shadow-2xs'>
-                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='max-h-48' />
+                  <div className='my-1 h-20 sm:h-24 w-full bg-white rounded-md border border-slate-200 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs'>
+                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='h-full max-h-full' />
                   </div>
                 )}
                 {!optSvgCode && optMediaUrl && (
-                  <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
+                  <div className='my-1 h-20 sm:h-24 w-full bg-white rounded-md border border-slate-200 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs'>
+                    <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-full' />
+                  </div>
                 )}
               </div>
             </label>
@@ -895,9 +899,11 @@ export function QuestionRenderer() {
             .join('\n\n')
         : '';
 
+  const cleanStmt = normalizedStatement.replace(/[*\s_]+/g, ' ').trim().toLowerCase();
+  const cleanText = (currentQuestion.text || '').replace(/[*\s_]+/g, ' ').trim().toLowerCase();
   const hasDistinctStatement =
     normalizedStatement.length > 0 &&
-    normalizedStatement.toLowerCase() !== (currentQuestion.text || '').trim().toLowerCase();
+    cleanStmt !== cleanText;
 
   return (
     <div className='flex flex-col flex-1 w-full h-full overflow-hidden bg-white select-none'>
@@ -954,14 +960,21 @@ export function QuestionRenderer() {
                   qAny.svgCode ||
                   qAny.questionSvgCode ||
                   qAny.questionMedia?.svgCode ||
+                  qAny.mcqData?.questionMedia?.svgCode ||
                   qAny.mcqData?.svgCode ||
                   qAny.metadata?.svgCode ||
+                  qAny.attachments?.questionSvg ||
+                  qAny.attachments?.stemSvg ||
                   qAny.questionSnapshot?.svgCode ||
+                  qAny.questionSnapshot?.questionSvgCode ||
                   qAny.questionSnapshot?.questionMedia?.svgCode ||
+                  qAny.questionSnapshot?.mcqData?.questionMedia?.svgCode ||
                   qAny.questionSnapshot?.config?.questionMedia?.svgCode ||
                   qAny.questionSnapshot?.structure?.media?.svgCode ||
                   qAny.questionSnapshot?.mcqData?.svgCode ||
                   qAny.questionSnapshot?.metadata?.svgCode ||
+                  qAny.questionSnapshot?.attachments?.questionSvg ||
+                  qAny.questionSnapshot?.attachments?.stemSvg ||
                   null;
 
                 const questionMediaUrl =
@@ -973,21 +986,25 @@ export function QuestionRenderer() {
                   qAny.metadata?.questionMedia?.url ||
                   qAny.mcqData?.questionMedia?.mediaUrl ||
                   qAny.mcqData?.questionMedia?.url ||
+                  qAny.attachments?.stemImageUrl ||
+                  qAny.attachments?.questionImage ||
                   qAny.questionSnapshot?.questionImage ||
                   qAny.questionSnapshot?.questionMedia?.mediaUrl ||
                   qAny.questionSnapshot?.questionMedia?.url ||
-                  qAny.questionSnapshot?.metadata?.questionMedia?.mediaUrl ||
                   qAny.questionSnapshot?.mcqData?.questionMedia?.mediaUrl ||
+                  qAny.questionSnapshot?.metadata?.questionMedia?.mediaUrl ||
+                  qAny.questionSnapshot?.attachments?.stemImageUrl ||
+                  qAny.questionSnapshot?.attachments?.questionImage ||
                   null;
 
                 if (!questionSvgCode && !questionMediaUrl) return null;
 
                 return (
-                  <div className='mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg flex justify-center shadow-2xs overflow-hidden'>
+                  <div className='mt-3 p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center shadow-2xs overflow-hidden h-40 sm:h-48 max-w-md mx-auto'>
                     {questionSvgCode ? (
-                      <SvgRenderer svgCode={questionSvgCode} altText='Question SVG diagram' maxHeight='max-h-80' />
+                      <SvgRenderer svgCode={questionSvgCode} altText='Question SVG diagram' maxHeight='h-full max-h-full' />
                     ) : (
-                      <ImageRenderer url={questionMediaUrl} altText='Question diagram' maxHeight='max-h-72' />
+                      <ImageRenderer url={questionMediaUrl} altText='Question diagram' maxHeight='max-h-full' />
                     )}
                   </div>
                 );

@@ -90,7 +90,7 @@ export function sanitizeAndFormatSvg(rawSvg: string): { cleanSvg: string; error?
       svgEl.setAttribute('width', '100%');
       svgEl.setAttribute('height', '100%');
       svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      svgEl.classList.add('w-full', 'h-auto', 'max-w-full', 'inline-block', 'vector-svg');
+      svgEl.classList.add('w-full', 'h-full', 'max-w-full', 'max-h-full', 'object-contain', 'inline-block', 'vector-svg');
 
       const serializer = new XMLSerializer();
       return { cleanSvg: serializer.serializeToString(svgEl) };
@@ -128,7 +128,7 @@ export function SvgRenderer({ svgCode, className, maxHeight = 'max-h-72', altTex
   return (
     <div
       className={cn(
-        'my-2 flex items-center justify-center overflow-hidden rounded-md border bg-background/50 p-2 text-slate-900 dark:text-slate-100 shadow-sm w-full [&_svg]:w-full [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:max-h-full',
+        'flex items-center justify-center overflow-hidden text-slate-900 dark:text-slate-100 w-full h-full [&_svg]:w-full [&_svg]:h-full [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:object-contain',
         maxHeight,
         className
       )}
