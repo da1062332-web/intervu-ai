@@ -644,7 +644,8 @@ export class ExamConfigReadinessService {
           questionSource: "MANUAL" as any,
           questionType: t.questionType || "MCQ",
           templateId: t.id,
-          status: "ACTIVE" as any,
+          // Inactive or soft-deleted templates must not feed the question pool.
+          status: (t.isActive && !t.deletedAt ? "ACTIVE" : "ARCHIVED") as any,
           mcqData: {
             options: richOptions,
             correctAnswer: correctAnswerKey,
