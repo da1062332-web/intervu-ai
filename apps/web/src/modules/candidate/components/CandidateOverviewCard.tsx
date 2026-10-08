@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, HelpCircle, ArrowRight, Sparkles, CheckCircle2, BarChart2, Gift } from 'lucide-react';
+import { Clock, HelpCircle, ArrowRight, Sparkles, CheckCircle2, BarChart2, Gift, Play } from 'lucide-react';
 import { CandidateDashboardData } from '../services/dashboard.service';
 import { useSubscriptionStore } from '@/store/subscription.store';
 
@@ -144,83 +144,106 @@ export function CandidateOverviewCard({ dashboard, isLoading }: CandidateOvervie
     }
   };
 
+  const testCode =
+    (latestAssessment as any)?.code ||
+    (latestAssessment?.title
+      ? latestAssessment.title.replace(/[^A-Za-z0-9]/g, '_').toUpperCase().slice(0, 16)
+      : 'TCS_NQT_V1');
+  const description =
+    latestAssessment?.description ||
+    'Evaluate your quantitative aptitude, logical reasoning, and programmatic debugging prowess under timed condition simulated for the upcoming recruitment cycle.';
+
   return (
-    <div className='rounded-[28px] border border-indigo-100/80 dark:border-indigo-900/40 bg-gradient-to-r from-[#eff2ff] via-[#f7eefe] to-[#f4ebff] dark:from-purple-950/30 dark:via-indigo-950/20 dark:to-purple-950/30 p-7 sm:p-9 shadow-sm transition-all hover:shadow-md relative overflow-hidden'>
-      <div className='flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10'>
+    <div className='rounded-[28px] border border-border/70 bg-card p-6 sm:p-8 md:p-9 shadow-sm transition-all hover:shadow-md relative overflow-hidden'>
+      <div className='flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 relative z-10'>
+        {/* Left Column: Details & Launch Button */}
         <div className='space-y-4 min-w-0 flex-1'>
           {isReferralUnlocked ? (
-            <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold border border-emerald-200/50 dark:border-emerald-800/40 shadow-2xs'>
-              <Gift className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-              <span>🎁 Free Assessment Unlocked via Referral</span>
+            <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[11px] font-bold border border-emerald-500/20 shadow-2xs'>
+              <Gift className='size-3.5 text-emerald-400' />
+              <span>FREE ASSESSMENT UNLOCKED VIA REFERRAL</span>
             </div>
           ) : (
-            <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#fff3e0] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 text-[11px] font-bold border border-amber-200/50 dark:border-amber-800/40'>
-              <Sparkles className='size-3.5 fill-current' />
-              <span>{isInProgress ? 'Active Assessment in Progress' : 'Recommended Next Step'}</span>
+            <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-sky-400 text-[11px] font-bold border border-sky-500/20 shadow-2xs'>
+              <Sparkles className='size-3 text-sky-400' />
+              <span>{isInProgress ? 'ACTIVE ASSESSMENT IN PROGRESS' : 'RECOMMENDED NEXT STEP'}</span>
             </div>
           )}
 
-          <div className='flex items-center gap-2.5 flex-wrap'>
-            <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight truncate'>
-              {title}
-            </h2>
-            {isLegacyAttempt ? (
-              <span className='px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border/60'>
-                Legacy (Unversioned)
+          <div className='space-y-2'>
+            <div className='flex items-center gap-2.5 flex-wrap'>
+              <h2 className='text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight'>
+                {title}
+              </h2>
+            </div>
+
+            <div className='flex flex-wrap items-center gap-2 pt-1'>
+              <span className='px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-muted text-muted-foreground border border-border/60'>
+                Version: V{versionNumber ?? 1}
               </span>
-            ) : versionNumber != null ? (
-              <span className='px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-muted text-foreground border border-border/60'>
-                V{versionNumber}
+              <span className='px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-muted text-muted-foreground border border-border/60'>
+                Difficulty: {difficulty}
               </span>
-            ) : null}
-            {hasNewVersion && (
-              <span className='px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'>
-                New Version
+              {durationMinutes !== undefined && (
+                <span className='px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-muted text-muted-foreground border border-border/60 flex items-center gap-1'>
+                  <Clock className='size-3' />
+                  <span>{durationMinutes}m</span>
+                </span>
+              )}
+              <span className='px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-muted text-muted-foreground border border-border/60 flex items-center gap-1'>
+                <HelpCircle className='size-3' />
+                <span>{questionCount ?? 20} questions</span>
               </span>
-            )}
+            </div>
           </div>
 
-          <div className='flex flex-wrap items-center gap-2.5 pt-1'>
-            {isReferralUnlocked && maxAttempts && (
-              <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-300/60 dark:border-emerald-800/60'>
-                <Sparkles className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-                <span>{attemptCount} / {maxAttempts} Free Attempts Used</span>
+          <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl font-normal'>
+            {description}
+          </p>
+
+          <div className='pt-2'>
+            <Button
+              size='md'
+              className='px-6 py-2.5 h-11 font-bold text-xs sm:text-sm rounded-xl bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-md hover:shadow-indigo-500/20 transition-all flex items-center gap-2 cursor-pointer'
+              onClick={handleAction}
+            >
+              <Play className='size-3.5 fill-current' />
+              <span>
+                {!hasActivePlan
+                  ? 'Choose a Plan to Start'
+                  : isInProgress
+                    ? 'Resume Assessment'
+                    : isReferralUnlocked
+                      ? 'Start Free Assessment'
+                      : 'Start Assessment'}
               </span>
-            )}
-            <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60'>
-              <BarChart2 className='size-3.5 text-muted-foreground/80' />
-              Difficulty: <strong className='text-foreground font-bold ml-0.5'>{difficulty}</strong>
-            </span>
-            {durationMinutes !== undefined && (
-              <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60'>
-                <Clock className='size-3.5 text-muted-foreground/80' />
-                <strong className='text-foreground font-bold'>{durationMinutes}m</strong>
-              </span>
-            )}
-            {questionCount !== undefined && (
-              <span className='inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60'>
-                <HelpCircle className='size-3.5 text-muted-foreground/80' />
-                <strong className='text-foreground font-bold'>{questionCount} Questions</strong>
-              </span>
-            )}
+            </Button>
           </div>
         </div>
 
-        <div className='w-full lg:w-auto shrink-0 flex items-center justify-end pt-2 lg:pt-0'>
-          <Button
-            size='lg'
-            className='w-full sm:w-auto px-8 py-6 font-bold text-sm rounded-2xl bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5'
-            onClick={handleAction}
-          >
-            {!hasActivePlan
-              ? 'Choose a Plan to Start'
-              : isInProgress
-                ? 'Resume Assessment'
-                : isReferralUnlocked
-                  ? 'Start Free Assessment'
-                  : 'Start Assessment'}
-            <ArrowRight className='size-4' />
-          </Button>
+        {/* Right Column: Hero Illustration Card */}
+        <div
+          onClick={handleAction}
+          className='relative w-full lg:w-[380px] xl:w-[420px] aspect-[16/10] rounded-2xl overflow-hidden border border-border/70 shadow-lg group cursor-pointer shrink-0 transition-all hover:border-indigo-500/50 hover:shadow-indigo-500/10'
+          title='Click to start or resume assessment'
+        >
+          <img
+            src='/images/assessment_hero_banner.jpg'
+            alt={title}
+            className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'
+          />
+          <div className='absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none' />
+
+          {/* Status Overlay */}
+          <div className='absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[11px] font-bold text-emerald-400 flex items-center gap-1.5 shadow-sm'>
+            <span className='size-2 rounded-full bg-emerald-400 animate-pulse' />
+            <span>{isInProgress ? 'Attempt Active' : 'Ready to Launch'}</span>
+          </div>
+
+          {/* Test Code Overlay */}
+          <div className='absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[10px] font-mono font-bold text-slate-300 shadow-sm'>
+            {testCode}
+          </div>
         </div>
       </div>
     </div>

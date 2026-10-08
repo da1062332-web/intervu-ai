@@ -180,7 +180,12 @@ export default function AssemblyPreviewPage() {
       header: 'Difficulty',
       cell: (row) => {
         const snap = row.questionSnapshot || {};
-        const diff = snap.difficultyLevel || 'UNKNOWN';
+        const rawDiff =
+          snap.difficultyLevel ||
+          snap.difficulty ||
+          row.difficultyLevel ||
+          row.difficulty;
+        const diff = rawDiff ? String(rawDiff).toUpperCase() : 'UNKNOWN';
         return (
           <Badge
             variant={diff === 'HARD' ? 'destructive' : diff === 'MEDIUM' ? 'default' : 'secondary'}
@@ -194,9 +199,38 @@ export default function AssemblyPreviewPage() {
       header: 'Concept / Topic',
       cell: (row) => {
         const snap = row.questionSnapshot || {};
-        const key = snap.conceptName || snap.conceptKey || snap.conceptId || snap.topicId;
-        const matchingTopic = topics?.find((t) => t.id === key || t.code === key);
-        const displayName = matchingTopic ? matchingTopic.name : key || 'General';
+        const topicKey =
+          snap.topicId ||
+          row.topicId ||
+          row.question?.topicId ||
+          snap.conceptKey ||
+          row.conceptKey;
+        const matchingTopic = topics?.find(
+          (t) => t.id === topicKey || t.code === topicKey
+        );
+
+        const isUuid = (val?: string) =>
+          Boolean(
+            val &&
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)
+          );
+
+        const resolvedTopicName =
+          matchingTopic?.name ||
+          snap.topicName ||
+          snap.topic?.name ||
+          row.topicName;
+
+        const resolvedConceptName =
+          snap.conceptName ||
+          snap.concept?.name;
+
+        const displayName =
+          resolvedTopicName ||
+          (resolvedConceptName && !isUuid(resolvedConceptName) ? resolvedConceptName : undefined) ||
+          (topicKey && !isUuid(topicKey) ? topicKey : undefined) ||
+          'General';
+
         return (
           <Badge
             variant='outline'

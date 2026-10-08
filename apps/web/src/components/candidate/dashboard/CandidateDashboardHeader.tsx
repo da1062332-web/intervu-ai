@@ -43,9 +43,9 @@ export function CandidateDashboardHeader() {
           <span>Welcome back, {displayName}</span>
           <span className='animate-wave-once text-3xl sm:text-4xl select-none'>👋</span>
         </h1>
-        <p className='text-sm sm:text-base text-muted-foreground font-normal leading-relaxed max-w-2xl'>
-          Here is an overview of your active evaluations, performance analytics, and recommended
-          assessments to help you advance your career.
+        <p className='text-sm sm:text-base text-muted-foreground font-normal leading-relaxed max-w-3xl'>
+          Track your assessment activity, analyze in-depth performance analytics, and access recommended
+          assessments tailored for your interview preparation.
         </p>
       </div>
     </div>

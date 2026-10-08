@@ -40,121 +40,236 @@ export const ScoreTrendChart = React.memo(function ScoreTrendChart({
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 
-  // 2. Take the most recent 10 items for optimal spacing
-  const displayData = sortedData.slice(-10);
+  // 2. Take the most recent items
+  const displayData = sortedData.slice(-8);
+
+  const scores = displayData.map((d) => d.score);
+  const lowest = scores.length > 0 ? Math.min(...scores) : 0;
+  const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+  const peak = scores.length > 0 ? Math.max(...scores) : 0;
 
   // Y-axis grid levels (0 to 100)
   const yTicks = [100, 75, 50, 25, 0];
 
+  const firstDateMs =
+    displayData.length > 0 && displayData[0].date && !isNaN(new Date(displayData[0].date).getTime())
+      ? new Date(displayData[0].date).getTime()
+      : Date.now();
+
+  const getPointLabel = (p: ScorePoint, i: number, total: number) => {
+    if (total <= 3 && p.date && !isNaN(new Date(p.date).getTime())) {
+      const dayDiff = Math.max(
+        0,
+        Math.round((new Date(p.date).getTime() - firstDateMs) / (1000 * 60 * 60 * 24)),
+      );
+      return `Day ${dayDiff} (Test ${i + 1})`;
+    }
+    return `Test ${i + 1}`;
+  };
+
+  const svgWidth = 500;
+  const svgHeight = 175;
+  const paddingLeft = 45;
+  const paddingRight = 35;
+  const paddingTop = 28;
+  const paddingBottom = 32;
+
+  const chartWidth = svgWidth - paddingLeft - paddingRight;
+  const chartHeight = svgHeight - paddingTop - paddingBottom;
+
+  const points = displayData.map((d, i) => {
+    const x =
+      displayData.length === 1
+        ? paddingLeft + chartWidth / 2
+        : paddingLeft + (i / (displayData.length - 1)) * chartWidth;
+    const y = paddingTop + (1 - Math.max(0, Math.min(100, d.score)) / 100) * chartHeight;
+    return { x, y, ...d };
+  });
+
+  const pathD =
+    points.length === 1
+      ? `M ${points[0].x} ${points[0].y}`
+      : points.reduce((acc, p, i) => {
+          if (i === 0) return `M ${p.x} ${p.y}`;
+          const prev = points[i - 1];
+          const cx1 = prev.x + (p.x - prev.x) / 2;
+          const cy1 = prev.y;
+          const cx2 = prev.x + (p.x - prev.x) / 2;
+          const cy2 = p.y;
+          return `${acc} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${p.x} ${p.y}`;
+        }, '');
+
   return (
-    <div className='w-full flex flex-col space-y-2 select-none'>
-      {/* Main Chart Canvas Container */}
-      <div className='relative w-full bg-muted/10 rounded-xl border border-border/40 p-4 pt-6 overflow-hidden'>
-        {/* Y-Axis Grid Canvas (Height = 200px) */}
-        <div className='relative w-full h-[200px]'>
-          {/* Y-Axis Grid Lines & Tick Labels */}
-          <div className='absolute inset-0 flex flex-col justify-between pointer-events-none z-0'>
-            {yTicks.map((tick) => (
-              <div key={tick} className='flex items-center w-full gap-2 relative -top-2'>
-                <span className='text-[10px] font-mono text-muted-foreground/70 w-8 text-right shrink-0 select-none'>
-                  {tick}%
+    <div className='w-full flex flex-col space-y-3 select-none'>
+      {/* Chart Container */}
+      <div className='relative w-full bg-muted/10 rounded-2xl border border-border/40 p-3 pt-4'>
+        {/* Floating Tooltip on Hover */}
+        {hoveredIdx !== null && points[hoveredIdx] && (
+          <div
+            className='absolute z-30 pointer-events-none -translate-x-1/2 -translate-y-full px-3 py-2 rounded-xl bg-slate-900/95 dark:bg-[#0b1220]/95 border border-cyan-500/30 text-white shadow-xl shadow-cyan-950/40 backdrop-blur-md transition-all duration-100 max-w-[220px]'
+            style={{
+              left: `${(points[hoveredIdx].x / svgWidth) * 100}%`,
+              top: `${Math.max(10, (points[hoveredIdx].y / svgHeight) * 100 - 15)}%`,
+            }}
+          >
+            <div className='text-[10px] font-mono text-cyan-400 font-semibold uppercase tracking-wider'>
+              {`Test ${hoveredIdx + 1}`}
+            </div>
+            <div
+              className='text-xs font-bold text-slate-100 truncate mt-0.5'
+              title={points[hoveredIdx].label}
+            >
+              {points[hoveredIdx].label || `Assessment #${hoveredIdx + 1}`}
+            </div>
+            <div className='flex items-center gap-2 mt-1 text-[11px] font-mono'>
+              <span className='font-extrabold text-cyan-400'>{points[hoveredIdx].score}%</span>
+              {points[hoveredIdx].date && !isNaN(new Date(points[hoveredIdx].date).getTime()) && (
+                <span className='text-muted-foreground text-[10px]'>
+                  •{' '}
+                  {new Date(points[hoveredIdx].date).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                  })}
                 </span>
-                <div className='w-full border-b border-border/35 border-dashed' />
-              </div>
-            ))}
+              )}
+            </div>
           </div>
+        )}
 
-          {/* Bars Layer (Positioned Pl-10 to align right of Y-axis numbers) */}
-          <div className='absolute inset-0 pl-10 pr-2 flex items-end justify-between z-10 gap-2'>
-            {displayData.map((point, i) => {
-              const rawScore = Math.max(0, Math.min(100, Math.round(point.score)));
-              // For 0%, show a subtle 3% bottom base line so all attempts are visible
-              const heightPercent = rawScore === 0 ? 3 : rawScore;
-              const formattedDate = new Date(point.date).toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-              });
-              const isHovered = hoveredIdx === i;
-
-              // Dynamic color gradient based on score tier
-              let barGradient = 'from-indigo-600 via-primary to-blue-400';
-              let badgeBg = 'bg-primary text-primary-foreground';
-              if (rawScore >= 80) {
-                barGradient = 'from-emerald-600 via-teal-500 to-green-400';
-                badgeBg = 'bg-emerald-600 text-white';
-              } else if (rawScore >= 50) {
-                barGradient = 'from-indigo-600 via-purple-500 to-indigo-400';
-                badgeBg = 'bg-indigo-600 text-white';
-              } else {
-                barGradient = 'from-rose-500 via-rose-400 to-amber-400';
-                badgeBg = 'bg-rose-500 text-white';
-              }
-
-              return (
-                <div
-                  key={`${point.date}-${i}`}
-                  className='flex-1 h-full flex flex-col items-center justify-end relative group cursor-pointer'
-                  onMouseEnter={() => setHoveredIdx(i)}
-                  onMouseLeave={() => setHoveredIdx(null)}
+        <svg
+          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+          className='w-full h-auto overflow-visible'
+        >
+          {/* Grid lines & tick labels */}
+          {yTicks.map((tick) => {
+            const y = paddingTop + (1 - tick / 100) * chartHeight;
+            return (
+              <g key={tick}>
+                <text
+                  x={paddingLeft - 10}
+                  y={y + 3.5}
+                  fontSize='9'
+                  fontFamily='monospace'
+                  fill='currentColor'
+                  className='text-muted-foreground/60'
+                  textAnchor='end'
                 >
-                  {/* Floating Hover Tooltip */}
-                  {isHovered && (
-                    <div className='absolute -top-12 z-30 bg-popover text-popover-foreground text-xs px-3 py-1.5 rounded-lg shadow-lg border border-border/80 flex flex-col items-center animate-in fade-in zoom-in-95 duration-150 whitespace-nowrap pointer-events-none'>
-                      <span className='font-bold text-foreground'>
-                        {point.label || 'Assessment'}
-                      </span>
-                      <span className='text-[11px] text-muted-foreground'>
-                        Score: <strong className='text-foreground'>{rawScore}%</strong> •{' '}
-                        {formattedDate}
-                      </span>
-                    </div>
-                  )}
+                  {tick}%
+                </text>
+                <line
+                  x1={paddingLeft}
+                  y1={y}
+                  x2={svgWidth - paddingRight}
+                  y2={y}
+                  stroke='currentColor'
+                  className='text-border/40'
+                  strokeDasharray='3 3'
+                  strokeWidth='1'
+                />
+              </g>
+            );
+          })}
 
-                  {/* Outer Bar Track (Spans EXACT 100% of 200px Grid Canvas Height) */}
-                  <div className='w-full max-w-[36px] h-full relative flex items-end bg-muted/30 rounded-t-md overflow-visible border-x border-t border-border/40'>
-                    {/* Floating Score Pill Badge positioned directly at bar top */}
-                    <div
-                      className={`absolute left-1/2 -translate-x-1/2 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md transition-all duration-200 shadow-2xs z-20 whitespace-nowrap ${badgeBg} ${
-                        isHovered ? 'scale-110 shadow-md' : 'opacity-90'
-                      }`}
-                      style={{ bottom: `calc(${heightPercent}% + 4px)` }}
-                    >
-                      {rawScore}%
-                    </div>
+          {/* Area fill under curve */}
+          {points.length > 1 && (
+            <path
+              d={`${pathD} L ${points[points.length - 1].x} ${paddingTop + chartHeight} L ${points[0].x} ${paddingTop + chartHeight} Z`}
+              fill='url(#trendGradient)'
+              opacity='0.25'
+            />
+          )}
 
-                    {/* Inner Animated Gradient Fill Bar */}
-                    <div
-                      className={`w-full bg-gradient-to-t ${barGradient} rounded-t-sm transition-all duration-500 ease-out ${
-                        isHovered ? 'brightness-115 shadow-lg shadow-primary/30' : ''
-                      }`}
-                      style={{ height: `${heightPercent}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+          <defs>
+            <linearGradient id='trendGradient' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='0%' stopColor='#38bdf8' stopOpacity='0.5' />
+              <stop offset='100%' stopColor='#6366f1' stopOpacity='0' />
+            </linearGradient>
+            <linearGradient id='strokeGradient' x1='0' y1='0' x2='1' y2='0'>
+              <stop offset='0%' stopColor='#38bdf8' />
+              <stop offset='100%' stopColor='#818cf8' />
+            </linearGradient>
+          </defs>
+
+          {/* Trend line */}
+          <path
+            d={pathD}
+            fill='none'
+            stroke='url(#strokeGradient)'
+            strokeWidth='3'
+            strokeLinecap='round'
+          />
+
+          {/* Interactive points */}
+          {points.map((p, i) => (
+            <g
+              key={i}
+              className='cursor-pointer group'
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
+            >
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r='6'
+                fill='#0f172a'
+                stroke='#38bdf8'
+                strokeWidth='2.5'
+                className='transition-transform hover:scale-125'
+              />
+              <circle cx={p.x} cy={p.y} r='2.5' fill='#38bdf8' />
+
+              {/* Score pill directly above point */}
+              <g transform={`translate(${p.x}, ${p.y - 12})`}>
+                <rect
+                  x='-16'
+                  y='-12'
+                  width='32'
+                  height='14'
+                  rx='4'
+                  fill='#1e293b'
+                  stroke='#475569'
+                  strokeWidth='0.8'
+                />
+                <text
+                  x='0'
+                  y='-2'
+                  fontSize='8.5'
+                  fontWeight='bold'
+                  fill='#f8fafc'
+                  textAnchor='middle'
+                >
+                  {p.score}%
+                </text>
+              </g>
+
+              {/* Clean X-axis label */}
+              <text
+                x={p.x}
+                y={svgHeight - 8}
+                fontSize='8.5'
+                fontFamily='monospace'
+                fill='currentColor'
+                className='text-muted-foreground/80 font-medium'
+                textAnchor='middle'
+              >
+                {getPointLabel(p, i, displayData.length)}
+              </text>
+            </g>
+          ))}
+        </svg>
       </div>
 
-      {/* X-Axis Date Labels Row */}
-      <div className='flex justify-between items-center pl-14 pr-4 pt-1'>
-        {displayData.map((point, i) => {
-          const formattedDate = new Date(point.date).toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-          });
-          return (
-            <span
-              key={`x-label-${i}`}
-              className={`text-[11px] font-semibold text-center flex-1 transition-colors ${
-                hoveredIdx === i ? 'text-primary font-bold' : 'text-muted-foreground/80'
-              }`}
-            >
-              {formattedDate}
-            </span>
-          );
-        })}
+      {/* Bottom Summary Stats Row */}
+      <div className='flex items-center justify-between text-xs text-muted-foreground pt-3 border-t border-border/40 px-1 font-medium'>
+        <span>
+          Lowest: <strong className='text-foreground'>{lowest}%</strong>
+        </span>
+        <span>
+          Average Accuracy: <strong className='text-foreground'>{avg}%</strong>
+        </span>
+        <span>
+          Peak: <strong className='text-foreground'>{peak}%</strong>
+        </span>
       </div>
     </div>
   );
