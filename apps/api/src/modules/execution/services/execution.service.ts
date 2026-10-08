@@ -204,8 +204,18 @@ export class ExecutionService {
           rawSnapshot.questionText ||
           rawSnapshot.questionStatement ||
           vq?.questionStem;
+        const hasStemMedia = Boolean(
+          rawSnapshot.questionMedia?.svgCode ||
+          rawSnapshot.questionMedia?.mediaUrl ||
+          rawSnapshot.questionMedia?.url ||
+          rawSnapshot.svgCode ||
+          rawSnapshot.questionSvgCode ||
+          rawSnapshot.questionImage ||
+          rawSnapshot.mcqData?.questionMedia?.svgCode ||
+          rawSnapshot.mcqData?.questionMedia?.mediaUrl
+        );
 
-        if ((!hasOptions || !hasStem) && q.questionId) {
+        if ((!hasOptions || !hasStem || !hasStemMedia) && q.questionId) {
           missingQuestionIds.add(q.questionId);
         }
 
@@ -392,23 +402,30 @@ export class ExecutionService {
               candidateSafeSnapshot.mcqData = dbQuestion.mcqData;
             }
 
-            if (!candidateSafeSnapshot.questionMedia) {
+            if (!candidateSafeSnapshot.questionMedia || !candidateSafeSnapshot.questionMedia.svgCode) {
               const stemMedia =
+                (dbQuestion?.mcqData as any)?.questionMedia ||
+                (dbQuestion?.attachments as any)?.stemSvg ||
+                (dbQuestion?.attachments as any)?.questionSvg ||
                 dbQuestion?.questionImage ||
                 (dbQuestion?.attachments as any)?.stemImageUrl ||
-                (dbQuestion?.mcqData as any)?.questionMedia ||
                 (dbQuestion?.metadata as any)?.questionMedia ||
                 (dbQuestion?.metadata as any)?.questionImage ||
                 tManualConfig?.stemMedia ||
                 tManualConfig?.questionMedia ||
-                tConfig.questionMedia ||
-                tMetadata.questionMedia ||
-                tStructure.mcq?.questionMedia ||
-                tStructure.media ||
+                tConfig?.questionMedia ||
+                tMetadata?.questionMedia ||
+                tStructure?.mcq?.questionMedia ||
+                tStructure?.media ||
+                candidateSafeSnapshot.questionMedia ||
                 null;
               if (stemMedia) {
                 candidateSafeSnapshot.questionMedia = typeof stemMedia === 'string' ? { url: stemMedia } : stemMedia;
               }
+            }
+
+            if (candidateSafeSnapshot.questionMedia?.svgCode && !candidateSafeSnapshot.svgCode) {
+              candidateSafeSnapshot.svgCode = candidateSafeSnapshot.questionMedia.svgCode;
             }
 
             const templateOptions =

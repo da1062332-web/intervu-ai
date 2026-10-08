@@ -85,6 +85,7 @@ export class QuestionAllocatorService {
             mediaUrl: opt.mediaUrl || opt.url || opt.media?.url || opt.image || undefined,
             mediaId: opt.mediaId || undefined,
             mode: opt.mode || undefined,
+            svgCode: opt.svgCode || opt.media?.svgCode || undefined,
             isCorrect: opt.isCorrect ?? undefined,
           };
         }
@@ -107,8 +108,12 @@ export class QuestionAllocatorService {
       q.mediaUrl ||
       null;
 
+    const resolvedSvg = questionMedia?.svgCode || q.svgCode || q.questionSvgCode || undefined;
+
     return {
       ...q,
+      svgCode: resolvedSvg,
+      questionSvgCode: resolvedSvg,
       options: normalizedOptions,
       mcqData: {
         ...(q.mcqData || {}),

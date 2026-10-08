@@ -112,6 +112,11 @@ export class QuestionPoolRepository implements IQuestionSource {
           ? options
           : mcqData?.options || (isCoding ? [] : [question.answer]),
       mcqData,
+      questionMedia: mcqData?.questionMedia || (question.attachments as any)?.questionMedia || null,
+      questionImage: question.questionImage || null,
+      attachments: question.attachments || null,
+      svgCode: mcqData?.questionMedia?.svgCode || (question.attachments as any)?.questionSvg || null,
+      questionSvgCode: mcqData?.questionMedia?.svgCode || (question.attachments as any)?.questionSvg || null,
       codingData,
       correctAnswer: question.answer as GeneratedQuestion["correctAnswer"],
       solution: question.explanation as GeneratedQuestion["solution"],
