@@ -612,7 +612,7 @@ export function TerminalSandboxLayout(props: SandboxLayoutProps) {
             </div>
 
             {/* Matrix Button Grid */}
-            <div className='grid grid-cols-5 gap-2 overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1'>
+            <div className='grid grid-cols-5 gap-2 content-start auto-rows-max overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1'>
               {visiblePalette.map((status, idx) => {
                 const absIdx = startIndex + idx;
                 const isCurrent = absIdx === currentQuestionIndex;

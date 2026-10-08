@@ -452,10 +452,10 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                       value={opt.mode}
                       onChange={(e) => handleModeChange(optIdx, e.target.value as OptionMode)}
                     >
-                      <option value="diagram-only">Diagram Image Only</option>
-                      <option value="diagram-text">Diagram Image + Text</option>
+                      <option value="diagram-only">Diagram Image / Media</option>
+                      <option value="svg-code">SVG Vector Graphic</option>
+                      <option value="diagram-text">Diagram + Text</option>
                       <option value="text-only">Text Only</option>
-                      <option value="svg-code">SVG Vector Code</option>
                     </select>
                   </div>
 
@@ -468,7 +468,39 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
                     />
                   )}
 
-                  {(opt.mode === 'diagram-only' || opt.mode === 'diagram-text' || opt.mediaUrl) && (
+                  {(opt.mode === 'svg-code' || Boolean(opt.svgCode)) && (
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold flex items-center gap-1 text-primary">
+                          <Code2 className="w-3.5 h-3.5" /> SVG Vector Code
+                        </Label>
+                        {opt.svgCode && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-[11px] h-6 text-destructive hover:text-destructive p-1"
+                            onClick={() => handleSvgCodeChange(optIdx, '')}
+                          >
+                            Clear SVG
+                          </Button>
+                        )}
+                      </div>
+                      <textarea
+                        className="font-mono text-xs w-full min-h-[70px] rounded-md border border-input bg-background px-3 py-1.5 shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        placeholder="<svg viewBox='0 0 200 200' ...>...</svg>"
+                        value={opt.svgCode || ''}
+                        onChange={(e) => handleSvgCodeChange(optIdx, e.target.value)}
+                      />
+                      {opt.svgCode && (
+                        <div className="p-2 border rounded-lg bg-muted/20 flex items-center justify-center">
+                          <SvgRenderer svgCode={opt.svgCode} maxHeight="max-h-28" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {(opt.mode === 'diagram-only' || opt.mode === 'diagram-text' || opt.mediaUrl) && !opt.svgCode && (
                     <div className="pt-1">
                       {opt.mediaUrl ? (
                         <div className="p-2 border rounded-lg bg-muted/20 flex items-center justify-between">
@@ -552,17 +584,21 @@ export function ManualQuestionEditorSection({ template }: ManualQuestionEditorSe
               </div>
 
               {/* Question Diagram */}
-              {(questionMedia?.mediaUrl || (questionMedia as any)?.url) && (
+              {(questionMedia?.mediaUrl || (questionMedia as any)?.url || questionMedia?.svgCode) && (
                 <div className="pt-2">
                   <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide block mb-1">
                     Question Diagram
                   </span>
                   <div className="border rounded-lg bg-muted/10 p-2 flex items-center justify-center">
-                    <ImageRenderer
-                      url={(questionMedia?.mediaUrl || (questionMedia as any)?.url)!}
-                      altText="Question diagram"
-                      maxHeight="max-h-64"
-                    />
+                    {questionMedia?.svgCode ? (
+                      <SvgRenderer svgCode={questionMedia.svgCode} maxHeight="max-h-64" />
+                    ) : (
+                      <ImageRenderer
+                        url={(questionMedia?.mediaUrl || (questionMedia as any)?.url)!}
+                        altText="Question diagram"
+                        maxHeight="max-h-64"
+                      />
+                    )}
                   </div>
                 </div>
               )}

@@ -374,12 +374,14 @@ export function TerminalQuestionRenderer() {
                   </span>
                 )}
                 {optSvgCode && (
-                  <div className='my-1 p-2 bg-[#161b22] rounded-md border border-slate-800 overflow-hidden shadow-2xs'>
-                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='max-h-48' />
+                  <div className='my-1 h-20 sm:h-24 w-full bg-[#161b22] rounded-md border border-slate-800 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs'>
+                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='h-full max-h-full' />
                   </div>
                 )}
                 {!optSvgCode && optMediaUrl && (
-                  <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
+                  <div className='my-1 h-20 sm:h-24 w-full bg-[#161b22] rounded-md border border-slate-800 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs'>
+                    <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-full' />
+                  </div>
                 )}
               </div>
             </label>
@@ -537,12 +539,14 @@ export function TerminalQuestionRenderer() {
                   </span>
                 )}
                 {optSvgCode && (
-                  <div className='my-1 p-2 bg-[#161b22] rounded-md border border-slate-800 overflow-hidden shadow-2xs'>
-                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='max-h-48' />
+                  <div className='my-1 h-20 sm:h-24 w-full bg-[#161b22] rounded-md border border-slate-800 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs'>
+                    <SvgRenderer svgCode={optSvgCode} altText={`Option ${letter} SVG diagram`} maxHeight='h-full max-h-full' />
                   </div>
                 )}
                 {!optSvgCode && optMediaUrl && (
-                  <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-48' />
+                  <div className='my-1 h-20 sm:h-24 w-full bg-[#161b22] rounded-md border border-slate-800 p-1.5 flex items-center justify-center overflow-hidden shadow-2xs'>
+                    <ImageRenderer url={optMediaUrl} altText={`Option ${letter} diagram`} maxHeight='max-h-full' />
+                  </div>
                 )}
               </div>
             </label>
@@ -976,11 +980,11 @@ export function TerminalQuestionRenderer() {
                 if (!questionSvgCode && !questionMediaUrl) return null;
 
                 return (
-                  <div className='mt-3 p-3 bg-[#161b22] border border-slate-800 rounded-lg flex justify-center shadow-xs overflow-hidden'>
+                  <div className='mt-3 p-2 bg-[#161b22] border border-slate-800 rounded-lg flex items-center justify-center shadow-xs overflow-hidden h-40 sm:h-48 max-w-md mx-auto'>
                     {questionSvgCode ? (
-                      <SvgRenderer svgCode={questionSvgCode} altText='Question SVG diagram' maxHeight='max-h-80' />
+                      <SvgRenderer svgCode={questionSvgCode} altText='Question SVG diagram' maxHeight='h-full max-h-full' />
                     ) : (
-                      <ImageRenderer url={questionMediaUrl} altText='Question diagram' maxHeight='max-h-72' />
+                      <ImageRenderer url={questionMediaUrl} altText='Question diagram' maxHeight='max-h-full' />
                     )}
                   </div>
                 );
