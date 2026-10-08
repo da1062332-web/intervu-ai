@@ -2346,7 +2346,11 @@ export class TemplateService implements OnModuleInit {
         questionSource: "MANUAL" as any,
         questionType: template.questionType || "MCQ",
         templateId: template.id,
-        status: "ACTIVE" as any,
+        // Inactive or soft-deleted templates must not feed the question pool;
+        // this sync runs on every boot, so it decides the question's status.
+        status: (template.isActive && !template.deletedAt
+          ? "ACTIVE"
+          : "ARCHIVED") as any,
         mcqData: {
           options: richOptions,
           correctAnswer: correctAnswerKey,
