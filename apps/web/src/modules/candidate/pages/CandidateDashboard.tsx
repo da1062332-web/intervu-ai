@@ -78,23 +78,16 @@ export function CandidateDashboard() {
         isLoading={isDashboardLoading && isMetricsLoading}
       />
 
-      {/* Side-by-side Layout: Available Assessments & Attempt History with matched heights */}
-      <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch'>
-        {/* Left Area (7 cols on desktop): Available Assessments 2x2 Grid */}
-        <div className='lg:col-span-7 h-full'>
-          <AvailableAssessmentSection
-            dashboard={filteredDashboard}
-            isLoading={isDashboardLoading}
-            error={dashboardError}
-            compact={true}
-          />
-        </div>
+      {/* 4. Available Assessments (Full-width 2-column grid) */}
+      <AvailableAssessmentSection
+        dashboard={filteredDashboard}
+        isLoading={isDashboardLoading}
+        error={dashboardError}
+        compact={true}
+      />
 
-        {/* Right Area (5 cols on desktop): Attempt History Card Feed */}
-        <div className='lg:col-span-5 h-full'>
-          <CandidateHistorySection compact={true} />
-        </div>
-      </div>
+      {/* 5. Attempt History (Full-width card feed) */}
+      <CandidateHistorySection compact={true} />
 
       {/* 6. Progress Analytics (Side-by-side cards at the bottom) */}
       <CandidateProgressSection compact={true} />

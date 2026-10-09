@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trophy, Target, CheckCircle2, Layers } from 'lucide-react';
+import { Trophy, Target, CheckCircle2, Layers, ArrowUpRight } from 'lucide-react';
 import { CandidateDashboardData } from '../services/dashboard.service';
 import { useTestCatalog } from '../hooks/useTestCatalog';
 
@@ -25,15 +25,18 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
 
   if ((isLoading && !dashboard && !metrics) || (!dashboard && !metrics && isCatalogLoading)) {
     return (
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5'>
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className='rounded-[24px] border border-border/40 p-6 bg-card shadow-2xs h-40'
+            className='rounded-[22px] border border-border/50 p-5 sm:p-6 bg-card shadow-2xs h-36 flex flex-col justify-between'
           >
-            <Skeleton className='w-11 h-11 rounded-2xl mb-6' />
-            <Skeleton className='h-3.5 w-24 mb-2' />
+            <div className='flex items-center justify-between'>
+              <Skeleton className='h-3.5 w-24' />
+              <Skeleton className='w-8 h-8 rounded-xl' />
+            </div>
             <Skeleton className='h-8 w-16' />
+            <Skeleton className='h-3 w-32' />
           </div>
         ))}
       </div>
@@ -44,12 +47,14 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
     .map((a) => a.score)
     .filter((s): s is number => typeof s === 'number');
 
-  const bestScore =
+  const rawBest =
     metrics?.bestScore !== undefined && metrics?.bestScore !== null
-      ? `${Math.round(metrics.bestScore)}%`
+      ? Math.round(metrics.bestScore)
       : completedScores.length > 0
-      ? `${Math.round(Math.max(...completedScores))}%`
-      : 'No score yet';
+      ? Math.round(Math.max(...completedScores))
+      : null;
+
+  const bestScore = rawBest !== null ? `${rawBest}%` : '0%';
 
   const avgAccuracy =
     metrics?.averageAccuracy !== undefined && metrics?.averageAccuracy !== null
@@ -59,10 +64,21 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       : '0%';
 
   const attempts = metrics?.attemptCount ?? dashboard?.completedAttempts?.length ?? 0;
+  const maxAttemptsAllowed = dashboard?.availableTests?.[0]?.maxAttempts ?? 2;
+
   const totalAssessments =
     dashboard?.availableTests !== undefined
       ? dashboard.availableTests.length
       : (pagination?.total ?? 0);
+
+  const benchmarkText =
+    rawBest !== null && rawBest >= 75
+      ? 'Benchmark: Top 10%'
+      : rawBest !== null && rawBest >= 40
+      ? 'Benchmark: Top 50%'
+      : rawBest !== null && rawBest > 0
+      ? 'Benchmark: Top 90%'
+      : 'Benchmark: Inactive';
 
   const cards = [
     {
@@ -70,70 +86,68 @@ export const CandidateKpiSection = React.memo(function CandidateKpiSection({
       value: bestScore,
       icon: Trophy,
       iconStyle:
-        'bg-[#eff2ff] text-[#6366f1] dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-100/50 dark:border-indigo-900/40',
-      subtitle: undefined,
-      glow: 'bg-[#eff2ff]/80 dark:bg-indigo-900/20',
+        'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+      subtitle: benchmarkText,
+      hasArrow: true,
     },
     {
       label: 'Average Accuracy',
       value: avgAccuracy,
       icon: Target,
       iconStyle:
-        'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-100/50 dark:border-amber-900/40',
-      subtitle: undefined,
-      glow: 'bg-[#fff7ed]/80 dark:bg-amber-900/10',
+        'bg-sky-500/10 text-sky-400 border-sky-500/20',
+      subtitle: 'Aggregation across all tests',
+      hasArrow: false,
     },
     {
-      label: 'Completed Attempts',
+      label: 'Completed / Attempts',
       value: attempts.toString(),
       icon: CheckCircle2,
       iconStyle:
-        'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-100/50 dark:border-emerald-900/40',
-      subtitle: undefined,
-      glow: 'bg-[#ecfdf5]/80 dark:bg-emerald-900/10',
+        'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+      subtitle: `${attempts} of ${maxAttemptsAllowed} attempts utilised`,
+      hasArrow: false,
     },
     {
       label: 'Available Catalog',
       value: totalAssessments.toString(),
       icon: Layers,
       iconStyle:
-        'bg-[#eff2ff] text-[#3b82f6] dark:bg-blue-950/50 dark:text-blue-400 border-blue-100/50 dark:border-blue-900/40',
-      subtitle: 'Available assessments',
-      glow: 'bg-[#eff2ff]/80 dark:bg-blue-900/10',
+        'bg-purple-500/10 text-purple-400 border-purple-500/20',
+      subtitle: `${totalAssessments} assessment active`,
+      hasArrow: false,
     },
   ];
 
   return (
-    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6'>
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5'>
       {cards.map((card, idx) => {
         const Icon = card.icon;
         return (
           <div
             key={idx}
-            className='rounded-[24px] border border-border/50 bg-card p-6 shadow-2xs hover:shadow-sm transition-all relative overflow-hidden flex flex-col justify-between group'
+            className='rounded-[22px] border border-border/60 bg-card p-5 sm:p-6 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between group h-full min-h-[140px]'
           >
-            <div
-              className={`absolute -bottom-8 -right-8 w-32 h-32 rounded-full blur-2xl pointer-events-none transition-transform group-hover:scale-110 ${card.glow}`}
-            />
-
-            <div>
+            <div className='flex items-center justify-between gap-2'>
+              <span className='text-xs font-semibold text-muted-foreground'>
+                {card.label}
+              </span>
               <div
-                className={`w-11 h-11 rounded-2xl flex items-center justify-center border ${card.iconStyle} shrink-0 transition-transform group-hover:scale-105`}
+                className={`w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105 ${card.iconStyle}`}
               >
-                <Icon className='size-5' />
+                <Icon className='size-4' />
               </div>
             </div>
 
-            <div className='mt-6 z-10'>
-              <div className='text-xs font-medium text-muted-foreground'>{card.label}</div>
-              <div className='text-3xl font-extrabold text-foreground mt-1 tracking-tight'>
+            <div className='my-2'>
+              <div className='text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight'>
                 {card.value}
               </div>
-              {card.subtitle && (
-                <p className='text-xs text-muted-foreground/70 mt-1.5 font-normal truncate'>
-                  {card.subtitle}
-                </p>
-              )}
+            </div>
+
+            <div className='flex items-center gap-1 text-[11px] font-medium text-muted-foreground/80 truncate'>
+              {card.hasArrow && <ArrowUpRight className='size-3 text-sky-400 shrink-0' />}
+              <span>{card.subtitle}</span>
             </div>
           </div>
         );

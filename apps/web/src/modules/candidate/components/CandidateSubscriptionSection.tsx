@@ -289,158 +289,91 @@ export function CandidateSubscriptionSection() {
   const percentUsed = effectiveLimit ? Math.min(100, Math.round((roundsUsed / effectiveLimit) * 100)) : 0;
 
   return (
-    <div className='space-y-6 pt-4'>
-      {/* 1. Section Header */}
-      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
+    <div className='space-y-8 pt-2'>
+      {/* 1. Full-Width Active Tier Overview Card */}
+      <div className='rounded-[24px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs'>
+        <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6'>
+          {/* Left: Active Plan Title & Badge */}
+          <div className='flex items-start sm:items-center gap-3.5'>
+            <div className='w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-2xs'>
+              <CheckCircle2 className='size-5' />
+            </div>
+            <div>
+              <div className='flex items-center gap-2.5 flex-wrap'>
+                <h3 className='text-lg sm:text-xl font-bold text-foreground tracking-tight'>
+                  {activePlanName || 'TCS NQT FREE'}
+                </h3>
+                <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'>
+                  ACTIVE
+                </span>
+              </div>
+              <p className='text-xs text-muted-foreground mt-0.5'>
+                Every Free, Never Expired Evaluation Tier • Billing cycle: Monthly Sync
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Usage Meter */}
+          <div className='w-full lg:w-72 space-y-1.5'>
+            <div className='flex items-center justify-between text-xs'>
+              <span className='text-muted-foreground font-medium'>{quotaLabel}</span>
+              <span className='font-bold text-foreground'>
+                {roundsUsed} / {effectiveLimit ?? 2}
+              </span>
+            </div>
+            <div className='w-full bg-muted/60 rounded-full h-2 overflow-hidden border border-border/40'>
+              <div
+                className='h-full rounded-full bg-sky-500 transition-all'
+                style={{ width: `${effectiveLimit ? Math.min(100, Math.round((roundsUsed / effectiveLimit) * 100)) : 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 3-Column Stats Row */}
+        <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-border/40'>
+          <div>
+            <span className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1'>
+              Unlocked Referral Rewards
+            </span>
+            <span className='text-sm sm:text-base font-extrabold text-foreground'>
+              {unlockedRewards.length > 0 ? `${unlockedRewards.length} Assessment` : '1 Assessment'}
+            </span>
+          </div>
+
+          <div>
+            <span className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1'>
+              Reward Assessment
+            </span>
+            <span className='text-sm sm:text-base font-extrabold text-foreground truncate block font-mono text-xs sm:text-sm pt-0.5'>
+              {unlockedRewards[0]?.code || 'TCS_NQT_SHORT_ASSESSMENT'}
+            </span>
+          </div>
+
+          <div>
+            <span className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1'>
+              Reward Allowance
+            </span>
+            <span className='text-sm sm:text-base font-extrabold text-emerald-400'>
+              {totalReferralAttempts ? `${totalReferralAttempts} Attempts` : '2 Attempts'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Upgrade Assessment Tier Section */}
+      <div className='space-y-4'>
         <div>
-          <h2 className='text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5'>
-            <Crown className='size-6 text-indigo-600' />
-            Subscription & Plans
-          </h2>
-          <p className='text-sm text-muted-foreground mt-1'>
-            Your active tier status, monthly usage quota, and available plan upgrades.
+          <h3 className='text-xl sm:text-2xl font-bold tracking-tight text-foreground'>
+            Upgrade Assessment Tier
+          </h3>
+          <p className='text-xs text-muted-foreground mt-0.5'>
+            Select an intensive preparation tier with expanded attempts and in-depth interview mocks.
           </p>
         </div>
 
-        {hasActivePlan && (
-          <Badge className='self-start sm:self-auto bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1 text-xs font-semibold gap-1.5'>
-            <Sparkles className='size-3.5' />
-            {activePlanName || 'Active Member'}
-          </Badge>
-        )}
-      </div>
-
-      {/* 2. Side-by-Side Row: Active Subscription Card (Left) & Plans Cards (Right) */}
-      <div className='grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch'>
-        {/* Left Column: Active Subscription Overview Card */}
-        <Card className='xl:col-span-4 rounded-2xl border border-border/80 bg-card p-6 flex flex-col justify-between shadow-xs'>
-          <div className='space-y-5'>
-            {/* Header */}
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-2'>
-                <div className='size-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400'>
-                  <Crown className='size-5' />
-                </div>
-                <div>
-                  <h3 className='font-bold text-foreground text-sm'>Current Subscription</h3>
-                  <p className='text-[11px] text-muted-foreground'>Account Entitlements</p>
-                </div>
-              </div>
-
-              {hasActivePlan && status === 'ACTIVE' ? (
-                <span className='inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200/60'>
-                  <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
-                  Active
-                </span>
-              ) : (
-                <span className='inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-200/60'>
-                  <span className='size-1.5 rounded-full bg-amber-500' />
-                  No Active Plan
-                </span>
-              )}
-            </div>
-
-            {/* Plan Tier Badge & Expiry Info */}
-            <div className='p-4 rounded-xl bg-muted/40 border border-border/60 space-y-3'>
-              <div className='flex items-center justify-between'>
-                <span className='text-xs font-medium text-muted-foreground'>Active Tier</span>
-                {hasActivePlan ? (
-                  <Badge
-                    variant='outline'
-                    className='bg-indigo-600 text-white border-indigo-600 font-bold px-2.5 py-0.5 text-xs uppercase'
-                  >
-                    {activePlanName || `${currentPlan} PLAN`}
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant='outline'
-                    className='bg-slate-100 text-slate-600 border-slate-200 font-bold px-2.5 py-0.5 text-xs'
-                  >
-                    NO ACTIVE PLAN
-                  </Badge>
-                )}
-              </div>
-
-              <div className='flex items-center justify-between text-xs'>
-                <span className='text-muted-foreground flex items-center gap-1.5'>
-                  <Calendar className='size-3.5 text-indigo-600' /> Expiry Date
-                </span>
-                <strong className='text-foreground'>
-                  {hasActivePlan ? formattedExpiry || 'Monthly Cycle' : 'No Active Subscription'}
-                </strong>
-              </div>
-            </div>
-
-            {/* Monthly Practice Tests Usage Meter */}
-            <div className='space-y-2'>
-              <div className='flex items-center justify-between text-xs'>
-                <span className='font-medium text-muted-foreground flex items-center gap-1.5'>
-                  <Zap className='size-3.5 text-amber-500' /> {quotaLabel}
-                </span>
-                <span className='font-bold text-foreground'>
-                  {!hasActivePlan
-                    ? '0 / 0'
-                    : effectiveLimit === null
-                    ? 'Unlimited'
-                    : `${roundsUsed} / ${effectiveLimit} attempts`}
-                </span>
-              </div>
-
-              {effectiveLimit !== null && (
-                <div className='w-full bg-muted rounded-full h-2 overflow-hidden'>
-                  <div
-                    className={`h-full rounded-full transition-all ${
-                      percentUsed >= 100
-                        ? 'bg-rose-500'
-                        : percentUsed >= 70
-                        ? 'bg-amber-500'
-                        : 'bg-indigo-600'
-                    }`}
-                    style={{ width: `${percentUsed}%` }}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Unlocked Referral Rewards List */}
-            {unlockedRewards && unlockedRewards.length > 0 && (
-              <div className='pt-3 border-t border-border/60 space-y-2.5'>
-                <div className='flex items-center justify-between'>
-                  <span className='text-[11px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5'>
-                    <Sparkles className='size-3.5 text-indigo-600' /> Unlocked Referral Rewards
-                  </span>
-                  <span className='text-[11px] font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-200/60'>
-                    {unlockedRewards.length} {unlockedRewards.length === 1 ? 'Assessment' : 'Assessments'}
-                  </span>
-                </div>
-                <div className='space-y-2'>
-                  {unlockedRewards.map((reward) => (
-                    <div
-                      key={reward.code}
-                      className='flex items-center justify-between p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors border border-border/60 text-xs'
-                    >
-                      <div className='flex items-center gap-2 min-w-0 pr-2'>
-                        <CheckCircle2 className='size-4 text-emerald-600 shrink-0' />
-                        <span className='font-medium text-foreground truncate' title={reward.name}>
-                          {reward.name}
-                        </span>
-                      </div>
-                      <Badge
-                        variant='outline'
-                        className='bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800 text-[11px] font-bold shrink-0'
-                      >
-                        {reward.attempts} {reward.attempts === 1 ? 'Attempt' : 'Attempts'}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Right Column: Plans Cards in a Row */}
-        <div className='xl:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch'>
+        {/* 3-Column Plans Grid */}
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch'>
           {dynamicPlans.length > 0 ? (
             dynamicPlans.map((plan: PlanDto) => {
               const isCurrent =

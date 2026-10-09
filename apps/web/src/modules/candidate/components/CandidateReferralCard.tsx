@@ -158,54 +158,59 @@ export function CandidateReferralCard() {
   }
 
   return (
-    <Card className="bg-card border border-border/80 shadow-sm rounded-2xl overflow-hidden">
-      <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-foreground flex items-center gap-2 text-base font-bold">
-            <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400">
-              <Gift className="w-4 h-4" />
-            </div>
-            Referral Program & Rewards
-          </CardTitle>
-          <Badge variant="outline" className="text-[11px] font-semibold bg-purple-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20">
-            Earn Bonus Tests
-          </Badge>
+    <Card className="bg-card border border-border/80 shadow-sm rounded-[24px] overflow-hidden">
+      <CardHeader className="pb-4 pt-6 px-6 sm:px-7 border-b border-border/60">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider mb-1">
+              GROWTH NETWORK
+            </span>
+            <CardTitle className="text-foreground text-xl sm:text-2xl font-bold tracking-tight">
+              Referral Program & Rewards
+            </CardTitle>
+            <p className="text-xs text-muted-foreground font-normal">
+              Share your link to unlock fast-track rewards and premium analytics.
+            </p>
+          </div>
+
+          <Button
+            size="sm"
+            className="rounded-xl font-bold text-xs h-9 px-4 bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-sm flex items-center gap-1.5 self-start sm:self-auto"
+          >
+            <Award className="w-4 h-4" />
+            <span>Earn bonus tests</span>
+          </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="p-5 space-y-5">
+      <CardContent className="p-6 sm:p-7 space-y-6">
         {/* Stats Row */}
         {status && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             {[
               {
-                label: 'Total Referred',
+                label: 'TOTAL REFERRED',
                 value: status.totalReferrals ?? 0,
-                icon: Users,
-                color: 'text-blue-600 dark:text-blue-400 bg-blue-500/10',
+                desc: 'Invited candidates',
               },
               {
-                label: 'Rewarded',
+                label: 'REWARDED',
                 value: status.rewardedReferrals ?? 0,
-                icon: Award,
-                color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10',
+                desc: 'Tests unlocked',
               },
               {
-                label: 'Pending',
+                label: 'PENDING',
                 value: status.pendingReferrals ?? 0,
-                icon: RefreshCw,
-                color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10',
+                desc: 'Awaiting signup',
               },
             ].map((s) => (
               <div
                 key={s.label}
-                className="bg-muted/30 border border-border/60 rounded-xl p-3 text-center transition-all hover:bg-muted/50"
+                className="bg-muted/20 border border-border/60 rounded-2xl p-4 transition-all hover:bg-muted/30"
               >
-                <div className={`w-7 h-7 rounded-lg mx-auto mb-1.5 flex items-center justify-center ${s.color}`}>
-                  <s.icon className="w-4 h-4" />
-                </div>
-                <p className="text-foreground font-extrabold text-xl tracking-tight">{s.value}</p>
-                <p className="text-muted-foreground text-[11px] font-semibold mt-0.5">{s.label}</p>
+                <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">{s.label}</p>
+                <p className="text-foreground font-black text-2xl tracking-tight my-1">{s.value}</p>
+                <p className="text-muted-foreground/80 text-xs font-normal">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -213,51 +218,42 @@ export function CandidateReferralCard() {
 
         {/* Personal Referral Link / Code */}
         {status?.referralLink || effectiveReferralLink ? (
-          <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/20 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                Your Personal Referral Link
-              </span>
-            </div>
+          <div className="p-5 rounded-2xl bg-muted/20 border border-border/60 space-y-4">
+            <span className="text-xs font-bold text-foreground block">
+              Personal Referral Link
+            </span>
 
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-background border border-border rounded-xl px-3 py-2 overflow-hidden shadow-inner">
+            <div className="flex items-center gap-2.5">
+              <div className="flex-1 bg-background border border-border/70 rounded-xl px-3.5 py-2.5 overflow-hidden shadow-inner">
                 <p className="font-mono text-xs text-foreground truncate">{effectiveReferralLink}</p>
               </div>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={copyLink}
-                className="h-9 px-3 text-xs font-bold rounded-xl border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 shrink-0 gap-1"
+                className="h-10 px-4 text-xs font-bold rounded-xl border-border/80 hover:bg-muted text-foreground shrink-0 gap-1.5"
               >
                 {copied ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-600">Copied!</span>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400">Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
                     <span>Copy Link</span>
                   </>
                 )}
               </Button>
             </div>
 
-            {/* Campaign Share Quick Actions */}
-            <div className="pt-2.5 border-t border-purple-500/15 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
-                  <Share2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                  Share Campaign Link
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium">
-                  Instant 1-click share
-                </span>
-              </div>
+            <p className="text-xs text-muted-foreground font-normal">
+              Share this campaign link with peers. When they sign up and take an assessment, you both unlock bonus assessment rounds!
+            </p>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+            {/* Campaign Share Quick Actions */}
+            <div className="pt-3 border-t border-border/40 space-y-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() =>
@@ -267,10 +263,10 @@ export function CandidateReferralCard() {
                       'noopener,noreferrer'
                     )
                   }
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 transition-all shadow-sm"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted/30 hover:bg-muted text-foreground border border-border/60 transition-all"
                   title="Share on WhatsApp"
                 >
-                  <WhatsAppIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <span>WhatsApp</span>
                 </button>
 
@@ -283,10 +279,10 @@ export function CandidateReferralCard() {
                       'noopener,noreferrer'
                     )
                   }
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-400 border border-sky-500/20 transition-all shadow-sm"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted/30 hover:bg-muted text-foreground border border-border/60 transition-all"
                   title="Share on LinkedIn"
                 >
-                  <LinkedInIcon className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                  <LinkedInIcon className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                   <span>LinkedIn</span>
                 </button>
 
@@ -299,10 +295,10 @@ export function CandidateReferralCard() {
                       'noopener,noreferrer'
                     )
                   }
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-muted/60 hover:bg-muted text-foreground border border-border transition-all shadow-sm"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted/30 hover:bg-muted text-foreground border border-border/60 transition-all"
                   title="Share on X (Twitter)"
                 >
-                  <TwitterXIcon className="w-3.5 h-3.5 shrink-0" />
+                  <TwitterXIcon className="w-3.5 h-3.5 shrink-0 text-foreground" />
                   <span>X (Twitter)</span>
                 </button>
 
@@ -315,10 +311,10 @@ export function CandidateReferralCard() {
                       'noopener,noreferrer'
                     )
                   }
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/20 transition-all shadow-sm"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted/30 hover:bg-muted text-foreground border border-border/60 transition-all"
                   title="Share on Telegram"
                 >
-                  <TelegramIcon className="w-4 h-4 text-blue-500 shrink-0" />
+                  <TelegramIcon className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                   <span>Telegram</span>
                 </button>
 
@@ -326,7 +322,7 @@ export function CandidateReferralCard() {
                   <button
                     type="button"
                     onClick={handleNativeShare}
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-400 border border-purple-500/20 transition-all shadow-sm"
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted/30 hover:bg-muted text-foreground border border-border/60 transition-all"
                     title="Share via device options"
                   >
                     <Share2 className="w-3.5 h-3.5 shrink-0" />
@@ -341,7 +337,7 @@ export function CandidateReferralCard() {
                         '_self'
                       )
                     }
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-400 border border-purple-500/20 transition-all shadow-sm"
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted/30 hover:bg-muted text-foreground border border-border/60 transition-all"
                     title="Share via Email"
                   >
                     <Mail className="w-3.5 h-3.5 shrink-0" />
@@ -350,10 +346,6 @@ export function CandidateReferralCard() {
                 )}
               </div>
             </div>
-
-            <p className="text-[11px] text-muted-foreground">
-              Share this campaign link with peers. When they sign up and take an assessment, you both unlock bonus assessment rounds!
-            </p>
           </div>
         ) : (
           <div className="text-center py-2 text-xs text-muted-foreground">
@@ -362,16 +354,21 @@ export function CandidateReferralCard() {
         )}
 
         {/* Redeem Code Input */}
-        <div className="pt-2 border-t border-border/60">
-          <label className="text-xs font-bold text-foreground block mb-1.5">
-            Redeem a Company or Peer Referral Code
-          </label>
-          <div className="flex items-center gap-2">
+        <div className="p-5 rounded-2xl bg-muted/20 border border-border/60 space-y-3">
+          <div>
+            <label className="text-xs font-bold text-foreground block">
+              Redeem a Company or Peer Referral Code
+            </label>
+            <p className="text-xs text-muted-foreground font-normal mt-0.5">
+              Apply an institutional partner voucher or classmate-provided token
+            </p>
+          </div>
+          <div className="flex items-center gap-2.5">
             <Input
               value={redeemCode}
               onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
-              placeholder="Enter your referral code"
-              className="font-mono tracking-widest uppercase placeholder:normal-case placeholder:font-sans placeholder:tracking-normal h-10 rounded-xl flex-1 text-xs"
+              placeholder="ENTER YOUR REFERRAL CODE"
+              className="font-mono tracking-wider uppercase placeholder:normal-case placeholder:font-sans placeholder:tracking-normal h-10 rounded-xl flex-1 text-xs bg-background border-border/70"
               maxLength={16}
               onKeyDown={(e) => e.key === 'Enter' && handleRedeem()}
             />
@@ -379,10 +376,9 @@ export function CandidateReferralCard() {
               size="sm"
               onClick={handleRedeem}
               disabled={redeeming || !redeemCode.trim()}
-              className="h-10 px-4 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-700 text-white shrink-0 shadow-sm gap-1"
+              className="h-10 px-5 text-xs font-bold rounded-xl bg-sky-400 hover:bg-sky-500 text-slate-950 shrink-0 shadow-sm transition-all"
             >
               {redeeming ? 'Redeeming...' : 'Redeem Code'}
-              <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>

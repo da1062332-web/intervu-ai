@@ -39,62 +39,75 @@ export function PlanCard({
   return (
     <div
       className={cn(
-        'relative flex flex-col justify-between rounded-xl sm:rounded-2xl p-5 transition-all duration-200 bg-white',
-        highlighted
-          ? 'border-2 border-indigo-600 shadow-xl shadow-indigo-100 ring-1 ring-indigo-600/20'
-          : 'border border-slate-200 hover:border-slate-300 shadow-sm',
+        'relative flex flex-col justify-between rounded-[22px] p-6 transition-all duration-200 bg-card border border-border/60 shadow-2xs hover:shadow-md hover:border-indigo-500/30',
+        highlighted && 'border-indigo-500/50 shadow-indigo-500/10 ring-1 ring-indigo-500/20',
       )}
     >
-      {badge && (
-        <div className='absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-0.5 text-[11px] font-bold text-white shadow-md flex items-center gap-1 uppercase tracking-wider'>
-          <Sparkles className='size-3' />
-          {badge}
-        </div>
-      )}
-
       <div>
-        <div className='mb-3'>
-          <h3 className='text-lg sm:text-xl font-bold tracking-tight text-slate-900'>{title}</h3>
-          <p className='text-xs text-slate-600 mt-0.5 line-clamp-2 min-h-[32px]'>{description}</p>
+        {/* Badges row */}
+        <div className='flex items-center justify-between gap-2 mb-4'>
+          {badge ? (
+            <span
+              className={cn(
+                'rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border',
+                highlighted
+                  ? 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30'
+                  : title.toLowerCase().includes('free')
+                  ? 'bg-muted text-muted-foreground border-border/60'
+                  : 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+              )}
+            >
+              {badge}
+            </span>
+          ) : (
+            <span
+              className={cn(
+                'rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border',
+                title.toLowerCase().includes('free')
+                  ? 'bg-muted text-muted-foreground border-border/60'
+                  : 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+              )}
+            >
+              {title.toLowerCase().includes('free') ? 'FREE' : 'POPULAR'}
+            </span>
+          )}
+
+          {discountPercent && (
+            <span className='rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold'>
+              {discountPercent.startsWith('-') ? discountPercent : `-${discountPercent}`} OFF
+            </span>
+          )}
         </div>
 
-        <div className='mb-4 flex items-baseline gap-2 flex-wrap'>
-          {discountPercent && originalPrice && (
-            <>
-              <span className='text-emerald-700 font-extrabold text-base tracking-tight flex items-center'>
-                ↓{discountPercent}
-              </span>
-              <span className='line-through text-slate-400 font-semibold text-base'>
-                {originalPrice}
-              </span>
-            </>
-          )}
-          <span className='text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900'>
+        <div className='mb-3'>
+          <h3 className='text-lg sm:text-xl font-bold tracking-tight text-foreground'>{title}</h3>
+          <p className='text-xs text-muted-foreground mt-1 line-clamp-2 min-h-[32px] font-normal leading-relaxed'>
+            {description}
+          </p>
+        </div>
+
+        <div className='my-4 flex items-baseline gap-2 flex-wrap'>
+          <span className='text-2xl sm:text-3xl font-black tracking-tight text-foreground'>
             {price}
           </span>
+          {originalPrice && (
+            <span className='line-through text-muted-foreground/60 font-semibold text-sm'>
+              {originalPrice}
+            </span>
+          )}
           {price !== 'Free' && period && (
-            <span className='text-xs font-medium text-slate-500'>{period}</span>
+            <span className='text-xs font-medium text-muted-foreground'>{period}</span>
           )}
         </div>
 
-        <div className='border-t border-slate-100 pt-3 mb-4'>
-          <p className='text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2.5'>
-            Included Features
-          </p>
-          <ul className='space-y-2 text-xs sm:text-[13px]'>
+        <div className='border-t border-border/40 pt-4 mb-4'>
+          <ul className='space-y-2.5 text-xs'>
             {features.map((feature, idx) => (
               <li key={idx} className='flex items-start gap-2.5'>
-                <div
-                  className={cn(
-                    'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full',
-                    highlighted
-                      ? 'bg-indigo-100 text-indigo-600'
-                      : 'bg-slate-100 text-slate-600',
-                  )}
-                >
-                  <Check className='size-2.5 stroke-[3]' />
+                <div className='mt-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-full text-sky-400'>
+                  <Check className='size-3 stroke-[3]' />
                 </div>
-                <span className='text-slate-700 font-medium leading-tight'>{feature}</span>
+                <span className='text-muted-foreground font-medium leading-tight'>{feature}</span>
               </li>
             ))}
           </ul>
@@ -104,12 +117,13 @@ export function PlanCard({
       <Button
         onClick={onSelect}
         disabled={disabled || isLoading}
-        variant={highlighted ? 'default' : 'outline'}
         className={cn(
-          'w-full h-10 rounded-lg text-xs sm:text-sm font-bold tracking-wide transition-all mt-3',
-          highlighted
-            ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 border-transparent'
-            : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800',
+          'w-full h-10 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all mt-3',
+          disabled
+            ? 'border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted/40 cursor-not-allowed border'
+            : highlighted
+            ? 'bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-md shadow-indigo-500/20'
+            : 'bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/20',
         )}
       >
         {isLoading ? 'Processing...' : buttonText}

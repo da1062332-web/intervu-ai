@@ -8,11 +8,11 @@
     --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-    /* Soft, premium slate/blue-tinted off-white background */
-    --background: hsl(220 14% 97%);
+    /* Modern cool bluish-tinted light background (light mode counterpart to deep dark-mode slate/indigo) */
+    --background: hsl(222 42% 95.5%);
     --foreground: hsl(222 47% 11%);
 
-    /* Crisp white cards to pop off the soft background */
+    /* Crisp white cards to pop off the soft bluish background */
     --card: hsl(0 0% 100%);
     --card-foreground: hsl(222 47% 11%);
     --popover: hsl(0 0% 100%);
@@ -22,33 +22,33 @@
     --primary: hsl(255 85% 60%);
     --primary-foreground: hsl(0 0% 100%);
 
-    /* Subtle secondary */
-    --secondary: hsl(220 14% 95%);
-    --secondary-foreground: hsl(222 47% 20%);
+    /* Subtle secondary with light bluish tone */
+    --secondary: hsl(220 30% 92%);
+    --secondary-foreground: hsl(222 47% 18%);
 
-    --muted: hsl(220 14% 95%);
-    --muted-foreground: hsl(215 16% 47%);
+    --muted: hsl(220 28% 92%);
+    --muted-foreground: hsl(215 22% 44%);
 
-    --accent: hsl(220 14% 95%);
-    --accent-foreground: hsl(222 47% 20%);
+    --accent: hsl(220 30% 92%);
+    --accent-foreground: hsl(222 47% 18%);
 
     --destructive: hsl(0 84% 60%);
     --destructive-foreground: hsl(0 0% 100%);
 
-    /* Soft borders */
-    --border: hsl(220 13% 91%);
-    --input: hsl(220 13% 91%);
+    /* Soft bluish borders */
+    --border: hsl(220 25% 88.5%);
+    --input: hsl(220 25% 88.5%);
     --ring: hsl(255 85% 60%);
 
     --radius: 0.75rem;
 
-    --sidebar: hsl(220 14% 97%);
+    --sidebar: hsl(222 42% 95.5%);
     --sidebar-foreground: hsl(222 47% 11%);
     --sidebar-primary: hsl(255 85% 60%);
     --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(220 14% 95%);
-    --sidebar-accent-foreground: hsl(222 47% 20%);
-    --sidebar-border: hsl(220 13% 91%);
+    --sidebar-accent: hsl(220 30% 92%);
+    --sidebar-accent-foreground: hsl(222 47% 18%);
+    --sidebar-border: hsl(220 25% 88.5%);
     --sidebar-ring: hsl(255 85% 60%);
   }
   .dark {

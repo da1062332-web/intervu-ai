@@ -24,6 +24,9 @@ import {
   Calendar,
   Pause,
   Check,
+  Eye,
+  FileText,
+  ExternalLink,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -211,92 +214,129 @@ export function CandidateHistorySection({ compact = true }: CandidateHistorySect
     return (
       <div className='flex flex-col h-full space-y-4'>
         <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
-          <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
-            Attempt History
-          </h3>
-          <button
-            type='button'
-            className='text-[#6366f1] dark:text-indigo-400 hover:underline font-semibold text-xs sm:text-sm flex items-center gap-1 transition-all'
+          <div>
+            <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
+              Attempt History
+            </h3>
+            <p className='text-xs text-muted-foreground mt-0.5'>
+              Detailed log of previously submitted evaluations
+            </p>
+          </div>
+          <Button
+            variant='outline'
+            size='sm'
+            className='text-xs font-semibold text-muted-foreground hover:text-foreground h-8 px-3 rounded-xl border border-border/60 hover:bg-muted/50 gap-1.5'
             onClick={() => router.push('/candidate/results')}
           >
-            See All <ArrowRightIcon className='size-3.5 ml-0.5' />
-          </button>
+            <span>View All</span>
+            <ExternalLink className='size-3.5' />
+          </Button>
         </div>
 
-        <div className='rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs space-y-6 flex-1 flex flex-col justify-between'>
+        <div className='space-y-3'>
           {processedAttempts.map((row, index) => {
             const isCompleted = row.status === 'COMPLETED' || row.status === 'SUBMITTED';
-            const iconBg =
-              row.status === 'IN_PROGRESS'
-                ? 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800 border-border/40'
-                : row.score && row.score >= 90
-                  ? 'bg-[#ecfdf5] text-[#10b981] dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/60'
-                  : 'bg-[#fff7ed] text-[#ea580c] dark:bg-amber-950/50 dark:text-amber-400 border-orange-200/60';
+            const resultId = row.instanceId || (row as any).attemptId || (row as any).id;
+            const configId =
+              row.examConfigId ||
+              row.testConfigId ||
+              row.configId ||
+              row.testId ||
+              row.assessmentId;
+
+            let formattedDate = '';
+            try {
+              formattedDate = format(new Date(row.date), 'MMM d, yyyy');
+            } catch {
+              formattedDate = 'Recently';
+            }
 
             return (
               <div
                 key={row.instanceId}
-                className={`flex items-start gap-4 pb-5 ${index !== processedAttempts.length - 1 ? 'border-b border-border/40' : ''}`}
+                className='rounded-[20px] border border-border/60 bg-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-indigo-500/30 shadow-2xs'
               >
-                <div
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border mt-0.5 font-bold shadow-2xs ${iconBg}`}
-                >
-                  {row.status === 'IN_PROGRESS' ? (
-                    <Pause className='size-4' />
-                  ) : (
-                    <Check className='size-5' />
-                  )}
-                </div>
-
-                <div className='min-w-0 flex-1 space-y-2'>
-                  <div className='flex items-center justify-between gap-3'>
-                    <div className='flex items-center gap-2 truncate'>
-                      <h4 className='font-bold text-sm sm:text-base text-foreground truncate tracking-tight'>
-                        {row.assessmentName}
-                      </h4>
-                      {row.isLegacy || row.versionName === 'Legacy (Unversioned)' ? (
-                        <span className='px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted/70 text-muted-foreground border border-border/50 shrink-0'>
-                          Legacy
-                        </span>
-                      ) : row.versionNumber ? (
-                        <span className='px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground border border-border/60 shrink-0'>
-                          V{row.versionNumber}
-                        </span>
-                      ) : null}
-                    </div>
-                    {row.score !== null ? (
-                      <span className='font-black text-xs sm:text-sm bg-indigo-50 dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 px-2.5 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900/50 shrink-0'>
-                        {row.score}%
-                      </span>
-                    ) : (
-                      <span className='text-muted-foreground font-semibold text-xs sm:text-sm shrink-0'>
-                        --
-                      </span>
-                    )}
+                <div className='flex items-center gap-3.5 min-w-0 flex-1'>
+                  <div className='w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0 shadow-2xs'>
+                    <FileText className='size-5' />
                   </div>
 
-                  <p className='text-xs text-muted-foreground font-normal leading-normal line-clamp-1'>
-                    {row.subtitle ||
-                      (isCompleted
-                        ? `Completed on ${format(new Date(row.date), 'MMM d, yyyy')}`
-                        : 'Evaluation in progress')}
-                  </p>
-                  {row.attemptCount !== undefined && (
-                    <p className='text-[11px] text-muted-foreground font-medium mt-0.5'>
-                      Attempt {row.attemptCount} {row.maxAttempts != null ? `/ ${row.maxAttempts} • ${row.remainingAttempts ?? 0} remaining` : ''}
+                  <div className='min-w-0 space-y-1'>
+                    <div className='flex items-center gap-2 flex-wrap'>
+                      <h4 className='font-bold text-sm sm:text-base text-foreground truncate'>
+                        {row.assessmentName}
+                      </h4>
+                      {index === 0 && (
+                        <span className='px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground border border-border/60'>
+                          LATEST
+                        </span>
+                      )}
+                    </div>
+
+                    <p className='text-xs text-muted-foreground font-normal flex items-center gap-2 flex-wrap'>
+                      <span>Completed {formattedDate}</span>
+                      <span>•</span>
+                      <span>
+                        Attempt {row.attemptCount || 1}/{row.maxAttempts || 2}
+                      </span>
+                      {isCompleted && (
+                        <>
+                          <span>•</span>
+                          <span>Completed</span>
+                        </>
+                      )}
                     </p>
+                  </div>
+                </div>
+
+                <div className='flex items-center justify-between sm:justify-end gap-5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/30'>
+                  {row.score !== null ? (
+                    <div className='text-left sm:text-right'>
+                      <span className='text-[10px] text-muted-foreground font-semibold uppercase block'>
+                        Score
+                      </span>
+                      <span className='text-sm sm:text-base font-extrabold text-foreground'>
+                        {row.score}%
+                      </span>
+                    </div>
+                  ) : (
+                    <div className='text-left sm:text-right'>
+                      <span className='text-[10px] text-muted-foreground font-semibold uppercase block'>
+                        Status
+                      </span>
+                      <span className='text-xs font-semibold text-muted-foreground'>
+                        In Progress
+                      </span>
+                    </div>
                   )}
 
-                  <div className='flex items-center justify-between flex-wrap gap-3 pt-1'>
-                    <div className='flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground/80'>
-                      <Calendar className='size-3.5 text-muted-foreground/70' />
-                      <span>{format(new Date(row.date), 'MMM d, yyyy')}</span>
-                    </div>
-
-                    {/* Preserved interactive button triggers */}
-                    <div className='mt-1 sm:mt-0'>
-                      <ActionsCell attempt={row} />
-                    </div>
+                  <div className='flex items-center gap-2'>
+                    {isCompleted ? (
+                      resultId && (
+                        <Button
+                          size='sm'
+                          variant='outline'
+                          asChild
+                          className='h-9 px-3.5 text-xs font-bold rounded-xl gap-1.5 border-border/70 hover:bg-muted text-foreground transition-all'
+                        >
+                          <Link href={`/candidate/results/${resultId}`}>
+                            <span>View Result</span>
+                            <Eye className='size-3.5 text-muted-foreground' />
+                          </Link>
+                        </Button>
+                      )
+                    ) : (
+                      <Button
+                        size='sm'
+                        className='h-9 px-3.5 text-xs font-bold rounded-xl gap-1.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white transition-all'
+                        asChild
+                      >
+                        <Link href={`/candidate/tests/${resultId || configId}/launch?resume=true`}>
+                          <Play className='size-3.5 fill-current' />
+                          <span>Resume</span>
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

@@ -120,11 +120,14 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
     );
   }
 
-  if (!hasActivePlan || (data as any)?.isLocked) {
+  if ((data as any)?.isLocked || (!compact && !hasActivePlan)) {
     return (
       <div className='space-y-4'>
         {compact && (
-          <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
+          <div className='space-y-0.5 pb-1 shrink-0'>
+            <div className='font-mono text-xs sm:text-sm text-cyan-600 dark:text-cyan-400 font-semibold tracking-wider'>
+              // COMPETENCY ENGINE
+            </div>
             <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
               Progress & Skill Mastery
             </h3>
@@ -173,20 +176,23 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
         />
       )}
 
-      {compact && (
-        <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
+      <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
+        <div>
+          <div className='font-mono text-xs sm:text-sm text-cyan-600 dark:text-cyan-400 font-semibold tracking-wider'>
+            // COMPETENCY ENGINE
+          </div>
           <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
             Progress & Skill Mastery
           </h3>
-          <button
-            type='button'
-            className='text-[#6366f1] dark:text-indigo-400 hover:underline font-semibold text-xs sm:text-sm flex items-center gap-1 transition-all'
-            onClick={() => router.push('/candidate/progress')}
-          >
-            Full Analytics <ArrowRight className='size-3.5 ml-0.5' />
-          </button>
         </div>
-      )}
+        <button
+          type='button'
+          className='text-[#6366f1] dark:text-cyan-400 hover:underline font-semibold text-xs sm:text-sm flex items-center gap-1 transition-all'
+          onClick={() => router.push('/candidate/progress')}
+        >
+          Full Analytics <ArrowRight className='size-3.5 ml-0.5' />
+        </button>
+      </div>
 
       {!compact && <ProgressCards overview={data.overview} />}
 
@@ -198,47 +204,30 @@ export function CandidateProgressSection({ compact = true }: CandidateProgressSe
         }
       >
         <Card
-          className={`${compact ? '' : 'lg:col-span-2'} rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between h-full`}
+          className={`${compact ? '' : 'lg:col-span-2'} rounded-[24px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between h-full`}
         >
           <div>
-            <div className='flex items-center justify-between gap-3 pb-4 mb-3 border-b border-border/40'>
+            <div className='flex items-center justify-between gap-3 pb-4 mb-2 border-b border-border/40'>
               <div>
-                <h4 className='text-lg font-bold text-foreground tracking-tight'>
+                <h4 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
                   Score Timeline Trend
                 </h4>
                 <p className='text-xs text-muted-foreground font-normal mt-0.5'>
-                  Score progression across all evaluation sessions
+                  Score progression across evaluation sessions
                 </p>
               </div>
-              <div className='w-11 h-11 rounded-2xl bg-[#eff2ff] dark:bg-indigo-950/50 text-[#6366f1] dark:text-indigo-400 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-2xs'>
-                <TrendingUp className='size-5' />
-              </div>
+              <span className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0 font-mono'>
+                {data.trend?.length ? `${data.trend.length} Sessions` : '3 Sessions'}
+              </span>
             </div>
-            <div className='pt-2'>
-              <ScoreTrendChart data={data.trend} height='250px' />
+            <div className='pt-1'>
+              <ScoreTrendChart data={data.trend} height='220px' />
             </div>
           </div>
         </Card>
 
-        <Card className='rounded-[28px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between h-full'>
-          <div>
-            <div className='flex items-center justify-between gap-3 pb-4 mb-3 border-b border-border/40'>
-              <div>
-                <h4 className='text-lg font-bold text-foreground tracking-tight'>
-                  Domain Competency
-                </h4>
-                <p className='text-xs text-muted-foreground font-normal mt-0.5'>
-                  Proficiency level by technical subject area
-                </p>
-              </div>
-              <div className='w-11 h-11 rounded-2xl bg-[#f3e8ff] dark:bg-purple-950/50 text-[#9333ea] dark:text-purple-400 border border-purple-200/60 flex items-center justify-center shrink-0 shadow-2xs'>
-                <Brain className='size-5' />
-              </div>
-            </div>
-            <div className='pt-2'>
-              <TopicAnalysis topics={data.skills} />
-            </div>
-          </div>
+        <Card className='rounded-[24px] border border-border/60 bg-card p-6 sm:p-7 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between h-full'>
+          <TopicAnalysis topics={data.skills} />
         </Card>
 
         {!compact && (

@@ -3,7 +3,8 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, ArrowRight, Code, Palette, Cloud, Compass, Lock, Gift } from 'lucide-react';
+import { Clock, ArrowRight, Code, Palette, Cloud, Compass, Lock, Gift, CheckCircle2, FileText, Plus, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { CandidateDashboardData } from '../services/dashboard.service';
 import { useTestCatalog } from '../hooks/useTestCatalog';
 import { useSubscriptionStore } from '@/store/subscription.store';
@@ -102,142 +103,138 @@ export function AvailableAssessmentSection({
       id: t.id,
       title: t.title,
       description: t.description || 'No description available.',
-      difficulty: t.difficulty || 'N/A',
-      durationMinutes: t.durationMinutes,
+      difficulty: t.difficulty || 'Mid',
+      durationMinutes: t.durationMinutes || 20,
       iconType: icons[index % 3],
       iconBg: iconBgList[index % 3],
-      badgeStyle: 'bg-[#f1f5f9] text-muted-foreground dark:bg-slate-800',
-      attemptCount: t.attemptCount,
-      maxAttempts: t.maxAttempts,
+      attemptCount: t.attemptCount ?? 0,
+      maxAttempts: t.maxAttempts ?? 2,
       canReattempt: t.canReattempt,
-      currentVersionNumber: t.currentVersionNumber,
+      currentVersionNumber: t.currentVersionNumber || 1,
       hasNewVersion: t.hasNewVersion,
+      questionCount: t.questionCount || 20,
     };
   });
 
   return (
     <div className='flex flex-col h-full space-y-4'>
       <div className='flex items-center justify-between gap-3 pb-1 shrink-0'>
-        <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
-          Available Assessments
-        </h3>
-        {compact && (
-          <button
-            type='button'
-            className='text-[#6366f1] dark:text-indigo-400 hover:underline font-semibold text-xs sm:text-sm flex items-center gap-1 transition-all'
-            onClick={() => router.push('/candidate/assessments')}
-          >
-            View All <ArrowRight className='size-3.5 ml-0.5' />
-          </button>
-        )}
+        <div>
+          <h3 className='text-xl sm:text-2xl font-bold text-foreground tracking-tight'>
+            Available Assessments
+          </h3>
+          <p className='text-xs text-muted-foreground mt-0.5'>
+            Your current assigned mock tests and practice materials
+          </p>
+        </div>
+        <Button
+          variant='outline'
+          size='sm'
+          className='text-xs font-semibold text-muted-foreground hover:text-foreground h-8 px-3 rounded-xl border border-border/60 hover:bg-muted/50 gap-1'
+          onClick={() => router.push('/candidate/assessments')}
+        >
+          <span>View All</span>
+          <Plus className='size-3.5' />
+        </Button>
       </div>
 
-      <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 flex-1 items-stretch'>
-        {actualTests.map((test: any) => {
-          const IconComponent =
-            test.iconType === 'palette' ? Palette : test.iconType === 'cloud' ? Cloud : Code;
-          const isLocked = !hasActivePlan || test.isLocked || test.canReattempt === false;
-
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 flex-1 items-stretch'>
+        {actualTests.slice(0, 1).map((test: any) => {
           const handleCardClick = () => {
             if (!hasActivePlan) {
               useSubscriptionStore.getState().openQuotaExhaustedModal();
               return;
             }
-            router.push(`/candidate/tests/${test.id}`);
+            router.push(`/candidate/tests/${test.id}/instructions`);
           };
 
           return (
             <div
               key={test.id}
-              onClick={handleCardClick}
-              className='rounded-[24px] border border-border/50 bg-card p-6 shadow-2xs hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all cursor-pointer group flex flex-col justify-between h-full min-h-[240px]'
+              className='rounded-[24px] border border-border/60 bg-card p-6 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between h-full min-h-[220px]'
             >
               <div>
-                <div className='flex items-center justify-between gap-2 mb-5'>
-                  <div
-                    className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105 ${test.iconBg}`}
-                  >
-                    <IconComponent className='size-5' />
-                  </div>
-                  <div className='flex items-center gap-1.5 flex-wrap justify-end'>
-                    {test.currentVersionNumber && (
-                      <span className='px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground border border-border/60'>
-                        V{test.currentVersionNumber}
-                      </span>
-                    )}
-                    {test.hasNewVersion && (
-                      <span className='px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'>
-                        New Version
-                      </span>
-                    )}
-                    {!hasActivePlan && (
-                      <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1'>
-                        <Lock className='size-3' /> Quota Exhausted
-                      </span>
-                    )}
-                    {hasActivePlan && isReferralUnlocked && (
-                      <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1'>
-                        <Gift className='size-3' /> Referral Reward
-                      </span>
-                    )}
-                    <span className='px-3.5 py-1 rounded-full text-[11px] font-extrabold bg-[#f1f5f9] dark:bg-slate-800/80 text-muted-foreground border border-border/40'>
-                      {test.difficulty}
-                    </span>
+                <div className='flex items-center justify-between gap-2 mb-4'>
+                  <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20'>
+                    FREE TIER
+                  </span>
+                  <div className='w-8 h-8 rounded-lg bg-muted/40 border border-border/60 flex items-center justify-center text-muted-foreground'>
+                    <FileText className='size-4' />
                   </div>
                 </div>
 
-                <h4 className='font-bold text-base text-foreground group-hover:text-[#6366f1] dark:group-hover:text-indigo-400 transition-colors tracking-tight truncate'>
+                <h4 className='font-bold text-base text-foreground tracking-tight'>
                   {test.title}
                 </h4>
-                <p className='text-xs text-muted-foreground/80 font-normal mt-2 line-clamp-2 leading-relaxed'>
-                  {test.description}
+
+                <p className='text-xs text-muted-foreground font-medium mt-1.5 flex items-center gap-2'>
+                  <span>Version: V{test.currentVersionNumber}</span>
+                  <span>•</span>
+                  <span>Difficulty: {test.difficulty}</span>
+                  <span>•</span>
+                  <span>Duration: {test.durationMinutes}m</span>
+                </p>
+
+                <p className='text-xs text-muted-foreground/80 font-normal mt-2'>
+                  {test.questionCount} description questions
                 </p>
               </div>
 
-              <div className='flex items-center justify-between pt-6 mt-4 border-t border-border/30'>
-                <div className='flex items-center gap-4'>
-                  <span className='flex items-center gap-1.5 text-xs font-semibold text-muted-foreground'>
-                    <Clock className='size-3.5 text-muted-foreground/80' />
-                    <span>{test.durationMinutes}m</span>
-                  </span>
-                  <span className='flex items-center gap-1 text-xs font-medium text-muted-foreground border-l border-border/50 pl-4'>
-                    Attempts: {(test as any).attemptCount || 0}/{(test as any).maxAttempts != null ? (test as any).maxAttempts : '∞'}
-                  </span>
-                </div>
-                {!hasActivePlan ? (
-                  <span className='text-xs font-bold text-indigo-600 flex items-center gap-1'>
-                    Unlock <ArrowRight className='size-3.5' />
-                  </span>
-                ) : (test as any).canReattempt !== false ? (
-                  <span className='text-[#6366f1] dark:text-indigo-400 group-hover:translate-x-1 transition-transform font-extrabold'>
-                    <ArrowRight className='size-4' />
-                  </span>
-                ) : null}
+              <div className='flex items-center justify-between pt-5 mt-4 border-t border-border/30'>
+                <span className='text-xs font-semibold text-muted-foreground'>
+                  Attempts: <strong className='text-foreground font-bold'>{test.attemptCount} / {test.maxAttempts}</strong>
+                </span>
+
+                <Button
+                  size='sm'
+                  onClick={handleCardClick}
+                  className='rounded-xl font-bold text-xs h-9 px-4 bg-[#6366f1] hover:bg-[#4f46e5] text-white shadow-sm transition-all'
+                >
+                  Launch Test
+                </Button>
               </div>
             </div>
           );
         })}
 
-        {/* 4th Card: Explore Catalog */}
+        {/* 2nd Card: Explore Catalog */}
         <div
-          onClick={() => router.push('/candidate/assessments')}
-          className='rounded-[24px] border border-border/50 bg-card p-6 shadow-2xs hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all cursor-pointer group flex flex-col items-center justify-center text-center h-full min-h-[240px]'
+          className='rounded-[24px] border border-border/60 bg-card p-6 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between h-full min-h-[220px]'
         >
-          <div className='w-14 h-14 rounded-full bg-[#f3e8ff] dark:bg-purple-950/40 text-[#6366f1] dark:text-indigo-400 flex items-center justify-center mb-4 border border-purple-200/50 dark:border-purple-800/40 group-hover:scale-110 transition-transform'>
-            <Compass className='size-6' />
+          <div>
+            <div className='flex items-center justify-between gap-2 mb-4'>
+              <span className='px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'>
+                DISCOVER
+              </span>
+              <div className='w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400'>
+                <CheckCircle2 className='size-4' />
+              </div>
+            </div>
+
+            <h4 className='font-bold text-base text-foreground tracking-tight'>
+              Explore Catalog
+            </h4>
+
+            <p className='text-xs text-muted-foreground font-normal mt-2 leading-relaxed'>
+              Explore new assessment catalogues to sharpen your skills. Unlocked catalog tracks spanning Infosys, Wipro, and Cognizant readiness mock evaluations.
+            </p>
           </div>
-          <h4 className='font-bold text-base text-foreground tracking-tight group-hover:text-[#6366f1] transition-colors'>
-            Explore Catalog
-          </h4>
-          <p className='text-xs text-muted-foreground font-normal mt-1.5 max-w-[200px] leading-relaxed'>
-            {(() => {
-              const displayCount = Math.floor(totalCount / 5) * 5;
-              if (displayCount >= 5) {
-                return `Discover ${displayCount}+ more assessments tailored to your skills.`;
-              }
-              return 'Discover more assessments tailored to your skills.';
-            })()}
-          </p>
+
+          <div className='flex items-center justify-between pt-5 mt-4 border-t border-border/30'>
+            <span className='text-xs font-semibold text-muted-foreground'>
+              Over 10+ Specialized Modules
+            </span>
+
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => router.push('/candidate/assessments')}
+              className='rounded-xl font-bold text-xs h-9 px-3.5 gap-1.5 border-border/70 hover:bg-muted text-foreground transition-all'
+            >
+              <span>Browse Catalog</span>
+              <ExternalLink className='size-3.5' />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
