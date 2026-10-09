@@ -64,7 +64,7 @@ export const options = {
       executor: "shared-iterations",
       vus: CONCURRENT_VUS,
       iterations: TOTAL_CANDIDATES,
-      maxDuration: "35m",
+      maxDuration: "60m",
     },
   },
   thresholds: {

@@ -1,0 +1,533 @@
+{
+  "testRunId": "coord-loadtest-mv0pqtft",
+  "targetCandidates": 5,
+  "concurrentVUs": 2,
+  "totalDurationMs": 288890,
+  "browserTelemetry": {
+    "startedAt": "2026-10-09T08:38:24.924Z",
+    "candidateEmail": "ui-candidate-1791535104927@skillitrix-loadtest.invalid",
+    "testInstanceId": "h2fto3sstq56c9b2mqd7ap8u",
+    "runs": [
+      {
+        "runIndex": 1,
+        "latencyMs": 34074,
+        "httpStatus": 200,
+        "summary": {
+          "total": 2,
+          "passed": 0,
+          "failed": 2
+        },
+        "timestamp": "2026-10-09T08:39:40.009Z"
+      },
+      {
+        "runIndex": 2,
+        "latencyMs": 6048,
+        "httpStatus": 200,
+        "summary": {
+          "total": 2,
+          "passed": 1,
+          "failed": 1
+        },
+        "timestamp": "2026-10-09T08:39:49.777Z"
+      },
+      {
+        "runIndex": 3,
+        "latencyMs": 2880,
+        "httpStatus": 200,
+        "summary": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "timestamp": "2026-10-09T08:39:56.366Z"
+      },
+      {
+        "runIndex": 4,
+        "latencyMs": 2944,
+        "httpStatus": 200,
+        "summary": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "timestamp": "2026-10-09T08:40:03.015Z"
+      }
+    ],
+    "submit": {
+      "latencyMs": 4675,
+      "httpStatus": 200,
+      "score": 67,
+      "verdict": "WRONG_ANSWER",
+      "timestamp": "2026-10-09T08:40:11.888Z"
+    },
+    "screenshots": [
+      "01-coding-workspace.png",
+      "02-run-code-completed.png",
+      "03-submit-solution-completed.png",
+      "04-assessment-submitted.png"
+    ],
+    "consoleErrors": [
+      "TypeError: Failed to execute 'exitFullscreen' on 'Document': Document not active\n    at submitAssessment (https://app.skillitrix.com/_next/static/chunks/049y7swkdrnyn.js:39:16607)\n    at async S (https://app.skillitrix.com/_next/static/chunks/049y7swkdrnyn.js:39:17967)",
+      "TypeError: Failed to execute 'exitFullscreen' on 'Document': Document not active\n    at Object.cleanupRuntime (https://app.skillitrix.com/_next/static/chunks/0g6qq335m-8-i.js:15:10545)\n    at https://app.skillitrix.com/_next/static/chunks/3yp4xt0w24cv6.js:7:51840\n    at iy (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:103212)\n    at uS (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:131251)\n    at ub (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130514)\n    at uw (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130712)\n    at ub (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130576)\n    at uw (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130646)\n    at ub (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130576)\n    at uw (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130646)"
+    ],
+    "status": "SUCCESS",
+    "completedAt": "2026-10-09T08:40:29.501Z",
+    "totalDurationMs": 124577
+  },
+  "k6Telemetry": {
+    "options": {
+      "summaryTrendStats": [
+        "avg",
+        "min",
+        "med",
+        "max",
+        "p(90)",
+        "p(95)"
+      ],
+      "summaryTimeUnit": "",
+      "noColor": false
+    },
+    "state": {
+      "isStdOutTTY": false,
+      "isStdErrTTY": false,
+      "testRunDurationMs": 286746.0534
+    },
+    "metrics": {
+      "iteration_duration": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(95)": 129201.37752,
+          "avg": 99151.49922,
+          "min": 70524.2795,
+          "med": 87054.1236,
+          "max": 129210.7073,
+          "p(90)": 129192.04774
+        }
+      },
+      "vus_max": {
+        "type": "gauge",
+        "contains": "default",
+        "values": {
+          "value": 2,
+          "min": 2,
+          "max": 2
+        }
+      },
+      "judge0_runtime_seconds": {
+        "type": "trend",
+        "contains": "default",
+        "values": {
+          "avg": 0.001428571428571429,
+          "min": 0.001,
+          "med": 0.001,
+          "max": 0.005,
+          "p(90)": 0.002,
+          "p(95)": 0.003
+        }
+      },
+      "candidates_registered": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 5,
+          "rate": 0.01743703161983955
+        }
+      },
+      "http_req_blocked": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "min": 0,
+          "med": 0,
+          "max": 159.2091,
+          "p(90)": 0,
+          "p(95)": 0,
+          "avg": 3.339170666666667
+        }
+      },
+      "iterations": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 5,
+          "rate": 0.01743703161983955
+        }
+      },
+      "http_req_duration": {
+        "values": {
+          "p(90)": 9464.54816,
+          "p(95)": 13344.82977999998,
+          "avg": 4867.673900000001,
+          "min": 1059.2749,
+          "med": 3122.6677,
+          "max": 34093.3525
+        },
+        "type": "trend",
+        "contains": "time"
+      },
+      "http_req_sending": {
+        "contains": "time",
+        "values": {
+          "avg": 0.4501319999999998,
+          "min": 0,
+          "med": 0.3333,
+          "max": 7.2204,
+          "p(90)": 0.5805200000000004,
+          "p(95)": 1.2016999999999998
+        },
+        "type": "trend"
+      },
+      "http_reqs": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 75,
+          "rate": 0.26155547429759324
+        }
+      },
+      "q2_runs_executed": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 22,
+          "rate": 0.07672293912729403
+        }
+      },
+      "total_judge0_executions": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 55,
+          "rate": 0.19180734781823505
+        }
+      },
+      "coding_run_latency_ms": {
+        "values": {
+          "avg": 5219.0888888888885,
+          "min": 2347,
+          "med": 3060,
+          "max": 34094,
+          "p(90)": 4034.4,
+          "p(95)": 20029.799999999996
+        },
+        "thresholds": {
+          "p(95)<15000": {
+            "ok": false
+          }
+        },
+        "type": "trend",
+        "contains": "default"
+      },
+      "assessments_finished": {
+        "values": {
+          "rate": 0.01743703161983955,
+          "count": 5
+        },
+        "type": "counter",
+        "contains": "default"
+      },
+      "data_sent": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "count": 33123,
+          "rate": 115.51335966878908
+        }
+      },
+      "http_req_receiving": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 2.4917093333333327,
+          "min": 0,
+          "med": 0,
+          "max": 38.3698,
+          "p(90)": 4.715440000000007,
+          "p(95)": 13.288359999999981
+        }
+      },
+      "q1_submits_executed": {
+        "contains": "default",
+        "values": {
+          "rate": 0.01743703161983955,
+          "count": 5
+        },
+        "type": "counter"
+      },
+      "assessment_start_latency_ms": {
+        "type": "trend",
+        "contains": "default",
+        "values": {
+          "med": 10563,
+          "max": 11227,
+          "p(90)": 11129.8,
+          "p(95)": 11178.4,
+          "avg": 10337.4,
+          "min": 9410
+        }
+      },
+      "http_2xx_responses": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 75,
+          "rate": 0.26155547429759324
+        }
+      },
+      "q1_runs_executed": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 23,
+          "rate": 0.08021034545126193
+        }
+      },
+      "http_req_failed": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "fails": 75,
+          "rate": 0,
+          "passes": 0
+        },
+        "thresholds": {
+          "rate<0.05": {
+            "ok": true
+          }
+        }
+      },
+      "http_req_duration{expected_response:true}": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(95)": 13344.82977999998,
+          "avg": 4867.673900000001,
+          "min": 1059.2749,
+          "med": 3122.6677,
+          "max": 34093.3525,
+          "p(90)": 9464.54816
+        }
+      },
+      "assessment_finish_latency_ms": {
+        "type": "trend",
+        "contains": "default",
+        "values": {
+          "avg": 4848.8,
+          "min": 4735,
+          "med": 4846,
+          "max": 4988,
+          "p(90)": 4934.4,
+          "p(95)": 4961.2
+        }
+      },
+      "assessments_started": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 5,
+          "rate": 0.01743703161983955
+        }
+      },
+      "judge0_success_rate": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "rate": 1,
+          "passes": 55,
+          "fails": 0
+        },
+        "thresholds": {
+          "rate>=0.95": {
+            "ok": true
+          }
+        }
+      },
+      "data_received": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "rate": 1551.7214438495216,
+          "count": 444950
+        }
+      },
+      "http_req_waiting": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "min": 1058.8718,
+          "med": 3099.1638,
+          "max": 34093.3525,
+          "p(90)": 9462.96856,
+          "p(95)": 13342.61390999998,
+          "avg": 4864.732058666665
+        }
+      },
+      "http_req_tls_handshaking": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 2.0669186666666666,
+          "min": 0,
+          "med": 0,
+          "max": 96.8763,
+          "p(90)": 0,
+          "p(95)": 0
+        }
+      },
+      "judge0_memory_kb": {
+        "type": "trend",
+        "contains": "default",
+        "values": {
+          "max": 19892,
+          "p(90)": 19556.8,
+          "p(95)": 19684,
+          "avg": 19279.183673469386,
+          "min": 18560,
+          "med": 19340
+        }
+      },
+      "vus": {
+        "values": {
+          "value": 1,
+          "min": 1,
+          "max": 2
+        },
+        "type": "gauge",
+        "contains": "default"
+      },
+      "q2_submits_executed": {
+        "contains": "default",
+        "values": {
+          "count": 5,
+          "rate": 0.01743703161983955
+        },
+        "type": "counter"
+      },
+      "http_req_connecting": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 0.9785413333333334,
+          "min": 0,
+          "med": 0,
+          "max": 41.0124,
+          "p(90)": 0,
+          "p(95)": 0
+        }
+      },
+      "candidate_completion_rate": {
+        "values": {
+          "rate": 1,
+          "passes": 5,
+          "fails": 0
+        },
+        "thresholds": {
+          "rate>=0.90": {
+            "ok": true
+          }
+        },
+        "type": "rate",
+        "contains": "default"
+      },
+      "coding_submit_latency_ms": {
+        "contains": "default",
+        "values": {
+          "avg": 3393.7,
+          "min": 3239,
+          "med": 3355,
+          "max": 3627,
+          "p(90)": 3577.5,
+          "p(95)": 3602.25
+        },
+        "thresholds": {
+          "p(95)<25000": {
+            "ok": true
+          }
+        },
+        "type": "trend"
+      }
+    },
+    "root_group": {
+      "name": "",
+      "path": "",
+      "id": "d41d8cd98f00b204e9800998ecf8427e",
+      "groups": [],
+      "checks": []
+    }
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-10-09T08:38:24.141Z",
+      "source": "ORCHESTRATOR",
+      "message": "Starting coordinated load test suite...",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:38:24.143Z",
+      "source": "ORCHESTRATOR",
+      "message": "Spawning visible candidate browser runner (headless=true)...",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:38:24.160Z",
+      "source": "ORCHESTRATOR",
+      "message": "Launching Grafana k6 engine with 5 candidates (2 VUs)...",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:39:40.009Z",
+      "source": "BROWSER_UI",
+      "message": "Candidate completed code execution run on Judge0",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:39:49.777Z",
+      "source": "BROWSER_UI",
+      "message": "Candidate completed code execution run on Judge0",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:39:56.365Z",
+      "source": "BROWSER_UI",
+      "message": "Candidate completed code execution run on Judge0",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:40:03.015Z",
+      "source": "BROWSER_UI",
+      "message": "Candidate completed code execution run on Judge0",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:40:11.887Z",
+      "source": "BROWSER_UI",
+      "message": "Candidate completed final code submission evaluation",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:40:29.646Z",
+      "source": "ORCHESTRATOR",
+      "message": "Browser runner process exited with code 0",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:43:13.030Z",
+      "source": "ORCHESTRATOR",
+      "message": "k6 load test process exited with code 99",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:43:13.031Z",
+      "source": "ORCHESTRATOR",
+      "message": "All test streams finished in 288.9s.",
+      "data": null
+    },
+    {
+      "timestamp": "2026-10-09T08:43:13.033Z",
+      "source": "ORCHESTRATOR",
+      "message": "Markdown executive report written to: C:\\Users\\Bhush\\Desktop\\intervu-ai\\load-tests\\reports\\qloax-200-coordinated-ui-loadtest-report.md",
+      "data": null
+    }
+  ]
+}

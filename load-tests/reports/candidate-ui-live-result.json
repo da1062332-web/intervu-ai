@@ -1,0 +1,79 @@
+{
+  "startedAt": "2026-10-09T09:29:27.325Z",
+  "candidateEmail": "ui-cand-1791538167330@skillitrix-loadtest.invalid",
+  "testInstanceId": "gf16njdn6m3tdml2k3izct7f",
+  "questions": [],
+  "runs": [
+    {
+      "questionNum": 1,
+      "runIndex": 1,
+      "latencyMs": 3449,
+      "httpStatus": 200,
+      "summary": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      },
+      "timestamp": "2026-10-09T09:30:15.165Z"
+    },
+    {
+      "questionNum": 1,
+      "runIndex": 2,
+      "latencyMs": 3095,
+      "httpStatus": 200,
+      "summary": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      },
+      "timestamp": "2026-10-09T09:30:22.298Z"
+    },
+    {
+      "questionNum": 1,
+      "runIndex": 3,
+      "latencyMs": 3105,
+      "httpStatus": 200,
+      "summary": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0
+      },
+      "timestamp": "2026-10-09T09:30:29.199Z"
+    },
+    {
+      "questionNum": 1,
+      "runIndex": 4,
+      "latencyMs": 3295,
+      "httpStatus": 200,
+      "summary": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0
+      },
+      "timestamp": "2026-10-09T09:30:36.292Z"
+    }
+  ],
+  "submits": [
+    {
+      "questionNum": 1,
+      "latencyMs": 3508,
+      "httpStatus": 200,
+      "score": 67,
+      "verdict": "WRONG_ANSWER",
+      "timestamp": "2026-10-09T09:30:44.117Z"
+    }
+  ],
+  "screenshots": [
+    "01-coding-workspace.png",
+    "02-run-code-completed.png",
+    "03-submit-solution-completed.png",
+    "04-assessment-submitted.png"
+  ],
+  "consoleErrors": [
+    "TypeError: Failed to execute 'exitFullscreen' on 'Document': Document not active\n    at submitAssessment (https://app.skillitrix.com/_next/static/chunks/049y7swkdrnyn.js:39:16607)\n    at async S (https://app.skillitrix.com/_next/static/chunks/049y7swkdrnyn.js:39:17967)",
+    "TypeError: Failed to execute 'exitFullscreen' on 'Document': Document not active\n    at Object.cleanupRuntime (https://app.skillitrix.com/_next/static/chunks/0g6qq335m-8-i.js:15:10545)\n    at https://app.skillitrix.com/_next/static/chunks/3yp4xt0w24cv6.js:7:51840\n    at iy (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:103212)\n    at uS (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:131251)\n    at ub (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130514)\n    at uw (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130712)\n    at ub (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130576)\n    at uw (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130646)\n    at ub (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130576)\n    at uw (https://app.skillitrix.com/_next/static/chunks/32gsf-wq03pfa.js:1:130646)"
+  ],
+  "status": "SUCCESS",
+  "completedAt": "2026-10-09T09:31:03.522Z",
+  "totalDurationMs": 96197
+}
