@@ -1,0 +1,380 @@
+{
+  "options": {
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "max",
+      "p(90)",
+      "p(95)"
+    ],
+    "summaryTimeUnit": "",
+    "noColor": false
+  },
+  "state": {
+    "isStdOutTTY": false,
+    "isStdErrTTY": false,
+    "testRunDurationMs": 175960.0716
+  },
+  "metrics": {
+    "judge0_success_rate": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "fails": 0,
+        "rate": 1,
+        "passes": 200
+      },
+      "thresholds": {
+        "rate>=0.95": {
+          "ok": true
+        }
+      }
+    },
+    "http_req_waiting": {
+      "values": {
+        "max": 25747.7012,
+        "p(90)": 9793.048850000001,
+        "p(95)": 10506.573745,
+        "avg": 4489.733849625006,
+        "min": 958.047,
+        "med": 2773.84385
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "min": 2,
+        "max": 25,
+        "value": 2
+      }
+    },
+    "candidates_registered": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 200,
+        "rate": 1.136621497032853
+      }
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 21048.321263499995,
+        "min": 14847.5474,
+        "med": 19194.668700000002,
+        "max": 40461.3209,
+        "p(90)": 28014.3785,
+        "p(95)": 32202.78693
+      }
+    },
+    "http_reqs": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "rate": 4.546485988131412,
+        "count": 800
+      }
+    },
+    "http_req_duration{expected_response:true}": {
+      "contains": "time",
+      "values": {
+        "p(95)": 10509.321524999998,
+        "avg": 4501.17628075,
+        "min": 959.0572,
+        "med": 2787.8854,
+        "max": 25748.8506,
+        "p(90)": 9796.83497
+      },
+      "type": "trend"
+    },
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 25,
+        "min": 25,
+        "max": 25
+      }
+    },
+    "judge0_runs_success": {
+      "values": {
+        "count": 200,
+        "rate": 1.136621497032853
+      },
+      "type": "counter",
+      "contains": "default"
+    },
+    "data_received": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "rate": 141558.37613332729,
+        "count": 24908622
+      }
+    },
+    "signup_latency_ms": {
+      "type": "trend",
+      "contains": "default",
+      "values": {
+        "avg": 1339.915,
+        "min": 960,
+        "med": 1232.5,
+        "max": 2879,
+        "p(90)": 1716.9999999999998,
+        "p(95)": 2086.1499999999987
+      }
+    },
+    "judge0_memory_kb": {
+      "type": "trend",
+      "contains": "default",
+      "values": {
+        "max": 55456,
+        "p(90)": 16516.8,
+        "p(95)": 17061,
+        "avg": 6653.82,
+        "min": 4672,
+        "med": 5024
+      }
+    },
+    "assessments_started": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 200,
+        "rate": 1.136621497032853
+      }
+    },
+    "start_test_latency_ms": {
+      "values": {
+        "max": 11381,
+        "p(90)": 10335.699999999999,
+        "p(95)": 10882,
+        "avg": 8903.54,
+        "min": 6311,
+        "med": 9098.5
+      },
+      "type": "trend",
+      "contains": "default"
+    },
+    "http_req_blocked": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 2.854116375,
+        "min": 0,
+        "med": 0,
+        "max": 217.2528,
+        "p(90)": 0,
+        "p(95)": 0
+      }
+    },
+    "http_req_sending": {
+      "contains": "time",
+      "values": {
+        "avg": 0.5086476250000003,
+        "min": 0,
+        "med": 0.55235,
+        "max": 2.7061,
+        "p(90)": 0.7325900000000001,
+        "p(95)": 0.7958549999999999
+      },
+      "type": "trend"
+    },
+    "http_req_failed": {
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 800
+      },
+      "thresholds": {
+        "rate<0.05": {
+          "ok": true
+        }
+      },
+      "type": "rate"
+    },
+    "http_req_tls_handshaking": {
+      "contains": "time",
+      "values": {
+        "p(95)": 0,
+        "avg": 1.6896485000000008,
+        "min": 0,
+        "med": 0,
+        "max": 107.5424,
+        "p(90)": 0
+      },
+      "type": "trend"
+    },
+    "data_sent": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 354990,
+        "rate": 2017.4463261584624
+      }
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 1800,
+        "fails": 0
+      }
+    },
+    "judge0_runs_attempted": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 200,
+        "rate": 1.136621497032853
+      }
+    },
+    "http_req_receiving": {
+      "values": {
+        "avg": 10.933783499999997,
+        "min": 0,
+        "med": 0,
+        "max": 559.4848,
+        "p(90)": 21.990000000000002,
+        "p(95)": 40.81041
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "questions_fetched": {
+      "values": {
+        "count": 200,
+        "rate": 1.136621497032853
+      },
+      "type": "counter",
+      "contains": "default"
+    },
+    "http_req_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 4501.17628075,
+        "min": 959.0572,
+        "med": 2787.8854,
+        "max": 25748.8506,
+        "p(90)": 9796.83497,
+        "p(95)": 10509.321524999998
+      }
+    },
+    "http_req_connecting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 0.973536,
+        "min": 0,
+        "med": 0,
+        "max": 49.6696,
+        "p(90)": 0,
+        "p(95)": 0
+      }
+    },
+    "iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 200,
+        "rate": 1.136621497032853
+      }
+    },
+    "judge0_execution_latency_ms": {
+      "contains": "default",
+      "values": {
+        "med": 1903.5,
+        "max": 25751,
+        "p(90)": 14616.3,
+        "p(95)": 18375.199999999983,
+        "avg": 4552.075,
+        "min": 984
+      },
+      "thresholds": {
+        "p(95)<10000": {
+          "ok": false
+        }
+      },
+      "type": "trend"
+    }
+  },
+  "root_group": {
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": [],
+    "checks": [
+        {
+          "id": "29255cb1e890b140d065e213c73b142f",
+          "passes": 200,
+          "fails": 0,
+          "name": "Candidate signup 200/201",
+          "path": "::Candidate signup 200/201"
+        },
+        {
+          "name": "Access token received",
+          "path": "::Access token received",
+          "id": "eaff7881aa9ec97c57f53218fa048747",
+          "passes": 200,
+          "fails": 0
+        },
+        {
+          "fails": 0,
+          "name": "Start assessment 200",
+          "path": "::Start assessment 200",
+          "id": "00e4951d6d7e76f4e38953ec730a799a",
+          "passes": 200
+        },
+        {
+          "name": "Test instance ID returned",
+          "path": "::Test instance ID returned",
+          "id": "4aca934758b4e5feb5637397e1dd59ea",
+          "passes": 200,
+          "fails": 0
+        },
+        {
+          "path": "::Get assessment snapshot 200",
+          "id": "c808a6faef872dea4013d0a2af599a05",
+          "passes": 200,
+          "fails": 0,
+          "name": "Get assessment snapshot 200"
+        },
+        {
+          "name": "Judge0 Run HTTP 200 OK",
+          "path": "::Judge0 Run HTTP 200 OK",
+          "id": "bd6db8221d38fb0534ec760e11ba8a8a",
+          "passes": 200,
+          "fails": 0
+        },
+        {
+          "name": "Judge0 Execution success flag",
+          "path": "::Judge0 Execution success flag",
+          "id": "bba91238597d53ea0ddb2b0c7d24cd47",
+          "passes": 200,
+          "fails": 0
+        },
+        {
+          "id": "bed5d1cb8c094bce073a1a116e0dddac",
+          "passes": 200,
+          "fails": 0,
+          "name": "Judge0 Public test results returned",
+          "path": "::Judge0 Public test results returned"
+        },
+        {
+          "name": "Judge0 Sandbox execution completed",
+          "path": "::Judge0 Sandbox execution completed",
+          "id": "35f0ffbf799646d6ea4a1452dd7d9c8a",
+          "passes": 200,
+          "fails": 0
+        }
+      ]
+  }
+}

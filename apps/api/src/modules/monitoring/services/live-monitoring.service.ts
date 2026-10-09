@@ -13,6 +13,13 @@ import {
 } from "../constants/monitoring.constants";
 import { CandidateHeartbeatDto, QueryCandidatesDto } from "../dto/monitoring.dto";
 
+// Upper bound on one snapshot page; larger requests are clamped (not rejected) so
+// stale dashboard bundles asking for limit=10000 keep working.
+const MAX_SNAPSHOT_PAGE_SIZE = 500;
+// Needs-attention candidates are returned in full (up to this cap) independent of
+// pagination, so the attention queue still sees candidates on other pages.
+const MAX_NEEDS_ATTENTION_ITEMS = 200;
+
 export interface CandidateLiveRecord {
   assessmentId: string;
   attemptId: string;
@@ -50,6 +57,7 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new AppLogger({ name: "LiveMonitoringService" });
   private watchdogInterval: NodeJS.Timeout | null = null;
   private lastDbFallbackScanAt = 0;
+  private readonly inFlightSnapshots = new Map<string, Promise<any>>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -892,9 +900,26 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
    * Builds the comprehensive live assessment snapshot with server-side filtering/pagination
    */
   /**
-   * Builds the comprehensive live assessment snapshot with server-side filtering/pagination
+   * Builds the comprehensive live assessment snapshot with server-side filtering/pagination.
+   * Identical concurrent requests (several admin tabs, overlapping polls) share one
+   * build instead of each re-running the heavy attempts query.
    */
   async getAssessmentLiveSnapshot(
+    assessmentId: string,
+    query: QueryCandidatesDto,
+  ): Promise<any> {
+    const key = JSON.stringify([assessmentId, query]);
+    const existing = this.inFlightSnapshots.get(key);
+    if (existing) return existing;
+
+    const pending = this.buildAssessmentLiveSnapshot(assessmentId, query).finally(() => {
+      this.inFlightSnapshots.delete(key);
+    });
+    this.inFlightSnapshots.set(key, pending);
+    return pending;
+  }
+
+  private async buildAssessmentLiveSnapshot(
     assessmentId: string,
     query: QueryCandidatesDto,
   ): Promise<any> {
@@ -1293,9 +1318,28 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     });
 
     // 6. Pagination
-    const page = query.page && query.page > 0 ? query.page : 1;
-    const limit = query.limit && query.limit > 0 ? query.limit : 50;
+    // Query params arrive as strings (no class-validator transform on this route)
+    const page = Math.max(1, Math.floor(Number(query.page)) || 1);
+    const limit = Math.min(
+      MAX_SNAPSHOT_PAGE_SIZE,
+      Math.max(1, Math.floor(Number(query.limit)) || 50),
+    );
     const paginatedItems = filtered.slice((page - 1) * limit, page * limit);
+
+    const needsAttention = candidateRecords
+      .filter((c) => {
+        if (!c.isNeedsAttention) return false;
+        const isNaturalTimeExpired =
+          c.submissionReason === "TIME_EXPIRED" ||
+          c.submissionReason === "TIMEOUT" ||
+          c.incidentReasons?.includes("TIME_EXPIRED") ||
+          c.incidentReasons?.includes("Time Expired");
+        return !(
+          (c.status === "AUTO_SUBMITTED" || c.status === "SUBMITTED") &&
+          isNaturalTimeExpired
+        );
+      })
+      .slice(0, MAX_NEEDS_ATTENTION_ITEMS);
 
     // 7. Get alerts and system health
     const [alerts, platformHealth] = await Promise.all([
@@ -1332,6 +1376,7 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
         totalPages: Math.ceil(filtered.length / limit),
       },
       candidates: paginatedItems,
+      needsAttention,
       alerts,
       systemHealth: platformHealth,
     };

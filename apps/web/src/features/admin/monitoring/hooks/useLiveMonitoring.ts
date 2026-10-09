@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient, buildUrl, getApiBaseUrl } from '@/services/api/client';
 import { normalizeApiError } from '@/services/api/error';
-import { useSessionStore } from '@/store/session.store';
 import { toast } from 'sonner';
 
 export interface CandidateItem {
@@ -114,8 +113,21 @@ export interface UseLiveMonitoringOptions {
   endDate?: string;
 }
 
+// Snapshot polling: every 30s while SSE is live; otherwise start at 5s and double on
+// each consecutive failure up to 30s, so an unhealthy API isn't hammered.
+const CONNECTED_SYNC_MS = 30000;
+const FALLBACK_POLL_BASE_MS = 5000;
+const FALLBACK_POLL_MAX_MS = 30000;
+const SSE_RECONNECT_MAX_MS = 30000;
+
+const isMonitoredCandidate = (c: CandidateItem) =>
+  c.candidateRole !== 'ADMIN' &&
+  c.candidateRole !== 'PLAN_MANAGER' &&
+  !c.candidateEmail?.toLowerCase().includes('admin@intervu.ai');
+
 export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitoringOptions = {}) {
   const [candidates, setCandidates] = useState<CandidateItem[]>([]);
+  const [needsAttention, setNeedsAttention] = useState<CandidateItem[]>([]);
   const [summary, setSummary] = useState<MonitoringSummary>({
     total: 0,
     active: 0,
@@ -140,6 +152,9 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const optionsRef = useRef(options);
   const heartbeatBufferRef = useRef<Map<string, any>>(new Map());
+  const inFlightRef = useRef(0);
+  const requestSeqRef = useRef(0);
+  const pollFailuresRef = useRef(0);
 
   useEffect(() => {
     optionsRef.current = options;
@@ -148,6 +163,10 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
   // Fetch initial or refreshed snapshot
   const fetchSnapshot = useCallback(async (isBackground = false) => {
     if (!assessmentId) return;
+    // Background polls never stack: skip if a request is still running
+    if (isBackground && inFlightRef.current > 0) return;
+    const seq = ++requestSeqRef.current;
+    inFlightRef.current++;
     if (!isBackground) {
       setIsRefetching(true);
     }
@@ -170,14 +189,11 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         `/admin/monitoring/assessments/${assessmentId}/snapshot?${queryParams.toString()}`,
       );
 
-      if (res) {
-        const filteredCandidates = (res.candidates || []).filter(
-          (c: CandidateItem) =>
-            c.candidateRole !== 'ADMIN' &&
-            c.candidateRole !== 'PLAN_MANAGER' &&
-            !c.candidateEmail?.toLowerCase().includes('admin@intervu.ai'),
-        );
-        setCandidates(filteredCandidates);
+      pollFailuresRef.current = 0;
+      // A newer request (e.g. after a filter change) supersedes this response
+      if (res && seq === requestSeqRef.current) {
+        setCandidates((res.candidates || []).filter(isMonitoredCandidate));
+        setNeedsAttention((res.needsAttention || []).filter(isMonitoredCandidate));
         if (res.summary) setSummary(res.summary);
         if (res.alerts) setAlerts(res.alerts);
         if (res.systemHealth) setSystemHealth(res.systemHealth);
@@ -190,14 +206,18 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         normalized.status === 0 ||
         normalized.status === 408 ||
         (normalized.status >= 500 && normalized.status < 600);
+      if (isTransient) pollFailuresRef.current++;
 
       // Transient/network errors self-resolve on the next poll cycle; skip logging to avoid noise.
       if (!isTransient) {
         console.error('Failed fetching assessment live snapshot', err);
       }
     } finally {
-      setIsLoading(false);
-      setIsRefetching(false);
+      inFlightRef.current--;
+      if (seq === requestSeqRef.current) {
+        setIsLoading(false);
+        setIsRefetching(false);
+      }
     }
   }, [assessmentId]);
 
@@ -451,9 +471,11 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         const p = data.payload || data;
         if (!p || !p.attemptId) return;
         setCandidates((prev) => (prev || []).filter((c) => c && c.attemptId !== p.attemptId));
+        setNeedsAttention((prev) => prev.filter((c) => c.attemptId !== p.attemptId));
       } else if (data.type === 'RECOVERY_RESUME_AUTHORIZED') {
         const p = data.payload || data;
         if (!p || !p.attemptId) return;
+        setNeedsAttention((prev) => prev.filter((c) => c.attemptId !== p.attemptId));
         setCandidates((prev) =>
           (prev || []).map((c) =>
             c && c.attemptId === p.attemptId
@@ -478,20 +500,36 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
       }
     };
 
-    const connectSse = () => {
+    const scheduleReconnect = () => {
+      // Exponential backoff reconnect with 30s maximum cap
+      const delay = Math.min(1000 * Math.pow(1.5, retryCount), SSE_RECONNECT_MAX_MS);
+      retryCount++;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      reconnectTimeoutRef.current = setTimeout(() => {
+        connectSse();
+      }, delay);
+    };
+
+    const connectSse = async () => {
       if (isCancelled) return;
       try {
-        const token =
-          useSessionStore.getState().accessToken ||
-          localStorage.getItem('token') ||
-          '';
+        // EventSource can't send an Authorization header, so exchange the session
+        // for a single-use stream ticket instead of putting the JWT in the URL.
+        const { ticket } = await apiClient.request<{ ticket: string }>(
+          '/admin/monitoring/stream-ticket',
+          { method: 'POST' },
+        );
+        if (isCancelled) return;
+
         const sseUrl = buildUrl(
           getApiBaseUrl(),
           `/admin/monitoring/assessments/${assessmentId}/live-stream`,
-          token ? { token } : undefined,
+          { ticket },
         );
 
-        const es = new EventSource(sseUrl, { withCredentials: true });
+        const es = new EventSource(sseUrl);
         eventSourceRef.current = es;
 
         es.onopen = () => {
@@ -518,19 +556,12 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
           try {
             es.close();
           } catch (_) {}
-
-          // Exponential backoff reconnect with 10s maximum cap
-          const delay = Math.min(1000 * Math.pow(1.5, retryCount), 10000);
-          retryCount++;
-          if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current);
-          }
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connectSse();
-          }, delay);
+          scheduleReconnect();
         };
       } catch (err) {
-        if (!isCancelled) setIsConnected(false);
+        if (isCancelled) return;
+        setIsConnected(false);
+        scheduleReconnect();
       }
     };
 
@@ -552,22 +583,35 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
     };
   }, [assessmentId]);
 
-  // High-reliability adaptive sync:
-  // If SSE is connected, do periodic background sync every 30s.
-  // If SSE is reconnecting/disconnected, fallback poll every 5s!
+  // Adaptive background sync: 30s while SSE is connected; when it isn't, poll from
+  // 5s and back off on consecutive failures. Each poll is scheduled only after the
+  // previous one settles, so slow responses can't pile up.
   useEffect(() => {
     if (!assessmentId) return;
 
-    const intervalMs = isConnected ? 30000 : 5000;
-    const syncInterval = setInterval(() => {
-      fetchSnapshot(true);
-    }, intervalMs);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
-    return () => clearInterval(syncInterval);
+    const schedule = () => {
+      const delay = isConnected
+        ? CONNECTED_SYNC_MS
+        : Math.min(FALLBACK_POLL_BASE_MS * Math.pow(2, pollFailuresRef.current), FALLBACK_POLL_MAX_MS);
+      timer = setTimeout(async () => {
+        await fetchSnapshot(true);
+        if (!cancelled) schedule();
+      }, delay);
+    };
+    schedule();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [assessmentId, isConnected, fetchSnapshot]);
 
   return {
     candidates,
+    needsAttention,
     summary,
     alerts,
     systemHealth,

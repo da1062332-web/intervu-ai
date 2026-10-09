@@ -4,6 +4,7 @@ import { LiveMonitoringService } from "../services/live-monitoring.service";
 import { AttemptRecoveryService } from "../services/attempt-recovery.service";
 import { LiveAlertService } from "../services/live-alert.service";
 import { CodingMonitoringService } from "../services/coding-monitoring.service";
+import { MonitoringStreamTicketService } from "../services/monitoring-stream-ticket.service";
 import { PrismaService } from "../../../prisma/prisma.service";
 
 describe("LiveMonitoringController - Bulk Actions", () => {
@@ -37,6 +38,7 @@ describe("LiveMonitoringController - Bulk Actions", () => {
         { provide: AttemptRecoveryService, useValue: recoveryService },
         { provide: LiveAlertService, useValue: {} },
         { provide: CodingMonitoringService, useValue: {} },
+        { provide: MonitoringStreamTicketService, useValue: {} },
         { provide: PrismaService, useValue: {} },
       ],
     }).compile();

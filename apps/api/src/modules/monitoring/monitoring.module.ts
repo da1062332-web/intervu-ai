@@ -9,6 +9,9 @@ import { LiveAlertService } from "./services/live-alert.service";
 import { SystemHealthService } from "./services/system-health.service";
 import { ProctoringMonitoringService } from "./services/proctoring-monitoring.service";
 import { CodingMonitoringService } from "./services/coding-monitoring.service";
+import { MonitoringEventBusService } from "./services/monitoring-event-bus.service";
+import { MonitoringStreamTicketService } from "./services/monitoring-stream-ticket.service";
+import { StreamTicketGuard } from "./guards/stream-ticket.guard";
 import { LiveMonitoringController } from "./controllers/live-monitoring.controller";
 import { MonitoringSseController } from "./controllers/monitoring-sse.controller";
 import { CandidateTelemetryController } from "./controllers/candidate-telemetry.controller";
@@ -22,6 +25,9 @@ import { CandidateTelemetryController } from "./controllers/candidate-telemetry.
     SystemHealthService,
     ProctoringMonitoringService,
     CodingMonitoringService,
+    MonitoringEventBusService,
+    MonitoringStreamTicketService,
+    StreamTicketGuard,
   ],
   controllers: [
     LiveMonitoringController,

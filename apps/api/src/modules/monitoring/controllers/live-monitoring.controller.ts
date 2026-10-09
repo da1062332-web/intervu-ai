@@ -27,6 +27,7 @@ import { LiveMonitoringService } from "../services/live-monitoring.service";
 import { AttemptRecoveryService } from "../services/attempt-recovery.service";
 import { LiveAlertService } from "../services/live-alert.service";
 import { CodingMonitoringService } from "../services/coding-monitoring.service";
+import { MonitoringStreamTicketService } from "../services/monitoring-stream-ticket.service";
 import {
   AuthorizeResumeDto,
   ExtendTimeDto,
@@ -52,6 +53,7 @@ export class LiveMonitoringController {
     private readonly recoveryService: AttemptRecoveryService,
     private readonly alertService: LiveAlertService,
     private readonly codingService: CodingMonitoringService,
+    private readonly streamTicketService: MonitoringStreamTicketService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -196,6 +198,13 @@ export class LiveMonitoringController {
         };
       }),
     };
+  }
+
+  @Post("stream-ticket")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Issue a short-lived, single-use ticket for opening the live SSE stream" })
+  async issueStreamTicket(@CurrentUser() user: AuthUser) {
+    return this.streamTicketService.issue(user);
   }
 
   @Get("assessments/:id/snapshot")

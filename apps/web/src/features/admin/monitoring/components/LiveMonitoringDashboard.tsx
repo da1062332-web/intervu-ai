@@ -19,6 +19,8 @@ import { BulkActionBar } from './BulkActionBar';
 import { apiClient } from '@/services/api/client';
 import { toast } from 'sonner';
 
+const PAGE_SIZE = 50;
+
 interface LiveMonitoringDashboardProps {
   assessmentId: string;
   assessmentName?: string;
@@ -30,7 +32,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
   const searchParams = useSearchParams();
   const paramDate = searchParams?.get('dateFilter') as 'today' | 'yesterday' | 'custom' | 'all' | null;
   const initialDateFilter: 'today' | 'yesterday' | 'custom' | 'all' =
-    paramDate && ['today', 'yesterday', 'custom', 'all'].includes(paramDate) ? paramDate : 'all';
+    paramDate && ['today', 'yesterday', 'custom', 'all'].includes(paramDate) ? paramDate : 'today';
   const initialStartDate = searchParams?.get('startDate') || '';
   const initialEndDate = searchParams?.get('endDate') || '';
 
@@ -52,6 +54,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
 
   const {
     candidates,
+    needsAttention,
     summary,
     alerts,
     systemHealth,
@@ -68,7 +71,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
     startDate: dateFilter === 'custom' && startDate ? startDate : undefined,
     endDate: dateFilter === 'custom' && endDate ? endDate : undefined,
     page,
-    limit: 10000,
+    limit: PAGE_SIZE,
   });
 
   const handleStatusFilter = (status: string) => {
@@ -247,6 +250,14 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
     }
   };
 
+  // The table is paginated, so the attention queue draws on the server's full
+  // needs-attention list, with live (SSE-updated) rows from the current page winning.
+  const attentionPool = useMemo(() => {
+    const byId = new Map(needsAttention.map((c) => [c.attemptId, c]));
+    for (const c of candidates) byId.set(c.attemptId, c);
+    return Array.from(byId.values());
+  }, [needsAttention, candidates]);
+
   const liveSelectedCandidate = useMemo(() => {
     if (!selectedCandidate) return null;
     return candidates.find((c) => c.attemptId === selectedCandidate.attemptId) || selectedCandidate;
@@ -286,7 +297,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
                 className='h-8 px-2.5 text-[11px] gap-1.5 border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/20 font-medium'
               >
                 <span className='size-2 rounded-full bg-amber-500' />
-                POLLING (5s)
+                POLLING
               </Badge>
             )}
             <Button
@@ -420,7 +431,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
 
       {/* Needs Attention Priority Queue */}
       <NeedsAttentionQueue
-        candidates={candidates}
+        candidates={attentionPool}
         onSelectCandidate={handleInspect}
         onOpenRecovery={handleOpenRecovery}
         selectedAttemptIds={selectedAttemptIds}

@@ -183,7 +183,7 @@ export class QueryCandidatesDto {
   @IsNumber()
   page?: number;
 
-  @ApiPropertyOptional({ default: 50 })
+  @ApiPropertyOptional({ default: 50, maximum: 500, description: "Page size; values above 500 are clamped" })
   @IsOptional()
   @IsNumber()
   limit?: number;
