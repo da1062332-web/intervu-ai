@@ -15,6 +15,7 @@ import { AlertCenter } from './AlertCenter';
 import { CandidateLiveTable } from './CandidateLiveTable';
 import { CandidateDetailDrawer } from './CandidateDetailDrawer';
 import { RecoveryCenterModal } from './RecoveryCenterModal';
+import { CandidateResultModal } from './CandidateResultModal';
 import { BulkActionBar } from './BulkActionBar';
 import { apiClient } from '@/services/api/client';
 import { toast } from 'sonner';
@@ -47,6 +48,8 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [recoveryCandidate, setRecoveryCandidate] = useState<CandidateItem | null>(null);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
+  const [resultCandidate, setResultCandidate] = useState<CandidateItem | null>(null);
+  const [isResultOpen, setIsResultOpen] = useState(false);
 
   // Multi-selection state for bulk operations
   const [selectedAttemptIds, setSelectedAttemptIds] = useState<Set<string>>(new Set());
@@ -87,6 +90,11 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
   const handleOpenRecovery = (candidate: CandidateItem) => {
     setRecoveryCandidate(candidate);
     setIsRecoveryOpen(true);
+  };
+
+  const handleViewResult = (candidate: CandidateItem) => {
+    setResultCandidate(candidate);
+    setIsResultOpen(true);
   };
 
   // Selection handlers
@@ -462,6 +470,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
         onSortChange={() => {}}
         onSelectCandidate={handleInspect}
         onOpenRecovery={handleOpenRecovery}
+        onViewResult={handleViewResult}
         activeStatusFilter={statusFilter}
         searchQuery={search}
         isLoading={isLoading}
@@ -488,6 +497,7 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         onOpenRecovery={handleOpenRecovery}
+        onViewResult={handleViewResult}
         onActionComplete={() => refetch()}
       />
 
@@ -497,6 +507,16 @@ export function LiveMonitoringDashboard({ assessmentId, assessmentName }: LiveMo
         isOpen={isRecoveryOpen}
         onClose={() => setIsRecoveryOpen(false)}
         onRecoveryComplete={() => refetch()}
+      />
+
+      {/* Candidate Result Popup Modal */}
+      <CandidateResultModal
+        candidate={resultCandidate}
+        isOpen={isResultOpen}
+        onClose={() => {
+          setIsResultOpen(false);
+          setResultCandidate(null);
+        }}
       />
 
     </div>

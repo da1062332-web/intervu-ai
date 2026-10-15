@@ -14,12 +14,22 @@ import { PerformanceInsightsDashboard } from '../components/PerformanceInsightsD
 import { resultApi } from '../api/results.api';
 import { useSubscriptionStore } from '@/store/subscription.store';
 
-export const ResultDetailsPage = () => {
+export interface ResultDetailsPageProps {
+  attemptId?: string;
+  isModal?: boolean;
+  onClose?: () => void;
+}
+
+export const ResultDetailsPage: React.FC<ResultDetailsPageProps> = ({
+  attemptId: propAttemptId,
+  isModal = false,
+  onClose,
+}) => {
   const params = useParams();
-  const attemptId = params?.attemptId as string;
+  const attemptId = propAttemptId || (params?.attemptId as string);
   const router = useRouter();
   const pathname = usePathname();
-  const isAdminRoute = pathname?.startsWith('/admin');
+  const isAdminRoute = Boolean(isModal) || pathname?.startsWith('/admin');
   const navigate = router.push;
   const entitlements = useSubscriptionStore((state) => state.entitlements);
   const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
@@ -213,7 +223,13 @@ export const ResultDetailsPage = () => {
 
   if (detailsLoading || isError || !result) {
     return (
-      <div className='min-h-screen flex flex-col items-center justify-center bg-background px-4'>
+      <div
+        className={
+          isModal
+            ? 'py-16 flex flex-col items-center justify-center bg-background px-4'
+            : 'min-h-screen flex flex-col items-center justify-center bg-background px-4'
+        }
+      >
         <div className='bg-card text-card-foreground rounded-2xl shadow-xs border border-border/60 p-10 flex flex-col items-center max-w-md w-full text-center'>
           <div className='relative mb-6'>
             <div className='w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin' />
@@ -251,21 +267,41 @@ export const ResultDetailsPage = () => {
   return (
     <div
       id='pdf-content'
-      className='container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'
+      className={
+        isModal
+          ? 'w-full space-y-6 animate-fade-in-up pb-6'
+          : 'container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 animate-fade-in-up'
+      }
     >
       {/* 1. Top Navigation & Action Buttons */}
       <div
         className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden'
         data-html2canvas-ignore='true'
       >
-        <Button
-          variant='ghost'
-          className='text-muted-foreground hover:text-foreground font-semibold text-xs flex items-center gap-2 p-0 hover:bg-transparent'
-          onClick={() => navigate(isAdminRoute ? '/admin/dashboard' : '/candidate/dashboard')}
-        >
-          <ArrowLeft className='w-4 h-4' />
-          <span>Back to Dashboard</span>
-        </Button>
+        {!isModal ? (
+          <Button
+            variant='ghost'
+            className='text-muted-foreground hover:text-foreground font-semibold text-xs flex items-center gap-2 p-0 hover:bg-transparent'
+            onClick={() => navigate(isAdminRoute ? '/admin/dashboard' : '/candidate/dashboard')}
+          >
+            <ArrowLeft className='w-4 h-4' />
+            <span>Back to Dashboard</span>
+          </Button>
+        ) : (
+          <div className='flex items-center gap-2'>
+            {onClose && (
+              <Button
+                variant='ghost'
+                size='sm'
+                className='text-muted-foreground hover:text-foreground font-semibold text-xs flex items-center gap-1.5'
+                onClick={onClose}
+              >
+                <ArrowLeft className='w-3.5 h-3.5' />
+                <span>Back to Monitoring</span>
+              </Button>
+            )}
+          </div>
+        )}
 
         <div className='flex flex-wrap items-center gap-3 w-full sm:w-auto'>
           <Button
@@ -387,7 +423,7 @@ export const ResultDetailsPage = () => {
       </div>
 
       {/* 3. Performance Insights Dashboard */}
-      <PerformanceInsightsDashboard attemptId={attemptId!} resultDetails={result} />
+      <PerformanceInsightsDashboard attemptId={attemptId!} resultDetails={result} isAdmin={isAdminRoute} />
 
       {/* 4. Print Footer */}
       <div

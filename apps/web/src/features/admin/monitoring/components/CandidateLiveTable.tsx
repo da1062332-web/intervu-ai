@@ -19,6 +19,7 @@ import {
   Plus,
   X,
   Trash2,
+  FileText,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -99,6 +100,7 @@ interface CandidateLiveTableProps {
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   onSelectCandidate: (candidate: CandidateItem) => void;
   onOpenRecovery: (candidate: CandidateItem) => void;
+  onViewResult?: (candidate: CandidateItem) => void;
   activeStatusFilter: string;
   searchQuery: string;
   isLoading?: boolean;
@@ -117,6 +119,7 @@ export function CandidateLiveTable({
   onStatusFilterChange,
   onSelectCandidate,
   onOpenRecovery,
+  onViewResult,
   activeStatusFilter,
   searchQuery,
   isLoading = false,
@@ -522,6 +525,25 @@ export function CandidateLiveTable({
                             +5m
                           </Button>
                         ) : null}
+
+                        {isTerminal && (
+                          <Button
+                            size='sm'
+                            variant='outline'
+                            onClick={() => {
+                              if (onViewResult) {
+                                onViewResult(c);
+                              } else {
+                                window.open(`/admin/results/${c.attemptId}`, '_blank');
+                              }
+                            }}
+                            className='h-7 text-xs gap-1 px-2.5 font-medium text-primary border-primary/30 hover:bg-primary/10 hover:text-primary transition-colors'
+                            title='View detailed candidate result and score report'
+                          >
+                            <FileText className='size-3' />
+                            View Result
+                          </Button>
+                        )}
 
                         <Button
                           size='sm'

@@ -44,6 +44,7 @@ interface CandidateDetailDrawerProps {
   onClose: () => void;
   onOpenRecovery: (candidate: CandidateItem) => void;
   onActionComplete?: () => void;
+  onViewResult?: (candidate: CandidateItem) => void;
 }
 
 export function CandidateDetailDrawer({
@@ -52,6 +53,7 @@ export function CandidateDetailDrawer({
   onClose,
   onOpenRecovery,
   onActionComplete,
+  onViewResult,
 }: CandidateDetailDrawerProps) {
   const [activeTab, setActiveTab] = useState<
     | 'overview'
@@ -450,6 +452,29 @@ export function CandidateDetailDrawer({
             >
               <StopCircle className='size-3' />
               Force submit…
+            </Button>
+          </div>
+        )}
+        {isDone && (
+          <div className='flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-2.5 border-b bg-muted/20'>
+            <span className='text-[11px] font-medium text-muted-foreground'>
+              Assessment concluded ({candidate.status})
+            </span>
+            <Button
+              size='sm'
+              variant='outline'
+              onClick={() => {
+                if (onViewResult) {
+                  onClose();
+                  onViewResult(candidate);
+                } else {
+                  window.open(`/admin/results/${candidate.attemptId}`, '_blank');
+                }
+              }}
+              className='h-7 text-xs gap-1.5 px-3 font-semibold text-primary border-primary/30 hover:bg-primary/10 hover:text-primary transition-colors'
+            >
+              <FileText className='size-3.5' />
+              View Full Result &amp; Analytics
             </Button>
           </div>
         )}

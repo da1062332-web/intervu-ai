@@ -13,26 +13,36 @@ import { ShareableResultCard } from './ShareableResultCard';
 import { HiringEvaluationCard } from '@/features/candidate/results/components/HiringEvaluationCard';
 import { Activity, BarChart3, Clock, Compass, Share2, Sparkles, Trophy, Lock, Zap } from 'lucide-react';
 import { useSubscriptionStore } from '@/store/subscription.store';
+import { useAuthStore } from '@/store/auth.store';
 
 interface Props {
   attemptId: string;
   resultDetails?: any;
   onShareClick?: () => void;
+  isAdmin?: boolean;
 }
 
-export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resultDetails }) => {
+export const PerformanceInsightsDashboard: React.FC<Props> = ({ attemptId, resultDetails, isAdmin }) => {
   const { data, isLoading, isError } = usePerformanceDashboard(attemptId);
   const entitlements = useSubscriptionStore((state) => state.entitlements);
   const openPricingModal = useSubscriptionStore((state) => state.openPricingModal);
+  const user = useAuthStore((state) => state.user);
+
+  const isUserAdmin =
+    Boolean(isAdmin) ||
+    user?.role === 'ADMIN' ||
+    user?.role === 'PLAN_MANAGER' ||
+    (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin'));
 
   const rawFeats = (entitlements?.features as any) || {};
   const isProOrTeams = entitlements?.plan === 'PRO' || entitlements?.plan === 'TEAMS';
   const hasDetailedAnalytics =
-    typeof rawFeats.detailedAnalytics === 'boolean'
+    isUserAdmin ||
+    (typeof rawFeats.detailedAnalytics === 'boolean'
       ? rawFeats.detailedAnalytics
       : typeof rawFeats.detailed_analytics === 'boolean'
         ? rawFeats.detailed_analytics
-        : isProOrTeams;
+        : isProOrTeams);
 
   if (isLoading) {
     return (
