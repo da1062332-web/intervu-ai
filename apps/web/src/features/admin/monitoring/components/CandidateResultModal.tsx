@@ -14,8 +14,15 @@ import { ExternalLink, FileText, User } from 'lucide-react';
 import { CandidateItem } from '../hooks/useLiveMonitoring';
 import { ResultDetailsPage } from '@/modules/results/pages/ResultDetailsPage';
 
+export interface CandidateResultModalCandidate {
+  attemptId: string;
+  candidateName?: string;
+  candidateEmail?: string;
+  status?: string;
+}
+
 interface CandidateResultModalProps {
-  candidate: CandidateItem | null;
+  candidate: CandidateResultModalCandidate | CandidateItem | null;
   isOpen: boolean;
   onClose: () => void;
 }

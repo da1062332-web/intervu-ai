@@ -147,6 +147,13 @@ export class AdminDashboardService {
       },
     };
 
+    if ((query as any).startDate || (query as any).endDate) {
+      const dateFilter: any = {};
+      if ((query as any).startDate) dateFilter.gte = new Date((query as any).startDate);
+      if ((query as any).endDate) dateFilter.lte = new Date((query as any).endDate);
+      where.createdAt = dateFilter;
+    }
+
     const [total, data] = await this.prisma.$transaction([
       this.prisma.testInstance.count({ where }),
       this.prisma.testInstance.findMany({
@@ -167,6 +174,17 @@ export class AdminDashboardService {
           evaluationResult: {
             select: { overallScore: true },
           },
+          candidateResult: {
+            select: {
+              score: true,
+              percentage: true,
+              qualification: true,
+              foundationScore: true,
+              advancedScore: true,
+              codingSolved: true,
+              qualificationDetails: true,
+            },
+          },
         },
       }),
     ]);
@@ -178,6 +196,11 @@ export class AdminDashboardService {
         "Unknown Assessment";
       const candidateName =
         attempt.user?.fullName || attempt.user?.email || "Unknown Candidate";
+      const cr = attempt.candidateResult;
+      const score = attempt.evaluationResult?.overallScore || cr?.score || 0;
+      const percentage = cr?.percentage ?? (score <= 100 ? Math.round(score) : 0);
+      const sectionsBreakdown =
+        (cr?.qualificationDetails as any)?.sectionsBreakdown || [];
 
       return {
         id: attempt.id,
@@ -185,8 +208,15 @@ export class AdminDashboardService {
         email: attempt.user?.email || undefined,
         role: attempt.user?.role || undefined,
         assessment: assessmentName,
-        score: attempt.evaluationResult?.overallScore || 0,
-        hasEvaluation: attempt.evaluationResult !== null,
+        assessmentId: attempt.examConfigId || attempt.testConfigId || undefined,
+        score,
+        percentage,
+        sectionsBreakdown,
+        foundationScore: cr?.foundationScore ?? 0,
+        advancedScore: cr?.advancedScore ?? 0,
+        codingSolved: cr?.codingSolved ?? 0,
+        qualification: cr?.qualification || undefined,
+        hasEvaluation: attempt.evaluationResult !== null || cr !== null,
         status: attempt.status,
         submittedAt:
           attempt.submittedAt?.toISOString() || attempt.updatedAt.toISOString(),

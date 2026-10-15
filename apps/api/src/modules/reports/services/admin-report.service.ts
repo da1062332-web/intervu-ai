@@ -214,6 +214,19 @@ export class AdminReportService {
       });
     }
 
+    if (filters.startDate || filters.endDate) {
+      const dateCondition: any = {};
+      if (filters.startDate) dateCondition.gte = new Date(filters.startDate);
+      if (filters.endDate) dateCondition.lte = new Date(filters.endDate);
+      andConditions.push({
+        OR: [
+          { submittedAt: dateCondition },
+          { updatedAt: dateCondition },
+          { createdAt: dateCondition },
+        ],
+      });
+    }
+
     const whereClause: any = { AND: andConditions };
 
     let orderBy: any = { createdAt: "desc" };
@@ -247,6 +260,7 @@ export class AdminReportService {
     const results = attempts.map((attempt: any) => {
       const cr = attempt.candidateResult;
       const score = attempt.evaluationResult?.overallScore || cr?.score || 0;
+      const percentage = cr?.percentage ?? (score <= 100 ? Math.round(score) : 0);
       const assessmentName =
         attempt.testConfig?.displayName ||
         attempt.examConfig?.name ||
@@ -260,12 +274,15 @@ export class AdminReportService {
         role: attempt.user?.role,
         assessment: { id: assessmentId, displayName: assessmentName },
         score,
+        percentage,
         evaluationStrategy: cr?.evaluationStrategy || "TCS",
         qualification: cr?.qualification || "NOT_SPECIFIED",
         qualificationReason: cr?.qualificationReason || "N/A",
         foundationScore: cr?.foundationScore ?? 0,
         advancedScore: cr?.advancedScore ?? 0,
         codingSolved: cr?.codingSolved ?? 0,
+        sectionsBreakdown: (cr?.qualificationDetails as any)?.sectionsBreakdown || [],
+        status: attempt.status,
         completedAt: attempt.submittedAt || attempt.updatedAt,
       };
     });
@@ -349,25 +366,57 @@ export class AdminReportService {
     const exportFilters = { ...filters, limit: filters.limit || 1000 };
     const reports = await this.getCandidateReports(exportFilters);
 
+    const header =
+      "#,Candidate Name,Email,Score,%,section wise,Status,Submitted Time indian\n";
+
     if (reports.length === 0) {
-      return "Candidate Name,Candidate Email,Assessment,Score,Strategy,Qualification,Reason,Foundation Score,Advanced Score,Coding Solved,Completed At\n";
+      return header;
     }
 
-    const header =
-      "Candidate Name,Candidate Email,Assessment,Score,Strategy,Qualification,Reason,Foundation Score,Advanced Score,Coding Solved,Completed At\n";
-    const rows = reports.map((r) => {
+    const rows = reports.map((r, idx) => {
+      const num = idx + 1;
       const name = `"${r.candidate?.fullName || "Candidate"}"`;
       const email = `"${r.candidate?.email || ""}"`;
-      const assessment = `"${r.assessment?.displayName || ""}"`;
-      const score = r.score;
-      const strategy = `"${r.evaluationStrategy || "TCS"}"`;
-      const qualification = `"${r.qualification || "NOT_SPECIFIED"}"`;
-      const reason = `"${(r.qualificationReason || "").replace(/"/g, '""')}"`;
-      const foundation = r.foundationScore ?? 0;
-      const advanced = r.advancedScore ?? 0;
-      const coding = r.codingSolved ?? 0;
-      const completed = `"${new Date(r.completedAt).toISOString()}"`;
-      return `${name},${email},${assessment},${score},${strategy},${qualification},${reason},${foundation},${advanced},${coding},${completed}`;
+      const score = r.score ?? 0;
+      const percentage = `"${r.percentage !== undefined ? r.percentage + '%' : (r.score <= 100 ? Math.round(r.score) + '%' : 'N/A')}"`;
+
+      let sectionWise = "";
+      if (r.sectionsBreakdown && Array.isArray(r.sectionsBreakdown) && r.sectionsBreakdown.length > 0) {
+        sectionWise = r.sectionsBreakdown
+          .map((s: any) => `${s.sectionName || s.sectionCode}: ${s.correctCount ?? s.score ?? '-'}`)
+          .join(" | ");
+      } else {
+        const parts: string[] = [];
+        if (r.foundationScore) parts.push(`Foundation: ${r.foundationScore}`);
+        if (r.advancedScore) parts.push(`Advanced: ${r.advancedScore}`);
+        if (r.codingSolved) parts.push(`Coding: ${r.codingSolved}`);
+        sectionWise = parts.length > 0 ? parts.join(" | ") : "General";
+      }
+      const sectionWiseEscaped = `"${sectionWise.replace(/"/g, '""')}"`;
+      const status = `"${r.status || "COMPLETED"}"`;
+
+      let indianTime = "";
+      try {
+        const d = new Date(r.completedAt);
+        const dateStr = d.toLocaleDateString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+        const timeStr = d.toLocaleTimeString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        });
+        indianTime = `"${dateStr}, ${timeStr} IST"`;
+      } catch {
+        indianTime = `"${r.completedAt}"`;
+      }
+
+      return `${num},${name},${email},${score},${percentage},${sectionWiseEscaped},${status},${indianTime}`;
     });
 
     return header + rows.join("\n");
