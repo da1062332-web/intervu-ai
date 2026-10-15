@@ -1251,7 +1251,17 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       else if (c.status === "COMPLETED") completed++;
       else if (c.status === "TERMINATED") terminated++;
 
-      if (c.isNeedsAttention && !(c.status === "AUTO_SUBMITTED" && isNaturalTimeExpired)) {
+      const isTerminalState =
+        c.status === "SUBMITTED" ||
+        c.status === "COMPLETED" ||
+        c.status === "TERMINATED" ||
+        (c.status as string) === "EVALUATED";
+
+      if (
+        c.isNeedsAttention &&
+        !isTerminalState &&
+        !(c.status === "AUTO_SUBMITTED" && isNaturalTimeExpired)
+      ) {
         needsAttentionCount++;
       }
       if (c.autosaveHealth === "HEALTHY") healthyAutosaveCount++;
@@ -1329,15 +1339,20 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     const needsAttention = candidateRecords
       .filter((c) => {
         if (!c.isNeedsAttention) return false;
+        if (
+          c.status === "SUBMITTED" ||
+          c.status === "COMPLETED" ||
+          c.status === "TERMINATED" ||
+          (c.status as string) === "EVALUATED"
+        ) {
+          return false;
+        }
         const isNaturalTimeExpired =
           c.submissionReason === "TIME_EXPIRED" ||
           c.submissionReason === "TIMEOUT" ||
           c.incidentReasons?.includes("TIME_EXPIRED") ||
           c.incidentReasons?.includes("Time Expired");
-        return !(
-          (c.status === "AUTO_SUBMITTED" || c.status === "SUBMITTED") &&
-          isNaturalTimeExpired
-        );
+        return !(c.status === "AUTO_SUBMITTED" && isNaturalTimeExpired);
       })
       .slice(0, MAX_NEEDS_ATTENTION_ITEMS);
 
@@ -1382,46 +1397,234 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+  private normalizeOptions(raw: any): any[] {
+    if (!raw) return [];
+    if (Array.isArray(raw)) {
+      return raw.filter((item) => item !== null && item !== undefined);
+    }
+    if (typeof raw === "string") {
+      const trimmed = raw.trim();
+      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return parsed.filter((item) => item !== null && item !== undefined);
+        } catch {}
+      }
+      if (trimmed.includes("\n")) {
+        const lines = trimmed.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (lines.length >= 2) return lines;
+      }
+    }
+    if (typeof raw === "object") {
+      const entries = Object.entries(raw);
+      entries.sort(([k1], [k2]) => k1.localeCompare(k2, undefined, { numeric: true }));
+      const values = entries.map(([, v]) => v).filter(Boolean);
+      if (values.length > 0) return values;
+    }
+    return [];
+  }
+
+  private extractOptionText(opt: any): string {
+    if (opt === null || opt === undefined) return "";
+    if (typeof opt === "string") {
+      const trimmed = opt.trim();
+      if (trimmed === "[object Object]") return "";
+      if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return this.extractOptionText(parsed);
+        } catch {}
+      }
+      return trimmed;
+    }
+    if (typeof opt === "number" || typeof opt === "boolean") return String(opt);
+    if (typeof opt === "object") {
+      if (typeof opt.text === "string") return opt.text;
+      if (typeof opt.value === "string") return opt.value;
+      if (typeof opt.label === "string") return opt.label;
+      if (typeof opt.optionText === "string") return opt.optionText;
+      if (typeof opt.option === "string") return opt.option;
+      if (typeof opt.content === "string") return opt.content;
+      if (typeof opt.statement === "string") return opt.statement;
+      for (const k of ["text", "value", "label", "option", "content", "title", "statement"]) {
+        if (typeof opt[k] === "string") return opt[k];
+        if (typeof opt[k] === "number") return String(opt[k]);
+      }
+    }
+    return String(opt);
+  }
+
+  private resolveAnswerDetails(rawAnswer: unknown, options: any[]): {
+    optionLabel?: string;
+    optionText?: string;
+    displayText?: string;
+  } {
+    if (rawAnswer === null || rawAnswer === undefined) {
+      return {};
+    }
+
+    let parsedVal: any = rawAnswer;
+    if (typeof rawAnswer === "string") {
+      try {
+        const parsed = JSON.parse(rawAnswer);
+        if (parsed !== null && typeof parsed === "object") {
+          parsedVal = parsed;
+        }
+      } catch {}
+    }
+
+    if (typeof parsedVal === "object" && parsedVal !== null) {
+      if (Array.isArray(parsedVal.selectedOptionIds) && parsedVal.selectedOptionIds.length > 0) {
+        const resolvedList = parsedVal.selectedOptionIds.map((val: any) =>
+          this.resolveSingleOption(val, options),
+        );
+        const labels = resolvedList.map((r: any) => r.optionLabel).filter(Boolean);
+        const texts = resolvedList.map((r: any) => r.optionText).filter(Boolean);
+        const display = resolvedList.map((r: any) => r.displayText).filter(Boolean).join(", ");
+        return {
+          optionLabel: labels.length > 0 ? labels.join(", ") : undefined,
+          optionText: texts.length > 0 ? texts.join(", ") : undefined,
+          displayText: display || JSON.stringify(parsedVal),
+        };
+      }
+      if (parsedVal.selectedOptionId !== undefined) {
+        return this.resolveSingleOption(parsedVal.selectedOptionId, options);
+      }
+      if (parsedVal.textResponse !== undefined) {
+        const text = String(parsedVal.textResponse).trim();
+        const resolved = this.resolveSingleOption(text, options);
+        return resolved.displayText ? resolved : { displayText: text, optionText: text };
+      }
+      if (parsedVal.answer !== undefined) {
+        return this.resolveSingleOption(parsedVal.answer, options);
+      }
+      if (parsedVal.value !== undefined) {
+        return this.resolveSingleOption(parsedVal.value, options);
+      }
+    }
+
+    return this.resolveSingleOption(String(parsedVal), options);
+  }
+
+  private resolveSingleOption(targetValue: unknown, options: any[]): {
+    optionLabel?: string;
+    optionText?: string;
+    displayText?: string;
+  } {
+    if (targetValue === null || targetValue === undefined) return {};
+    const target = String(targetValue).trim();
+    if (!target) return {};
+
+    if (!options || options.length === 0) {
+      return { displayText: target, optionText: target };
+    }
+
+    // 1. Check match against "opt-<index>" (e.g. "opt-0", "opt-1")
+    const optMatch = target.match(/^opt-(\d+)$/i);
+    if (optMatch) {
+      const idx = parseInt(optMatch[1], 10);
+      if (idx >= 0 && idx < options.length) {
+        const text = this.extractOptionText(options[idx]);
+        const label = `Option ${idx + 1}`;
+        return {
+          optionLabel: label,
+          optionText: text,
+          displayText: text ? `${label}: ${text}` : label,
+        };
+      }
+    }
+
+    // 2. Check match against "Option <index>" (e.g. "Option 2")
+    const optionWordMatch = target.match(/^option\s+(\d+)$/i);
+    if (optionWordMatch) {
+      const idx = parseInt(optionWordMatch[1], 10) - 1;
+      if (idx >= 0 && idx < options.length) {
+        const text = this.extractOptionText(options[idx]);
+        const label = `Option ${idx + 1}`;
+        return {
+          optionLabel: label,
+          optionText: text,
+          displayText: text ? `${label}: ${text}` : label,
+        };
+      }
+    }
+
+    // 3. Check match against letter: "A", "B", "C", "D" or "Option A"
+    const letterMatch = target.match(/^(?:option\s+)?([a-z])$/i);
+    if (letterMatch) {
+      const idx = letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+      if (idx >= 0 && idx < options.length) {
+        const text = this.extractOptionText(options[idx]);
+        const label = `Option ${idx + 1} (${letterMatch[1].toUpperCase()})`;
+        return {
+          optionLabel: label,
+          optionText: text,
+          displayText: text ? `${label}: ${text}` : label,
+        };
+      }
+    }
+
+    // 4. Check match by option id / value attribute
+    const byIdIdx = options.findIndex((opt) => {
+      if (typeof opt === "object" && opt !== null) {
+        const optId = String(opt.id ?? opt.value ?? opt.key ?? "").trim().toLowerCase();
+        if (optId && optId === target.toLowerCase()) return true;
+      }
+      return false;
+    });
+    if (byIdIdx >= 0) {
+      const text = this.extractOptionText(options[byIdIdx]);
+      const label = `Option ${byIdIdx + 1}`;
+      return {
+        optionLabel: label,
+        optionText: text,
+        displayText: text ? `${label}: ${text}` : label,
+      };
+    }
+
+    // 5. Check match by exact option text content (e.g. target is "₹8962.41")
+    const byTextIdx = options.findIndex((opt) => {
+      const optText = this.extractOptionText(opt).trim().toLowerCase();
+      return optText && optText === target.toLowerCase();
+    });
+    if (byTextIdx >= 0) {
+      const text = this.extractOptionText(options[byTextIdx]);
+      const label = `Option ${byTextIdx + 1}`;
+      return {
+        optionLabel: label,
+        optionText: text,
+        displayText: `${label}: ${text}`,
+      };
+    }
+
+    // 6. Check numeric string: "0", "1", "2", "3"
+    if (/^\d+$/.test(target)) {
+      const num = parseInt(target, 10);
+      if (num >= 0 && num < options.length) {
+        const text = this.extractOptionText(options[num]);
+        const label = `Option ${num + 1}`;
+        return {
+          optionLabel: label,
+          optionText: text,
+          displayText: text ? `${label}: ${text}` : label,
+        };
+      }
+    }
+
+    // Fallback: return target string as displayText
+    return { displayText: target, optionText: target };
+  }
+
   /**
    * Resolves a raw stored answer value (e.g. "opt-0", "B", "2") to the option's
    * display text using the question's snapshot options, preserving original casing.
    */
   private resolveAnswerText(rawAnswer: unknown, options: any[] | undefined): string | undefined {
-    if (!options || options.length === 0) return undefined;
-
-    let value = typeof rawAnswer === "string" ? rawAnswer : JSON.stringify(rawAnswer ?? "");
-    try {
-      const parsed = JSON.parse(value);
-      if (parsed && typeof parsed === "object") {
-        value = parsed.selectedOptionId || parsed.answer || parsed.value || value;
-      } else if (typeof parsed === "string") {
-        value = parsed;
-      }
-    } catch {
-      // Not JSON — use raw string value as-is
+    if (!options || options.length === 0) {
+      return typeof rawAnswer === "string" ? rawAnswer : JSON.stringify(rawAnswer ?? "");
     }
-
-    const target = String(value).trim();
-    const optionText = (opt: any) => opt?.text || opt?.label || opt?.optionText || opt?.value;
-
-    const byId = options.find(
-      (opt) => String(opt?.id ?? opt?.value ?? "").toLowerCase() === target.toLowerCase(),
-    );
-    if (byId) return optionText(byId);
-
-    const optMatch = target.match(/^opt-(\d+)$/i);
-    if (optMatch) {
-      const idx = parseInt(optMatch[1], 10);
-      if (idx >= 0 && idx < options.length) return optionText(options[idx]);
-    }
-
-    const letterMatch = target.match(/^(?:option\s+)?([a-z])$/i);
-    if (letterMatch) {
-      const idx = letterMatch[1].toUpperCase().charCodeAt(0) - 65;
-      if (idx >= 0 && idx < options.length) return optionText(options[idx]);
-    }
-
-    return undefined;
+    const resolved = this.resolveAnswerDetails(rawAnswer, options);
+    return resolved.displayText;
   }
 
   /**
@@ -1484,7 +1687,8 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
     const questionSnapshotMap = new Map<string, any>();
     for (const section of attempt.sections) {
       for (const q of section.questions) {
-        questionSnapshotMap.set(q.questionId, q.questionSnapshot as any);
+        if (q.questionId) questionSnapshotMap.set(q.questionId, q.questionSnapshot as any);
+        if (q.id) questionSnapshotMap.set(q.id, q.questionSnapshot as any);
       }
     }
 
@@ -1515,16 +1719,38 @@ export class LiveMonitoringService implements OnModuleInit, OnModuleDestroy {
       executionState: attempt.executionState,
       answers: answers.map((a) => {
         const questionSnapshot = questionSnapshotMap.get(a.questionId);
-        const options =
+        const rawOptions =
           questionSnapshot?.options ||
+          questionSnapshot?.richOptions ||
           questionSnapshot?.mcqData?.options ||
-          questionSnapshot?.metadata?.options;
+          questionSnapshot?.mcqData?.choices ||
+          questionSnapshot?.metadata?.options ||
+          questionSnapshot?.metadata?.choices ||
+          questionSnapshot?.choices ||
+          questionSnapshot?.structure?.options ||
+          questionSnapshot?.config?.options;
+
+        const options = this.normalizeOptions(rawOptions);
+        const resolved = this.resolveAnswerDetails(a.answer, options);
+
+        const rawCorrect =
+          questionSnapshot?.correctAnswer ||
+          questionSnapshot?.answer ||
+          questionSnapshot?.mcqData?.correctAnswer;
+        const resolvedCorrect = this.resolveAnswerDetails(rawCorrect, options);
 
         return {
           questionId: a.questionId,
           questionText: questionSnapshot?.questionText || questionSnapshot?.text || undefined,
           answer: a.answer,
-          answerText: this.resolveAnswerText(a.answer, options),
+          answerText: resolved.displayText || (typeof a.answer === "string" ? a.answer : JSON.stringify(a.answer)),
+          selectedOptionLabel: resolved.optionLabel,
+          selectedOptionText: resolved.optionText,
+          correctAnswer: resolvedCorrect.displayText || (typeof rawCorrect === "string" ? rawCorrect : undefined),
+          isCorrect:
+            resolved.optionText && resolvedCorrect.optionText
+              ? resolved.optionText.trim().toLowerCase() === resolvedCorrect.optionText.trim().toLowerCase()
+              : undefined,
           timeSpentSeconds: a.timeSpentSeconds,
           isMarkedForReview: a.isMarkedForReview,
           savedAt: a.savedAt,

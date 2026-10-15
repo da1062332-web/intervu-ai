@@ -74,12 +74,19 @@ export function NeedsAttentionQueue({
   const [isExpanded, setIsExpanded] = useState(false);
   const attentionCandidates = (candidates || []).filter((c) => {
     if (!c || !c.isNeedsAttention) return false;
+    if (
+      c.status === 'SUBMITTED' ||
+      c.status === 'COMPLETED' ||
+      c.status === 'TERMINATED'
+    ) {
+      return false;
+    }
     const isNaturalTimeExpired =
       c.submissionReason === 'TIME_EXPIRED' ||
       c.submissionReason === 'TIMEOUT' ||
       c.incidentReasons?.includes('TIME_EXPIRED') ||
       c.incidentReasons?.includes('Time Expired');
-    if ((c.status === 'AUTO_SUBMITTED' || c.status === 'SUBMITTED') && isNaturalTimeExpired) {
+    if (c.status === 'AUTO_SUBMITTED' && isNaturalTimeExpired) {
       return false;
     }
     return true;

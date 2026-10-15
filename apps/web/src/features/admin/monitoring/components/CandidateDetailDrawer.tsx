@@ -919,11 +919,40 @@ export function CandidateDetailDrawer({
                             const coding = parseCodingAnswer(ans.answer);
                             if (coding) return <CodingAnswerBlock submission={coding} />;
                             return (
-                              <div className='p-1.5 bg-muted/40 rounded text-[11px] break-all'>
-                                {ans.answerText ||
-                                  (typeof ans.answer === 'object'
-                                    ? JSON.stringify(ans.answer)
-                                    : formatMetadataValue('answer', String(ans.answer)))}
+                              <div className='p-2 bg-muted/40 rounded text-xs space-y-1.5'>
+                                <div className='flex items-start justify-between gap-2'>
+                                  <div className='space-y-0.5 min-w-0 flex-1'>
+                                    <div className='flex items-start gap-1.5 flex-wrap'>
+                                      <span className='text-[10px] uppercase font-semibold text-muted-foreground shrink-0 mt-0.5'>Selected:</span>
+                                      <span className='font-medium text-foreground break-words'>
+                                        {ans.answerText ||
+                                          (typeof ans.answer === 'object'
+                                            ? JSON.stringify(ans.answer)
+                                            : formatMetadataValue('answer', String(ans.answer)))}
+                                      </span>
+                                    </div>
+                                    {ans.correctAnswer && (
+                                      <div className='flex items-start gap-1.5 pt-0.5 flex-wrap'>
+                                        <span className='text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5'>Correct:</span>
+                                        <span className='font-medium text-emerald-700 dark:text-emerald-300 break-words'>
+                                          {ans.correctAnswer}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {typeof ans.isCorrect === 'boolean' && (
+                                    <Badge
+                                      variant='outline'
+                                      className={`text-[10px] shrink-0 font-semibold ${
+                                        ans.isCorrect
+                                          ? 'border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40'
+                                          : 'border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40'
+                                      }`}
+                                    >
+                                      {ans.isCorrect ? 'Correct' : 'Incorrect'}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             );
                           })()}

@@ -393,12 +393,15 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
               const isAttentionState =
                 ((p.newState === 'AUTO_SUBMITTED' && !isNaturalTimeExpired) || p.newState === 'ADMIN_REVIEW');
               const isClearedState =
-                p.newState === 'ACTIVE' || p.newState === 'COMPLETED' || (p.newState === 'AUTO_SUBMITTED' && isNaturalTimeExpired);
+                p.newState === 'ACTIVE' ||
+                p.newState === 'COMPLETED' ||
+                p.newState === 'SUBMITTED' ||
+                (p.newState === 'AUTO_SUBMITTED' && isNaturalTimeExpired);
               const effectiveStatus = (p.newState === 'AUTO_SUBMITTED' && isNaturalTimeExpired) ? 'SUBMITTED' : (p.newState || c.status);
               return {
                 ...c,
                 status: effectiveStatus,
-                isNeedsAttention: isAttentionState ? true : (isNaturalTimeExpired ? false : c.isNeedsAttention),
+                isNeedsAttention: isClearedState ? false : (isAttentionState ? true : c.isNeedsAttention),
                 submissionReason: subReason,
                 incidentReasons: isClearedState
                   ? []
@@ -427,6 +430,9 @@ export function useLiveMonitoring(assessmentId: string, options: UseLiveMonitori
         setCandidates((prev) =>
           (prev || []).map((c) => {
             if (c && c.attemptId === p.attemptId) {
+              if (c.status === 'SUBMITTED' || c.status === 'COMPLETED' || c.status === 'TERMINATED') {
+                return c;
+              }
               matched = true;
               return {
                 ...c,
