@@ -97,6 +97,74 @@ const DEFAULT_STARTER_CODE: Record<string, string> = {
   cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your C++ solution here\n    return 0;\n}\n`,
 };
 
+function inferTypePython(val: any): string {
+  if (typeof val === 'boolean') return 'bool';
+  if (typeof val === 'string') return 'str';
+  if (typeof val === 'number') return Number.isInteger(val) ? 'int' : 'float';
+  if (Array.isArray(val)) {
+    if (val.length === 0) return 'list';
+    return `list[${inferTypePython(val[0])}]`;
+  }
+  if (val && typeof val === 'object') {
+    const entries = Object.entries(val);
+    if (entries.length > 0) {
+      return `dict[str, ${inferTypePython(entries[0][1])}]`;
+    }
+    return 'dict';
+  }
+  return 'Any';
+}
+
+function inferTypeJava(val: any): { type: string; zero: string } {
+  if (typeof val === 'boolean') return { type: 'boolean', zero: 'false' };
+  if (typeof val === 'string') return { type: 'String', zero: '""' };
+  if (typeof val === 'number') {
+    if (!Number.isInteger(val)) return { type: 'double', zero: '0.0' };
+    return Math.abs(val) > 2147483647 ? { type: 'long', zero: '0L' } : { type: 'int', zero: '0' };
+  }
+  if (Array.isArray(val)) {
+    if (val.length === 0) return { type: 'int[]', zero: 'new int[0]' };
+    const inner = inferTypeJava(val[0]);
+    return { type: `${inner.type}[]`, zero: `new ${inner.type}[0]` };
+  }
+  if (val && typeof val === 'object') {
+    return { type: 'Map<String, Integer>', zero: 'new HashMap<>()' };
+  }
+  return { type: 'Object', zero: 'null' };
+}
+
+function inferTypeCpp(val: any): { type: string; zero: string } {
+  if (typeof val === 'boolean') return { type: 'bool', zero: 'false' };
+  if (typeof val === 'string') return { type: 'string', zero: '""' };
+  if (typeof val === 'number') {
+    return Number.isInteger(val) ? { type: 'int', zero: '0' } : { type: 'double', zero: '0.0' };
+  }
+  if (Array.isArray(val)) {
+    if (val.length === 0) return { type: 'vector<int>', zero: '{}' };
+    const inner = inferTypeCpp(val[0]);
+    return { type: `vector<${inner.type}>`, zero: '{}' };
+  }
+  if (val && typeof val === 'object') {
+    return { type: 'map<string, int>', zero: '{}' };
+  }
+  return { type: 'auto', zero: '0' };
+}
+
+function hasExplicitTypeHints(code: string, lang: string): boolean {
+  if (!code) return false;
+  const l = lang.toLowerCase();
+  if (l.includes('python') || l === 'py') {
+    return code.includes('->') || /:\s*(int|str|bool|float|dict|list|tuple|Any)\b/.test(code);
+  }
+  if (l.includes('java')) {
+    return /public\s+(?!Object\s+\w+\s*\(\s*Object\b)(int|long|double|boolean|String|Map|List|void|int\[\]|String\[\])/.test(code);
+  }
+  if (l.includes('cpp') || l === 'c++') {
+    return /^(?!auto\s+\w+\s*\(\s*auto\b)(int|long|double|bool|string|vector|map)/m.test(code);
+  }
+  return false;
+}
+
 function getQuestionStarterCode(question: any, lang: string): string {
   const coding =
     question?.codingData ||
@@ -105,6 +173,67 @@ function getQuestionStarterCode(question: any, lang: string): string {
     question?.questionSnapshot?.metadata?.codingData;
 
   const starterFromCoding = coding?.starterCode?.[lang] || coding?.starterCode?.[lang.toLowerCase()];
+  if (starterFromCoding && typeof starterFromCoding === 'string' && hasExplicitTypeHints(starterFromCoding, lang)) {
+    return starterFromCoding;
+  }
+
+  // Check metadata starterCode or codeSkeletons which often contain complete type annotations
+  const metaStarter =
+    question?.metadata?.starterCode?.[lang] ||
+    question?.metadata?.starterCode?.[lang.toLowerCase()] ||
+    question?.questionSnapshot?.metadata?.starterCode?.[lang] ||
+    question?.statementSpecification?.codeSkeletons?.[lang] ||
+    question?.metadata?.statementSpecification?.codeSkeletons?.[lang];
+
+  if (metaStarter && typeof metaStarter === 'string' && hasExplicitTypeHints(metaStarter, lang)) {
+    return metaStarter;
+  }
+
+  // If existing starter code exists, attempt to enrich it if sample test data is present
+  const sampleTest = coding?.publicTests?.[0] || question?.metadata?.publicTests?.[0];
+  const sampleInput = sampleTest?.input;
+  const sampleOutput = sampleTest?.expectedOutput;
+  const fnNameMatch = starterFromCoding?.match(/def\s+([a-zA-Z0-9_]+)/) ||
+    starterFromCoding?.match(/class\s+Solution[\s\S]*?public\s+\S+\s+([a-zA-Z0-9_]+)/) ||
+    starterFromCoding?.match(/auto\s+([a-zA-Z0-9_]+)/);
+  const fnName = fnNameMatch?.[1] || coding?.functionName || 'solve';
+
+  if (sampleInput && typeof sampleInput === 'object' && !Array.isArray(sampleInput) && sampleOutput !== undefined) {
+    const paramEntries = Object.entries(sampleInput as Record<string, any>);
+    const l = lang.toLowerCase();
+
+    // Check if return value is a multi-key dictionary/object
+    const isMultiKeyObj = typeof sampleOutput === 'object' && sampleOutput !== null && !Array.isArray(sampleOutput) && Object.keys(sampleOutput).length > 1;
+    const objKeys = isMultiKeyObj ? Object.keys(sampleOutput) : [];
+
+    if (l.includes('python') || l === 'py') {
+      const pyParams = paramEntries.map(([k, v]) => `${k}: ${inferTypePython(v)}`).join(', ');
+      const pyRet = inferTypePython(sampleOutput);
+      const docComment = isMultiKeyObj
+        ? `    # Return a dictionary with keys: ${objKeys.map(k => `'${k}'`).join(', ')}\n`
+        : '';
+      return `def ${fnName}(${pyParams}) -> ${pyRet}:\n${docComment}    # Implement your solution here\n    pass\n`;
+    }
+
+    if (l.includes('java')) {
+      const javaParams = paramEntries.map(([k, v]) => `${inferTypeJava(v).type} ${k}`).join(', ');
+      const javaRet = inferTypeJava(sampleOutput);
+      const docComment = isMultiKeyObj
+        ? `        // Return a Map with keys: ${objKeys.map(k => `"${k}"`).join(', ')}\n`
+        : '';
+      return `import java.util.*;\n\nclass Solution {\n    public ${javaRet.type} ${fnName}(${javaParams}) {\n${docComment}        // Implement your solution here\n        return ${javaRet.zero};\n    }\n}\n`;
+    }
+
+    if (l.includes('cpp') || l === 'c++') {
+      const cppParams = paramEntries.map(([k, v]) => `${inferTypeCpp(v).type} ${k}`).join(', ');
+      const cppRet = inferTypeCpp(sampleOutput);
+      const docComment = isMultiKeyObj
+        ? `        // Return a map with keys: ${objKeys.map(k => `"${k}"`).join(', ')}\n`
+        : '';
+      return `#include <iostream>\n#include <vector>\n#include <string>\n#include <map>\n\nusing namespace std;\n\nclass Solution {\npublic:\n    ${cppRet.type} ${fnName}(${cppParams}) {\n${docComment}        // Implement your solution here\n        return ${cppRet.zero};\n    }\n};\n`;
+    }
+  }
+
   if (starterFromCoding && typeof starterFromCoding === 'string') {
     return starterFromCoding;
   }

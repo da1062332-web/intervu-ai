@@ -35,6 +35,55 @@ function javaTypeOf(value: any): { type: string; zero: string } {
   return { type: "Object", zero: "null" };
 }
 
+function pythonTypeOf(value: any): string {
+  if (typeof value === "boolean") return "bool";
+  if (typeof value === "string") return "str";
+  if (typeof value === "number") return Number.isInteger(value) ? "int" : "float";
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "list";
+    return `list[${pythonTypeOf(value[0])}]`;
+  }
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value);
+    if (entries.length > 0) {
+      return `dict[str, ${pythonTypeOf(entries[0][1])}]`;
+    }
+    return "dict";
+  }
+  return "Any";
+}
+
+function tsTypeOf(value: any): string {
+  if (typeof value === "boolean") return "boolean";
+  if (typeof value === "string") return "string";
+  if (typeof value === "number") return "number";
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "any[]";
+    return `${tsTypeOf(value[0])}[]`;
+  }
+  if (value && typeof value === "object") {
+    return "Record<string, any>";
+  }
+  return "any";
+}
+
+function cppTypeOf(value: any): { type: string; zero: string } {
+  if (typeof value === "boolean") return { type: "bool", zero: "false" };
+  if (typeof value === "string") return { type: "string", zero: '""' };
+  if (typeof value === "number") {
+    return Number.isInteger(value) ? { type: "int", zero: "0" } : { type: "double", zero: "0.0" };
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) return { type: "vector<int>", zero: "{}" };
+    const inner = cppTypeOf(value[0]);
+    return { type: `vector<${inner.type}>`, zero: "{}" };
+  }
+  if (value && typeof value === "object") {
+    return { type: "map<string, int>", zero: "{}" };
+  }
+  return { type: "auto", zero: "0" };
+}
+
 function unwrapResult(expected: any): any {
   if (expected && typeof expected === "object" && !Array.isArray(expected)) {
     const keys = Object.keys(expected);
@@ -230,19 +279,37 @@ async function remediateCodingQuestions() {
       ? Object.keys(publicTests[0].input)
       : ["input"];
 
-    const pythonParams = paramKeys.join(", ");
-    const jsParams = paramKeys.join(", ");
-    const cppParams = paramKeys.map(k => `auto ${k}`).join(", ");
     const sampleInput = publicTests[0]?.input ?? {};
+    const sampleRawOutput = publicTests[0]?.expectedOutput;
+    const unwrappedOutput = unwrapResult(sampleRawOutput);
+    const isMultiKeyObj = typeof sampleRawOutput === "object" && sampleRawOutput !== null && !Array.isArray(sampleRawOutput) && Object.keys(sampleRawOutput).length > 1;
+    const objKeys = isMultiKeyObj ? Object.keys(sampleRawOutput) : [];
+
+    const pythonParams = paramKeys.map(k => `${k}: ${pythonTypeOf(sampleInput?.[k])}`).join(", ");
+    const pythonReturn = pythonTypeOf(unwrappedOutput);
+    const pythonDoc = isMultiKeyObj ? `    # Return a dictionary with keys: ${objKeys.map(k => `'${k}'`).join(", ")}\n` : "";
+
+    const tsParams = paramKeys.map(k => `${k}: ${tsTypeOf(sampleInput?.[k])}`).join(", ");
+    const tsReturn = tsTypeOf(unwrappedOutput);
+    const tsZero = typeof unwrappedOutput === "number" ? "0" : typeof unwrappedOutput === "boolean" ? "false" : typeof unwrappedOutput === "string" ? '""' : Array.isArray(unwrappedOutput) ? "[]" : "{}";
+
+    const jsParams = paramKeys.join(", ");
+    const jsDoc = `/**\n${paramKeys.map(k => ` * @param {${tsTypeOf(sampleInput?.[k])}} ${k}`).join("\n")}\n * @return {${tsReturn}}\n */\n`;
+
     const javaParams = paramKeys.map(k => `${javaTypeOf(sampleInput?.[k]).type} ${k}`).join(", ");
-    const javaReturn = javaTypeOf(unwrapResult(publicTests[0]?.expectedOutput));
+    const javaReturn = javaTypeOf(unwrappedOutput);
+    const javaDoc = isMultiKeyObj ? `        // Return a Map with keys: ${objKeys.map(k => `"${k}"`).join(", ")}\n` : "";
+
+    const cppParams = paramKeys.map(k => `${cppTypeOf(sampleInput?.[k]).type} ${k}`).join(", ");
+    const cppReturn = cppTypeOf(unwrappedOutput);
+    const cppDoc = isMultiKeyObj ? `        // Return a map with keys: ${objKeys.map(k => `"${k}"`).join(", ")}\n` : "";
 
     const starterCode = {
-      python: `def ${fnName}(${pythonParams}):\n    # Implement your solution here\n    pass\n`,
-      javascript: `function ${fnName}(${jsParams}) {\n    // Implement your solution here\n    return null;\n}\n`,
-      typescript: `function ${fnName}(${jsParams}: any): any {\n    // Implement your solution here\n    return null;\n}\n`,
-      java: `class Solution {\n    public ${javaReturn.type} ${fnName}(${javaParams}) {\n        // Implement your solution here\n        return ${javaReturn.zero};\n    }\n}\n`,
-      cpp: `#include <iostream>\n#include <vector>\n#include <string>\n\nusing namespace std;\n\nclass Solution {\npublic:\n    auto ${fnName}(${cppParams}) {\n        // Implement your solution here\n        return 0;\n    }\n};\n`
+      python: `def ${fnName}(${pythonParams}) -> ${pythonReturn}:\n${pythonDoc}    # Implement your solution here\n    pass\n`,
+      javascript: `${jsDoc}function ${fnName}(${jsParams}) {\n    // Implement your solution here\n    return ${tsZero};\n}\n`,
+      typescript: `function ${fnName}(${tsParams}): ${tsReturn} {\n    // Implement your solution here\n    return ${tsZero};\n}\n`,
+      java: `import java.util.*;\n\nclass Solution {\n    public ${javaReturn.type} ${fnName}(${javaParams}) {\n${javaDoc}        // Implement your solution here\n        return ${javaReturn.zero};\n    }\n}\n`,
+      cpp: `#include <iostream>\n#include <vector>\n#include <string>\n#include <map>\n\nusing namespace std;\n\nclass Solution {\npublic:\n    ${cppReturn.type} ${fnName}(${cppParams}) {\n${cppDoc}        // Implement your solution here\n        return ${cppReturn.zero};\n    }\n};\n`
     };
 
     const newCodingData = {

@@ -398,12 +398,25 @@ export class SubmissionEvaluatorService {
         }
       }
 
-      // Deep compare objects/arrays via stable JSON
-      if (JSON.stringify(actualTarget) === JSON.stringify(expectedTarget)) {
+      // Deep compare objects/arrays (order-agnostic key comparison for objects/maps)
+      if (this.deepCompare(actualTarget, expectedTarget)) {
         return true;
       }
-      if (JSON.stringify(parsedActual) === JSON.stringify(expectedObj)) {
+      if (this.deepCompare(parsedActual, expectedObj)) {
         return true;
+      }
+
+      // If expected is an object and candidate returned an array/tuple of values (e.g. return quotient, remainder -> [3, 2])
+      if (
+        Array.isArray(actualTarget) &&
+        typeof expectedTarget === "object" &&
+        expectedTarget !== null &&
+        !Array.isArray(expectedTarget)
+      ) {
+        const expectedValues = Object.values(expectedTarget);
+        if (this.deepCompare(actualTarget, expectedValues)) {
+          return true;
+        }
       }
     } catch {
       // If not valid JSON, check boolean 1/0 or true/false fallback
@@ -413,6 +426,41 @@ export class SubmissionEvaluatorService {
       }
     }
 
+    // Match key-value string format (e.g. "quotient = 3, remainder = 2")
+    if (typeof expectedTarget === "object" && expectedTarget !== null && !Array.isArray(expectedTarget)) {
+      const kvMatches = [...actualTrimmed.matchAll(/([a-zA-Z0-9_]+)\s*[:=]\s*([^,;\n]+)/g)];
+      if (kvMatches.length > 0) {
+        const parsedObj: Record<string, any> = {};
+        for (const m of kvMatches) {
+          const k = m[1];
+          let v: any = m[2].trim();
+          if (v.toLowerCase() === "true") v = true;
+          else if (v.toLowerCase() === "false") v = false;
+          else if (!isNaN(Number(v))) v = Number(v);
+          parsedObj[k] = v;
+        }
+        if (this.deepCompare(parsedObj, expectedTarget)) {
+          return true;
+        }
+      }
+    }
+
     return false;
+  }
+
+  private deepCompare(a: any, b: any): boolean {
+    if (a === b) return true;
+    if (a === null || a === undefined || b === null || b === undefined) return a === b;
+    if (typeof a !== typeof b) return false;
+    if (typeof a !== "object") return a === b;
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    if (Array.isArray(a)) {
+      if (a.length !== b.length) return false;
+      return a.every((item, i) => this.deepCompare(item, b[i]));
+    }
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+    if (keysA.length !== keysB.length) return false;
+    return keysA.every((k) => Object.prototype.hasOwnProperty.call(b, k) && this.deepCompare(a[k], b[k]));
   }
 }

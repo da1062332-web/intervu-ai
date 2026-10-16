@@ -99,12 +99,8 @@ export function formatNormalOutput(raw: string): string {
   if (!raw || typeof raw !== 'string') return '';
   let str = raw.trim();
 
-  // Strip wrapping backticks or quotes
-  if (
-    (str.startsWith('`') && str.endsWith('`') && str.length >= 2) ||
-    (str.startsWith('"') && str.endsWith('"') && str.length >= 2) ||
-    (str.startsWith("'") && str.endsWith("'") && str.length >= 2)
-  ) {
+  // Strip wrapping backticks if present
+  if (str.startsWith('`') && str.endsWith('`') && str.length >= 2) {
     const unquoted = str.slice(1, -1).trim();
     if (!unquoted.includes('`')) {
       str = unquoted;
@@ -136,9 +132,8 @@ export function formatNormalOutput(raw: string): string {
         if (entries.length === 1) {
           return formatNormalValue(entries[0][1]);
         }
-        return entries
-          .map(([k, v]) => `${k} = ${formatNormalValue(v)}`)
-          .join(', ');
+        // Multi-key domain object: retain valid JSON structure so candidate sees expected dictionary
+        return JSON.stringify(parsed);
       }
     } catch {
       try {
@@ -164,9 +159,7 @@ export function formatNormalOutput(raw: string): string {
           if (entries.length === 1) {
             return formatNormalValue(entries[0][1]);
           }
-          return entries
-            .map(([k, v]) => `${k} = ${formatNormalValue(v)}`)
-            .join(', ');
+          return JSON.stringify(parsed);
         }
       } catch {}
     }
